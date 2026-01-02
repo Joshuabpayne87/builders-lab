@@ -6,6 +6,21 @@ const PUBLIC_DATABASE_ID = process.env.PUBLIC_DATABASE_ID || "";
 
 export async function GET() {
   try {
+    // Validate environment variables
+    if (!PUBLIC_NOTION_API_KEY) {
+      return NextResponse.json(
+        { error: "PUBLIC_NOTION_API_KEY is not configured" },
+        { status: 500 }
+      );
+    }
+
+    if (!PUBLIC_DATABASE_ID) {
+      return NextResponse.json(
+        { error: "PUBLIC_DATABASE_ID is not configured" },
+        { status: 500 }
+      );
+    }
+
     const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
 
     // Step 1: Retrieve the database to get its data source ID
@@ -109,8 +124,15 @@ export async function GET() {
     return NextResponse.json(resources);
   } catch (error: any) {
     console.error("Error fetching public resources:", error);
+    console.error("Error stack:", error.stack);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+
     return NextResponse.json(
-      { error: error.message },
+      {
+        error: error.message || "Unknown error occurred",
+        details: error.toString(),
+        type: error.constructor?.name
+      },
       { status: 500 }
     );
   }
