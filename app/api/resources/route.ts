@@ -101,27 +101,61 @@ export async function GET() {
       const tags =
         properties.Tags?.multi_select?.map((tag: any) => tag.name) || [];
 
-      // Extract cover image
-      let coverImage = null;
-      if (page.cover) {
-        if (page.cover.type === "external") {
-          coverImage = page.cover.external?.url;
-        } else if (page.cover.type === "file") {
-          coverImage = page.cover.file?.url;
-        }
-      }
-
       return {
         id: page.id,
         title,
         tags,
         url: page.url,
         lastEdited: page.last_edited_time,
-        coverImage,
+        coverImage: null, // Will be populated below
       };
     });
 
-    return NextResponse.json(resources);
+    // Fetch images from page content for each resource
+    const resourcesWithImages = await Promise.all(
+      resources.map(async (resource: any) => {
+        const page = allResults.find((p: any) => p.id === resource.id);
+
+        // Extract cover image
+        let coverImage = null;
+        if (page?.cover) {
+          if (page.cover.type === "external") {
+            coverImage = page.cover.external?.url;
+          } else if (page.cover.type === "file") {
+            coverImage = page.cover.file?.url;
+          }
+        }
+
+        // Fetch blocks (page content) to find images
+        let contentImage = null;
+        try {
+          const blocks = await notion.blocks.children.list({
+            block_id: resource.id,
+            page_size: 20,
+          });
+
+          // Find the first image block
+          const imageBlock = blocks.results.find((block: any) => block.type === "image");
+          if (imageBlock) {
+            const img = (imageBlock as any).image;
+            if (img.type === "external") {
+              contentImage = img.external?.url;
+            } else if (img.type === "file") {
+              contentImage = img.file?.url;
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching blocks for page ${resource.id}:`, err);
+        }
+
+        return {
+          ...resource,
+          coverImage: contentImage || coverImage, // Prefer content image
+        };
+      })
+    );
+
+    return NextResponse.json(resourcesWithImages);
   } catch (error: any) {
     console.error("Error fetching public resources:", error);
     console.error("Error stack:", error.stack);
