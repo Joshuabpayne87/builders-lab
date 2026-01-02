@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react";
@@ -11,7 +11,7 @@ const AUTHORIZED_REFERRERS = [
   "topaitools.dev",
 ];
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -328,5 +328,25 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center p-6">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_55%)]"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0F10]"></div>
+          </div>
+          <div className="relative z-10">
+            <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+          </div>
+        </div>
+      }
+    >
+      <SignupForm />
+    </Suspense>
   );
 }
