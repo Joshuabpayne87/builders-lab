@@ -54,7 +54,7 @@ export async function getNotionDatabase(databaseId?: string) {
 
       allResults = allResults.concat(response.results);
       hasMore = response.has_more;
-      startCursor = response.next_cursor;
+      startCursor = response.next_cursor ?? undefined;
     }
 
     // Fetch blocks (content) for each page to get images

@@ -40,7 +40,7 @@ export async function GET() {
 
       allResults = allResults.concat(response.results);
       hasMore = response.has_more;
-      startCursor = response.next_cursor;
+      startCursor = response.next_cursor ?? undefined;
     }
 
     // Process results
