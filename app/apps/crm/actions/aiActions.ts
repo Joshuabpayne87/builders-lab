@@ -26,6 +26,8 @@ export async function generateContactSummaryAction(contactId: string) {
     await saveAIAutomation({
       automation_type: "CONTACT_SUMMARY",
       contact_id: contact.id,
+      trigger_event: null,
+      deal_id: null,
       input_data: { contact_id: contact.id },
       output_data: summary,
     });
@@ -56,6 +58,8 @@ export async function suggestNextActionsAction(contactId: string) {
     await saveAIAutomation({
       automation_type: "NEXT_ACTION",
       contact_id: contact.id,
+      trigger_event: null,
+      deal_id: null,
       input_data: { contact_id: contact.id },
       output_data: { actions },
     });
@@ -83,6 +87,8 @@ export async function draftEmailAction(contactId: string, purpose: string) {
     await saveAIAutomation({
       automation_type: "EMAIL_DRAFT",
       contact_id: contact.id,
+      trigger_event: null,
+      deal_id: null,
       input_data: { contact_id: contact.id, purpose },
       output_data: draft,
     });
