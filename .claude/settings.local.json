@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(dir:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(winget install:*)",
+      "Bash(timeout 60 tail:*)",
+      "Bash(where gh:*)",
+      "Bash(refreshenv)",
+      "Bash(. /etc/profile)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" version)",
+      "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth login --web)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}
