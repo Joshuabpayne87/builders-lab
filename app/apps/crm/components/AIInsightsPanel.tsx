@@ -8,9 +8,9 @@ interface AIInsightsPanelProps {
   contact: Contact;
   activities: Activity[];
   deals: Deal[];
-  onGenerateSummary?: () => Promise<AIContactSummary>;
+  onGenerateSummary?: () => Promise<AIContactSummary | null>;
   onGenerateActions?: () => Promise<AINextAction[]>;
-  onDraftEmail?: (purpose: string) => Promise<AIEmailDraft>;
+  onDraftEmail?: (purpose: string) => Promise<AIEmailDraft | null>;
 }
 
 export function AIInsightsPanel({
