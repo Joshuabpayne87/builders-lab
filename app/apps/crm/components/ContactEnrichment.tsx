@@ -33,7 +33,7 @@ export function ContactEnrichment({ contact, initialScore }: ContactEnrichmentPr
   const handleCheckDuplicates = async () => {
     setIsCheckingDuplicates(true);
     const result = await findDuplicatesAction(contact.id);
-    if (result.duplicates) {
+    if (result.success && "duplicates" in result) {
       setDuplicates({
         contacts: result.duplicates,
         similarity: result.similarity,
