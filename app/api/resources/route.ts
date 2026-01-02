@@ -8,13 +8,13 @@ export async function GET() {
   try {
     const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
 
-    // Query the database directly
+    // Query the database directly using type cast for v5.6.0 compatibility
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await notion.databases.query({
+      const response: any = await (notion as any).databases.query({
         database_id: PUBLIC_DATABASE_ID,
         sorts: [
           {
