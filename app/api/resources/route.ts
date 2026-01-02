@@ -14,7 +14,7 @@ export async function GET() {
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response = await notion.databases.query({
+      const response: any = await notion.databases.query({
         database_id: PUBLIC_DATABASE_ID,
         sorts: [
           {
