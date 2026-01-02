@@ -8,14 +8,29 @@ export async function GET() {
   try {
     const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
 
-    // Query the database directly using type cast for v5.6.0 compatibility
+    // Step 1: Retrieve the database to get its data source ID
+    const database = await notion.databases.retrieve({
+      database_id: PUBLIC_DATABASE_ID,
+    });
+
+    // Step 2: Get the first data source ID
+    const dataSourceId = (database as any).data_sources?.[0]?.id;
+
+    if (!dataSourceId) {
+      return NextResponse.json(
+        { error: "No data source found for this database. Please check your Notion database configuration." },
+        { status: 500 }
+      );
+    }
+
+    // Step 3: Query the data source using v5.6.0 API
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await (notion as any).databases.query({
-        database_id: PUBLIC_DATABASE_ID,
+      const response: any = await (notion as any).dataSources.query({
+        data_source_id: dataSourceId,
         sorts: [
           {
             timestamp: "last_edited_time",
