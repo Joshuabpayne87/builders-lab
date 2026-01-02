@@ -47,12 +47,13 @@ export async function getPipelineFunnel(): Promise<PipelineFunnelData[]> {
   };
 
   contacts?.forEach((contact) => {
-    funnel[contact.contact_type].count++;
+    const contactType = contact.contact_type as ContactType;
+    funnel[contactType].count++;
 
     // Add associated deal values
     const contactDeals = deals?.filter((d) => d.contact_id === contact.id) || [];
     const totalValue = contactDeals.reduce((sum, d) => sum + (d.value || 0), 0);
-    funnel[contact.contact_type].value += totalValue;
+    funnel[contactType].value += totalValue;
   });
 
   // Calculate conversion rates
@@ -205,8 +206,9 @@ export async function getContactGrowth(months = 12): Promise<ContactGrowthData[]
       };
     }
 
+    const contactType = contact.contact_type as ContactType;
     growth[period].new++;
-    growth[period].by_type[contact.contact_type]++;
+    growth[period].by_type[contactType]++;
   });
 
   // Calculate cumulative totals
@@ -286,7 +288,8 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
     PARTNER: 0,
   };
   contacts?.forEach((c) => {
-    typePerformance[c.contact_type]++;
+    const contactType = c.contact_type as ContactType;
+    typePerformance[contactType]++;
   });
   const topPerformingType = (Object.keys(typePerformance) as ContactType[]).reduce((a, b) =>
     typePerformance[a] > typePerformance[b] ? a : b
