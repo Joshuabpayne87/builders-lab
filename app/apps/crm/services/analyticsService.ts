@@ -28,7 +28,7 @@ export async function getPipelineFunnel(): Promise<PipelineFunnelData[]> {
   // Get all contacts with their type
   const { data: contacts } = await supabase
     .from("bl_crm_contacts")
-    .select("contact_type")
+    .select("id, contact_type")
     .eq("user_id", user.id)
     .eq("status", "ACTIVE");
 
