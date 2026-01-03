@@ -313,6 +313,14 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Hidden Admin Link */}
+      <Link
+        href="/admin"
+        className="fixed bottom-4 right-4 w-3 h-3 bg-white/5 hover:bg-white/10 hover:w-auto hover:h-auto hover:px-3 hover:py-2 rounded transition-all duration-300 group z-50"
+      >
+        <span className="hidden group-hover:inline text-xs text-white font-semibold">admin</span>
+      </Link>
     </div>
   );
 }
