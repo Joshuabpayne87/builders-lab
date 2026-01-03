@@ -217,7 +217,7 @@ export default async function AppsPage() {
               >
                 <div className="relative bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all">
                   {/* Card Image Header */}
-                  <div className="relative w-full h-48 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
+                  <div className="relative w-full h-32 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
                     <Image
                       src={app.image}
                       alt={`${app.name} banner`}
@@ -227,7 +227,7 @@ export default async function AppsPage() {
                     />
                     {/* Overlay with app icon */}
                     <div className="absolute inset-0 bg-gradient-to-br from-slate-900/30 via-purple-900/10 to-slate-900/30 flex items-center justify-center pointer-events-none">
-                      <Icon className="w-16 h-16 text-white/10" strokeWidth={1} />
+                      <Icon className="w-12 h-12 text-white/10" strokeWidth={1} />
                     </div>
                   </div>
 

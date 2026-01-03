@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Layers,
   Sparkles,
   FileText,
   Lightbulb,
-  Image,
+  Image as ImageIcon,
   LogOut,
   Bot,
   User,
@@ -41,36 +42,42 @@ export default async function DashboardPage() {
       description: "Thread to Article Converter",
       icon: FileText,
       href: "/apps/unravel",
+      image: "/app-cards/unravel.png",
     },
     {
       name: "Serendipity",
       description: "AI Content Architect",
       icon: Layers,
       href: "/apps/serendipity",
+      image: "/app-cards/serendipity.png",
     },
     {
       name: "PromptStash",
       description: "Prompt IDE",
       icon: Sparkles,
       href: "/apps/promptstash",
+      image: "/app-cards/promptstash.png",
     },
     {
       name: "InsightLens",
       description: "Content Transformer",
       icon: Lightbulb,
       href: "/apps/insightlens",
+      image: "/app-cards/insightlens.png",
     },
     {
       name: "Banana Blitz",
       description: "Image Generator",
-      icon: Image,
+      icon: ImageIcon,
       href: "/apps/banana-blitz",
+      image: "/app-cards/banana-blitz.png",
     },
     {
       name: "ComponentStudio",
       description: "UI Component Generator",
       icon: Code,
       href: "/apps/component-studio",
+      image: "/app-cards/component-studio.png",
     },
   ];
 
@@ -199,19 +206,36 @@ export default async function DashboardPage() {
                     href={app.href}
                     className="group relative flex-shrink-0 w-56 snap-start"
                   >
-                    <div className="h-full bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl p-5 transition-all">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-5 h-5 text-white/80" strokeWidth={1.5} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-semibold text-white mb-0.5 truncate">{app.name}</h3>
-                          <p className="text-xs text-slate-500 line-clamp-2">{app.description}</p>
+                    <div className="h-full bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all">
+                      {/* Card Image Header */}
+                      <div className="relative w-full h-24 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
+                        <Image
+                          src={app.image}
+                          alt={`${app.name} banner`}
+                          fill
+                          className="object-cover"
+                          priority
+                        />
+                        {/* Overlay with app icon */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/30 via-purple-900/10 to-slate-900/30 flex items-center justify-center pointer-events-none">
+                          <Icon className="w-8 h-8 text-white/10" strokeWidth={1} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>Open</span>
-                        <ArrowRight className="w-3 h-3" />
+
+                      <div className="p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-5 h-5 text-white/80" strokeWidth={1.5} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-semibold text-white mb-0.5 truncate">{app.name}</h3>
+                            <p className="text-xs text-slate-500 line-clamp-2">{app.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span>Open</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </div>
                       </div>
                     </div>
                   </Link>
