@@ -134,12 +134,15 @@ export default async function DashboardPage() {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
+              <Link
+                href="/settings"
+                className="hidden lg:flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-colors"
+              >
                 <User className="w-3.5 h-3.5 text-slate-500" />
                 <span className="text-xs text-slate-400 max-w-[150px] truncate">
-                  {user.email}
+                  {user.user_metadata?.full_name || user.email}
                 </span>
-              </div>
+              </Link>
               <form action={handleSignOut}>
                 <button
                   type="submit"
