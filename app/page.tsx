@@ -60,6 +60,25 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0F10]"></div>
       </div>
 
+      {/* Top Navigation Bar */}
+      <div className="relative z-20 border-b border-white/10 bg-black/20 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-4 max-w-6xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-yellow-400" />
+              <span className="text-lg font-bold">Builder's Lab</span>
+            </div>
+            <Link
+              href="/login"
+              className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg font-semibold transition-all hover:scale-105 flex items-center gap-2"
+            >
+              Log In
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative z-10">
         <div className="container mx-auto px-6 py-16 max-w-6xl">
