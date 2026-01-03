@@ -223,14 +223,11 @@ export default async function AppsPage() {
                       alt={`${app.name} banner`}
                       fill
                       className="object-cover"
-                      onError={(e) => {
-                        // Fallback gradient if image doesn't exist yet
-                        e.currentTarget.style.display = 'none';
-                      }}
+                      priority
                     />
-                    {/* Fallback gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-purple-900/20 to-slate-900/50 flex items-center justify-center">
-                      <Icon className="w-16 h-16 text-white/20" strokeWidth={1} />
+                    {/* Overlay with app icon */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900/30 via-purple-900/10 to-slate-900/30 flex items-center justify-center pointer-events-none">
+                      <Icon className="w-16 h-16 text-white/10" strokeWidth={1} />
                     </div>
                   </div>
 
