@@ -56,7 +56,7 @@ export default async function DashboardPage() {
       description: "AI Content Architect",
       icon: Layers,
       href: "/apps/serendipity",
-      image: "/app-cards/serendipity.png",
+      image: "/app-cards/insightlens.png",
     },
     {
       name: "PromptStash",
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
       description: "Content Transformer",
       icon: Lightbulb,
       href: "/apps/insightlens",
-      image: "/app-cards/insightlens.png",
+      image: "/app-cards/serendipity.png",
     },
     {
       name: "ComponentStudio",

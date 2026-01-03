@@ -67,7 +67,7 @@ export default async function AppsPage() {
       description: "Complete AI content studio featuring WorkflowGenerator with 10+ psychological frameworks, Market Research intelligence, Viral Hook Library, Canvas Studio for visual creation, and ScriptView for video production.",
       icon: Layers,
       href: "/apps/serendipity",
-      image: "/app-cards/serendipity.png",
+      image: "/app-cards/insightlens.png",
       features: [
         "10+ content frameworks",
         "Market research & ICP generation",
@@ -97,7 +97,7 @@ export default async function AppsPage() {
       description: "Transform content with 4 intelligent lenses: Summary, Mind Map, Podcast Script, and Key Points. Process any text input and generate multiple content formats simultaneously using advanced AI capabilities.",
       icon: Lightbulb,
       href: "/apps/insightlens",
-      image: "/app-cards/insightlens.png",
+      image: "/app-cards/serendipity.png",
       features: [
         "4 transformation lenses",
         "Mind map visualization",
