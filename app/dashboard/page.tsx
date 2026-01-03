@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Activity,
   Users,
+  Settings,
 } from "lucide-react";
 import { NotionWidget } from "./NotionWidget";
 import { Suspense } from "react";
@@ -134,14 +135,18 @@ export default async function DashboardPage() {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              <Link
-                href="/settings"
-                className="hidden lg:flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/5 transition-colors"
-              >
+              <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
                 <User className="w-3.5 h-3.5 text-slate-500" />
                 <span className="text-xs text-slate-400 max-w-[150px] truncate">
                   {user.user_metadata?.full_name || user.email}
                 </span>
+              </div>
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm font-medium border border-white/10"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Settings</span>
               </Link>
               <form action={handleSignOut}>
                 <button
@@ -149,7 +154,7 @@ export default async function DashboardPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm font-medium border border-white/10"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out</span>
+                  <span className="hidden md:inline">Sign Out</span>
                 </button>
               </form>
             </div>
