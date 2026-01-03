@@ -42,14 +42,14 @@ export default async function DashboardPage() {
       description: "Image Generator",
       icon: ImageIcon,
       href: "/apps/banana-blitz",
-      image: "/app-cards/banana-blitz.png",
+      image: "/app-cards/unravel.png",
     },
     {
       name: "Unravel",
       description: "Thread to Article Converter",
       icon: FileText,
       href: "/apps/unravel",
-      image: "/app-cards/unravel.png",
+      image: "/app-cards/banana-blitz.png",
     },
     {
       name: "Serendipity",

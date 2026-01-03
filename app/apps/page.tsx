@@ -37,7 +37,7 @@ export default async function AppsPage() {
       description: "Create eye-catching social media graphics in seconds. Input your concept, get AI-enhanced prompts, and generate stunning images. Perfect for Instagram, Twitter, LinkedIn, and more.",
       icon: ImageIcon,
       href: "/apps/banana-blitz",
-      image: "/app-cards/banana-blitz.png",
+      image: "/app-cards/unravel.png",
       features: [
         "Text-to-image generation",
         "AI prompt enhancement",
@@ -52,7 +52,7 @@ export default async function AppsPage() {
       description: "Transform Twitter/X threads and social media content into beautifully formatted articles. Unravel intelligently parses thread structures, maintains context, and outputs professional blog posts or social media content optimized for your audience.",
       icon: FileText,
       href: "/apps/unravel",
-      image: "/app-cards/unravel.png",
+      image: "/app-cards/banana-blitz.png",
       features: [
         "URL and text input modes",
         "Smart thread parsing",
