@@ -85,7 +85,7 @@ export default function HomePage() {
           {/* Hero Banner Image */}
           <div className="mb-16 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
             <img
-              src="/hero-banner.jpg"
+              src="/hero-banner.png"
               alt="The Builder's Lab - AI for Creative Marketers"
               className="w-full h-auto object-cover"
             />
