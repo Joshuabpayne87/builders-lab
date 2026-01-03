@@ -281,6 +281,7 @@ export default async function AppsPage() {
                       </ul>
                     </div>
                   </div>
+                  </div>
                 </div>
               </div>
             );
