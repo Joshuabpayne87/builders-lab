@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   ArrowRight,
   Users,
+  Code,
 } from "lucide-react";
 
 export default async function AppsPage() {
@@ -111,6 +112,20 @@ export default async function AppsPage() {
         "AI-powered insights",
         "Deal pipeline visualization",
         "Next action suggestions",
+      ],
+    },
+    {
+      name: "ComponentStudio",
+      tagline: "UI Component Generator",
+      description: "Generate beautiful, responsive UI components instantly with AI. Input your requirements and get production-ready code with live previews. Create variations, view code, and iterate rapidly on your designs.",
+      icon: Code,
+      href: "/apps/component-studio",
+      features: [
+        "AI-powered component generation",
+        "Live preview with variations",
+        "Production-ready code",
+        "Multiple design variations",
+        "Copy and export functionality",
       ],
     },
   ];

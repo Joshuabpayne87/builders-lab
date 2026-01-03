@@ -19,6 +19,7 @@ import {
   Activity,
   Users,
   Settings,
+  Code,
 } from "lucide-react";
 import { NotionWidget } from "./NotionWidget";
 import { Suspense } from "react";
@@ -70,6 +71,12 @@ export default async function DashboardPage() {
       description: "Client Manager",
       icon: Users,
       href: "/apps/crm",
+    },
+    {
+      name: "ComponentStudio",
+      description: "UI Component Generator",
+      icon: Code,
+      href: "/apps/component-studio",
     },
   ];
 
