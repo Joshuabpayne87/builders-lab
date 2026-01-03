@@ -107,21 +107,6 @@ export default async function AppsPage() {
       ],
     },
     {
-      name: "CRM",
-      tagline: "Client Relationship Manager",
-      description: "All-in-one workspace for managing leads, prospects, collaborators, and partners. Track contacts, activities, deals, and get AI-powered insights to nurture relationships and grow your business.",
-      icon: Users,
-      href: "/apps/crm",
-      image: "/app-cards/crm.png",
-      features: [
-        "Contact & deal management",
-        "Activity timeline tracking",
-        "AI-powered insights",
-        "Deal pipeline visualization",
-        "Next action suggestions",
-      ],
-    },
-    {
       name: "ComponentStudio",
       tagline: "UI Component Generator",
       description: "Generate beautiful, responsive UI components instantly with AI. Input your requirements and get production-ready code with live previews. Create variations, view code, and iterate rapidly on your designs.",

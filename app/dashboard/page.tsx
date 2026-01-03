@@ -67,12 +67,6 @@ export default async function DashboardPage() {
       href: "/apps/banana-blitz",
     },
     {
-      name: "CRM",
-      description: "Client Manager",
-      icon: Users,
-      href: "/apps/crm",
-    },
-    {
       name: "ComponentStudio",
       description: "UI Component Generator",
       icon: Code,
