@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getUserProfile, updateUserName, updateProfilePicture } from "@/lib/supabase/profiles";
+import { getOrCreateProfile, updateUserName, updateProfilePicture } from "@/lib/supabase/profiles";
 import { uploadFile } from "@/lib/supabase/storage";
 import { useRouter } from "next/navigation";
 import {
@@ -50,7 +50,8 @@ export default function SettingsPage() {
 
       setUserEmail(user.email || "");
 
-      const profile = await getUserProfile();
+      // Get or create profile to ensure it exists
+      const profile = await getOrCreateProfile();
       if (profile) {
         setFullName(profile.full_name || "");
         setAvatarUrl(profile.avatar_url || "");
@@ -80,6 +81,8 @@ export default function SettingsPage() {
         return;
       }
 
+      // Reload profile to get fresh data
+      await loadProfile();
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -127,7 +130,8 @@ export default function SettingsPage() {
         return;
       }
 
-      setAvatarUrl(uploadResult.url!);
+      // Reload profile to get fresh data
+      await loadProfile();
       setSuccess("Profile picture updated!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {

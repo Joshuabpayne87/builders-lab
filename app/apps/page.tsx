@@ -217,7 +217,7 @@ export default async function AppsPage() {
               >
                 <div className="relative bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all">
                   {/* Card Image Header */}
-                  <div className="relative w-full h-32 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
+                  <div className="relative w-full h-48 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
                     <Image
                       src={app.image}
                       alt={`${app.name} banner`}
