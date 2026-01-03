@@ -38,6 +38,13 @@ export default async function DashboardPage() {
 
   const apps = [
     {
+      name: "Banana Blitz",
+      description: "Image Generator",
+      icon: ImageIcon,
+      href: "/apps/banana-blitz",
+      image: "/app-cards/banana-blitz.png",
+    },
+    {
       name: "Unravel",
       description: "Thread to Article Converter",
       icon: FileText,
@@ -64,13 +71,6 @@ export default async function DashboardPage() {
       icon: Lightbulb,
       href: "/apps/insightlens",
       image: "/app-cards/insightlens.png",
-    },
-    {
-      name: "Banana Blitz",
-      description: "Image Generator",
-      icon: ImageIcon,
-      href: "/apps/banana-blitz",
-      image: "/app-cards/banana-blitz.png",
     },
     {
       name: "ComponentStudio",

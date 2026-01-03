@@ -32,6 +32,21 @@ export default async function AppsPage() {
 
   const apps = [
     {
+      name: "Banana Blitz",
+      tagline: "Social Media Image Factory",
+      description: "Create eye-catching social media graphics in seconds. Input your concept, get AI-enhanced prompts, and generate stunning images. Perfect for Instagram, Twitter, LinkedIn, and more.",
+      icon: ImageIcon,
+      href: "/apps/banana-blitz",
+      image: "/app-cards/banana-blitz.png",
+      features: [
+        "Text-to-image generation",
+        "AI prompt enhancement",
+        "Multiple aspect ratios",
+        "Instant download",
+        "Cloud library storage",
+      ],
+    },
+    {
       name: "Unravel",
       tagline: "Thread to Article Converter",
       description: "Transform Twitter/X threads and social media content into beautifully formatted articles. Unravel intelligently parses thread structures, maintains context, and outputs professional blog posts or social media content optimized for your audience.",
@@ -89,21 +104,6 @@ export default async function AppsPage() {
         "Podcast script generation",
         "Bullet-point extraction",
         "Multi-format export",
-      ],
-    },
-    {
-      name: "Banana Blitz",
-      tagline: "Social Media Image Factory",
-      description: "Create eye-catching social media graphics in seconds. Input your concept, get AI-enhanced prompts, and generate stunning images. Perfect for Instagram, Twitter, LinkedIn, and more.",
-      icon: ImageIcon,
-      href: "/apps/banana-blitz",
-      image: "/app-cards/banana-blitz.png",
-      features: [
-        "Text-to-image generation",
-        "AI prompt enhancement",
-        "Multiple aspect ratios",
-        "Instant download",
-        "Cloud library storage",
       ],
     },
     {
