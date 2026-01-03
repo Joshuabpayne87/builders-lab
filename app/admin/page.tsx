@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Users,
   TrendingUp,
@@ -11,7 +12,8 @@ import {
   BarChart3,
   LogOut,
   Shield,
-  Briefcase
+  Briefcase,
+  LayoutGrid
 } from "lucide-react";
 import UsersList from "./components/UsersList";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
@@ -108,6 +110,17 @@ export default function AdminPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <Link
+            href="/admin/reorder-images"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all"
+          >
+            <LayoutGrid className="w-5 h-5" />
+            Reorder App Card Images
+          </Link>
+        </div>
+
         {/* Navigation Tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
           {navigation.map((item) => {
