@@ -208,7 +208,7 @@ export default async function DashboardPage() {
                   >
                     <div className="h-full bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all">
                       {/* Card Image Header */}
-                      <div className="relative w-full h-40 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
+                      <div className="relative w-full h-56 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
                         <Image
                           src={app.image}
                           alt={`${app.name} banner`}
