@@ -48,16 +48,29 @@ export async function updateSession(request: NextRequest) {
   );
 
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
 
+  // Check if user is admin
+  const isAdmin = user?.user_metadata?.role === "admin";
+
+  // Redirect to login if not authenticated and trying to access protected route
   if (!user && !isAuthRoute && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
 
+  // Redirect to dashboard if authenticated and trying to access auth routes
   if (user && request.nextUrl.pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = isAdmin ? "/admin" : "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Protect admin routes - only admins can access
+  if (isAdminRoute && (!user || !isAdmin)) {
+    const url = request.nextUrl.clone();
+    url.pathname = user ? "/dashboard" : "/auth/login";
     return NextResponse.redirect(url);
   }
 

@@ -11,6 +11,8 @@ const AUTHORIZED_REFERRERS = [
   "topaitools.dev",
 ];
 
+const ADMIN_EMAIL = "joshua@craftedmarketing.solutions";
+
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +49,13 @@ function SignupForm() {
     }
   }, [searchParams]);
 
+  // Check if admin email is being used
+  useEffect(() => {
+    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      setIsAuthorized(true);
+    }
+  }, [email]);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -78,6 +87,8 @@ function SignupForm() {
     }
 
     try {
+      const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
@@ -85,6 +96,7 @@ function SignupForm() {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: name,
+            role: isAdmin ? "admin" : "user",
           },
         },
       });
@@ -96,7 +108,7 @@ function SignupForm() {
         // If email confirmation is not required, redirect immediately
         if (data.session) {
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push(isAdmin ? "/admin" : "/dashboard");
           }, 2000);
         }
       }
