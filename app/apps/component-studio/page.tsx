@@ -432,7 +432,17 @@ Return ONLY RAW HTML. No markdown fences.
   }
 
   return (
-    <>
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      background: '#09090b',
+      overflow: 'hidden'
+    }}>
         <SideDrawer
             isOpen={drawerState.isOpen}
             onClose={() => setDrawerState(s => ({...s, isOpen: false}))}
@@ -567,6 +577,6 @@ Return ONLY RAW HTML. No markdown fences.
                 </div>
             </div>
         </div>
-    </>
+    </div>
   );
 }
