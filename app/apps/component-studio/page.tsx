@@ -107,7 +107,7 @@ export default function ComponentStudioPage() {
     setInputValue(event.target.value);
   };
 
-  const parseJsonStream = async function* (responseStream: AsyncGenerator<{ text: string }>) {
+  const parseJsonStream = async function* (responseStream: AsyncGenerator<any>) {
       let buffer = '';
       for await (const chunk of responseStream) {
           const text = chunk.text;
