@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Layers,
   Sparkles,
   FileText,
   Lightbulb,
-  Image,
+  Image as ImageIcon,
   LogOut,
   Bot,
   User,
@@ -36,6 +37,7 @@ export default async function AppsPage() {
       description: "Transform Twitter/X threads and social media content into beautifully formatted articles. Unravel intelligently parses thread structures, maintains context, and outputs professional blog posts or social media content optimized for your audience.",
       icon: FileText,
       href: "/apps/unravel",
+      image: "/app-cards/unravel.png",
       features: [
         "URL and text input modes",
         "Smart thread parsing",
@@ -50,6 +52,7 @@ export default async function AppsPage() {
       description: "Complete AI content studio featuring WorkflowGenerator with 10+ psychological frameworks, Market Research intelligence, Viral Hook Library, Canvas Studio for visual creation, and ScriptView for video production.",
       icon: Layers,
       href: "/apps/serendipity",
+      image: "/app-cards/serendipity.png",
       features: [
         "10+ content frameworks",
         "Market research & ICP generation",
@@ -64,6 +67,7 @@ export default async function AppsPage() {
       description: "Professional prompt engineering environment with AI-powered quality scoring (0-100). Get detailed feedback on clarity, specificity, structure, and context. Auto-refine feature enhances weak prompts with actionable suggestions.",
       icon: Sparkles,
       href: "/apps/promptstash",
+      image: "/app-cards/promptstash.png",
       features: [
         "AI-powered quality scoring",
         "Detailed analysis breakdown",
@@ -78,6 +82,7 @@ export default async function AppsPage() {
       description: "Transform content with 4 intelligent lenses: Summary, Mind Map, Podcast Script, and Key Points. Process any text input and generate multiple content formats simultaneously using advanced AI capabilities.",
       icon: Lightbulb,
       href: "/apps/insightlens",
+      image: "/app-cards/insightlens.png",
       features: [
         "4 transformation lenses",
         "Mind map visualization",
@@ -90,8 +95,9 @@ export default async function AppsPage() {
       name: "Banana Blitz",
       tagline: "Social Media Image Factory",
       description: "Create eye-catching social media graphics in seconds. Input your concept, get AI-enhanced prompts, and generate stunning images. Perfect for Instagram, Twitter, LinkedIn, and more.",
-      icon: Image,
+      icon: ImageIcon,
       href: "/apps/banana-blitz",
+      image: "/app-cards/banana-blitz.png",
       features: [
         "Text-to-image generation",
         "AI prompt enhancement",
@@ -106,6 +112,7 @@ export default async function AppsPage() {
       description: "All-in-one workspace for managing leads, prospects, collaborators, and partners. Track contacts, activities, deals, and get AI-powered insights to nurture relationships and grow your business.",
       icon: Users,
       href: "/apps/crm",
+      image: "/app-cards/crm.png",
       features: [
         "Contact & deal management",
         "Activity timeline tracking",
@@ -120,6 +127,7 @@ export default async function AppsPage() {
       description: "Generate beautiful, responsive UI components instantly with AI. Input your requirements and get production-ready code with live previews. Create variations, view code, and iterate rapidly on your designs.",
       icon: Code,
       href: "/apps/component-studio",
+      image: "/app-cards/component-studio.png",
       features: [
         "AI-powered component generation",
         "Live preview with variations",
@@ -222,27 +230,46 @@ export default async function AppsPage() {
                 key={app.name}
                 className="group relative"
               >
-                <div className="relative bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl p-6 transition-all">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Left: Icon & Title */}
-                    <div className="lg:col-span-4">
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-6 h-6 text-white/80" strokeWidth={1.5} />
-                        </div>
-                        <div>
-                          <h2 className="text-lg font-semibold text-white mb-1">{app.name}</h2>
-                          <p className="text-xs text-slate-500">{app.tagline}</p>
-                        </div>
-                      </div>
-                      <Link
-                        href={app.href}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-white/90 rounded-lg font-medium transition-all text-sm"
-                      >
-                        <span>Launch</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
+                <div className="relative bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 rounded-xl overflow-hidden transition-all">
+                  {/* Card Image Header */}
+                  <div className="relative w-full h-48 bg-gradient-to-br from-white/5 to-white/10 overflow-hidden">
+                    <Image
+                      src={app.image}
+                      alt={`${app.name} banner`}
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        // Fallback gradient if image doesn't exist yet
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    {/* Fallback gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-purple-900/20 to-slate-900/50 flex items-center justify-center">
+                      <Icon className="w-16 h-16 text-white/20" strokeWidth={1} />
                     </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                      {/* Left: Icon & Title */}
+                      <div className="lg:col-span-4">
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-6 h-6 text-white/80" strokeWidth={1.5} />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-semibold text-white mb-1">{app.name}</h2>
+                            <p className="text-xs text-slate-500">{app.tagline}</p>
+                          </div>
+                        </div>
+                        <Link
+                          href={app.href}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-white/90 rounded-lg font-medium transition-all text-sm"
+                        >
+                          <span>Launch</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </div>
 
                     {/* Middle: Description */}
                     <div className="lg:col-span-5">
@@ -268,6 +295,7 @@ export default async function AppsPage() {
                         ))}
                       </ul>
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>
