@@ -39,19 +39,12 @@ export default function ReorderImagesPage() {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/update-image-mappings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mappings),
-      });
-
-      if (response.ok) {
-        setMessage("✓ Mappings saved! Deploying...");
-      } else {
-        setMessage("✗ Failed to save mappings");
-      }
+      // Copy mappings to clipboard
+      const mappingsText = JSON.stringify(mappings, null, 2);
+      await navigator.clipboard.writeText(mappingsText);
+      setMessage("✓ Mappings copied to clipboard! Paste them in chat with Claude and he'll apply them.");
     } catch (error) {
-      setMessage("✗ Error saving mappings");
+      setMessage("✗ Failed to copy to clipboard");
     } finally {
       setSaving(false);
     }
