@@ -82,6 +82,15 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="relative z-10">
         <div className="container mx-auto px-6 py-16 max-w-6xl">
+          {/* Hero Banner Image */}
+          <div className="mb-16 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+            <img
+              src="/hero-banner.jpg"
+              alt="The Builder's Lab - AI for Creative Marketers"
+              className="w-full h-auto object-cover"
+            />
+          </div>
+
           {/* Header */}
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
