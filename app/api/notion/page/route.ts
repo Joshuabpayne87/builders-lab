@@ -16,15 +16,32 @@ export async function GET(request: NextRequest) {
     }
 
     const notion = createNotionClient();
-    const blocks = await (notion as any).blocks.children.list({
-      block_id: pageId,
-      page_size: 100, // Get more blocks for full content
-    });
 
     console.log("[DEBUG] Fetching blocks for pageId:", pageId);
-    console.log("[DEBUG] Blocks response:", JSON.stringify(blocks, null, 2));
+
+    // First, try to retrieve the page to ensure it exists and we have access
+    let actualPageId = pageId;
+    try {
+      const page = await notion.pages.retrieve({ page_id: pageId });
+      console.log("[DEBUG] Page retrieved successfully:", page.id);
+      actualPageId = page.id;
+    } catch (pageError: any) {
+      console.error("[DEBUG] Error retrieving page:", pageError.message);
+      // Continue with original ID if page retrieval fails
+    }
+
+    // Fetch blocks using the confirmed page ID
+    const blocks = await notion.blocks.children.list({
+      block_id: actualPageId,
+      page_size: 100,
+    });
+
     console.log("[DEBUG] blocks.results type:", Array.isArray(blocks?.results) ? "array" : typeof blocks?.results);
     console.log("[DEBUG] blocks.results length:", blocks?.results?.length);
+
+    if (!blocks.results || !Array.isArray(blocks.results)) {
+      throw new Error("Invalid response from Notion API");
+    }
 
     return NextResponse.json(blocks.results);
   } catch (error: any) {
