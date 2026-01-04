@@ -23,6 +23,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
+import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 
 export default function UnravelPage() {
   // State
@@ -141,6 +142,19 @@ export default function UnravelPage() {
       }
       setResult(response);
       setStatus('success');
+
+      // Auto-save to Knowledge Base (Agent Memory)
+      saveToKnowledgeBase({
+        content: `Unravel Article: "${response.title}"\n\nSummary: ${response.summary}\n\n${response.markdownContent.substring(0, 1000)}...`,
+        sourceApp: 'unravel',
+        sourceType: format === OutputFormat.BLOG ? 'blog_article' : 'social_post',
+        metadata: {
+          title: response.title,
+          original_url: response.originalUrl,
+          author: response.author
+        }
+      });
+
     } catch (err: any) {
       setErrorMsg(err.message || "Something went wrong.");
       setStatus('error');

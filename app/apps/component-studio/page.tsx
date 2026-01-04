@@ -26,6 +26,7 @@ import {
 } from './components/Icons';
 
 import './index.css';
+import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 
 export default function ComponentStudioPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -88,7 +89,7 @@ export default function ComponentStudioPage() {
                   }
               });
               const text = response.text || '[]';
-              const jsonMatch = text.match(/\[[\s\S]*\]/);
+              const jsonMatch = text.match(/[\[][\s\S]*[/\]]/);
               if (jsonMatch) {
                   const newPlaceholders = JSON.parse(jsonMatch[0]);
                   if (Array.isArray(newPlaceholders) && newPlaceholders.length > 0) {
@@ -157,26 +158,26 @@ export default function ComponentStudioPage() {
         const ai = new GoogleGenAI({ apiKey });
 
         const prompt = `
-You are a master UI/UX designer. Generate 3 RADICAL CONCEPTUAL VARIATIONS of: "${currentSession.prompt}".
+        You are a master UI/UX designer. Generate 3 RADICAL CONCEPTUAL VARIATIONS of: "${currentSession.prompt}".
 
-**STRICT IP SAFEGUARD:**
-No names of artists.
-Instead, describe the *Physicality* and *Material Logic* of the UI.
+        **STRICT IP SAFEGUARD:**
+        No names of artists.
+        Instead, describe the *Physicality* and *Material Logic* of the UI.
 
-**CREATIVE GUIDANCE (Use these as EXAMPLES of how to describe style, but INVENT YOUR OWN):**
-1. Example: "Asymmetrical Primary Grid" (Heavy black strokes, rectilinear structure, flat primary pigments, high-contrast white space).
-2. Example: "Suspended Kinetic Mobile" (Delicate wire-thin connections, floating organic primary shapes, slow-motion balance, white-void background).
-3. Example: "Grainy Risograph Press" (Overprinted translucent inks, dithered grain textures, monochromatic color depth, raw paper substrate).
-4. Example: "Volumetric Spectral Fluid" (Generative morphing gradients, soft-focus diffusion, bioluminescent light sources, spectral chromatic aberration).
+        **CREATIVE GUIDANCE (Use these as EXAMPLES of how to describe style, but INVENT YOUR OWN):**
+        1. Example: "Asymmetrical Primary Grid" (Heavy black strokes, rectilinear structure, flat primary pigments, high-contrast white space).
+        2. Example: "Suspended Kinetic Mobile" (Delicate wire-thin connections, floating organic primary shapes, slow-motion balance, white-void background).
+        3. Example: "Grainy Risograph Press" (Overprinted translucent inks, dithered grain textures, monochromatic color depth, raw paper substrate).
+        4. Example: "Volumetric Spectral Fluid" (Generative morphing gradients, soft-focus diffusion, bioluminescent light sources, spectral chromatic aberration).
 
-**YOUR TASK:**
-For EACH variation:
-- Invent a unique design persona name based on a NEW physical metaphor.
-- Rewrite the prompt to fully adopt that metaphor's visual language.
-- Generate high-fidelity HTML/CSS.
+        **YOUR TASK:**
+        For EACH variation:
+        - Invent a unique design persona name based on a NEW physical metaphor.
+        - Rewrite the prompt to fully adopt that metaphor's visual language.
+        - Generate high-fidelity HTML/CSS.
 
-Required JSON Output Format (stream ONE object per line):
-\`{ "name": "Persona Name", "html": "..." }\`
+        Required JSON Output Format (stream ONE object per line):
+        ` + String.fromCharCode(96) + `{ "name": "Persona Name", "html": "..." }` + String.fromCharCode(96) + `
         `.trim();
 
         const responseStream = await ai.models.generateContentStream({
@@ -231,7 +232,7 @@ Required JSON Output Format (stream ONE object per line):
 
     const placeholderArtifacts: Artifact[] = Array(3).fill(null).map((_, i) => ({
         id: `${sessionId}_${i}`,
-        styleName: 'Designing...',
+        styleName: 'Designing...', 
         html: '',
         status: 'streaming',
     }));
@@ -253,19 +254,19 @@ Required JSON Output Format (stream ONE object per line):
         const ai = new GoogleGenAI({ apiKey });
 
         const stylePrompt = `
-Generate 3 distinct, highly evocative design directions for: "${trimmedInput}".
+        Generate 3 distinct, highly evocative design directions for: "${trimmedInput}".
 
-**STRICT IP SAFEGUARD:**
-Never use artist or brand names. Use physical and material metaphors.
+        **STRICT IP SAFEGUARD:**
+        Never use artist or brand names. Use physical and material metaphors.
 
-**CREATIVE EXAMPLES (Do not simply copy these, use them as a guide for tone):**
-- Example A: "Asymmetrical Rectilinear Blockwork" (Grid-heavy, primary pigments, thick structural strokes, Bauhaus-functionalism vibe).
-- Example B: "Grainy Risograph Layering" (Tactile paper texture, overprinted translucent inks, dithered gradients).
-- Example C: "Kinetic Wireframe Suspension" (Floating silhouettes, thin balancing lines, organic primary shapes).
-- Example D: "Spectral Prismatic Diffusion" (Glassmorphism, caustic refraction, soft-focus morphing gradients).
+        **CREATIVE EXAMPLES (Do not simply copy these, use them as a guide for tone):**
+        - Example A: "Asymmetrical Rectilinear Blockwork" (Grid-heavy, primary pigments, thick structural strokes, Bauhaus-functionalism vibe).
+        - Example B: "Grainy Risograph Layering" (Tactile paper texture, overprinted translucent inks, dithered gradients).
+        - Example C: "Kinetic Wireframe Suspension" (Floating silhouettes, thin balancing lines, organic primary shapes).
+        - Example D: "Spectral Prismatic Diffusion" (Glassmorphism, caustic refraction, soft-focus morphing gradients).
 
-**GOAL:**
-Return ONLY a raw JSON array of 3 *NEW*, creative names for these directions (e.g. ["Tactile Risograph Press", "Kinetic Silhouette Balance", "Primary Pigment Gridwork"]).
+        **GOAL:**
+        Return ONLY a raw JSON array of 3 *NEW*, creative names for these directions (e.g. ["Tactile Risograph Press", "Kinetic Silhouette Balance", "Primary Pigment Gridwork"]).
         `.trim();
 
         const styleResponse = await ai.models.generateContent({
@@ -275,7 +276,7 @@ Return ONLY a raw JSON array of 3 *NEW*, creative names for these directions (e.
 
         let generatedStyles: string[] = [];
         const styleText = styleResponse.text || '[]';
-        const jsonMatch = styleText.match(/\[[\s\S]*\]/);
+        const jsonMatch = styleText.match(/[\[][\s\S]*[/\]]/);
 
         if (jsonMatch) {
             try {
@@ -309,19 +310,19 @@ Return ONLY a raw JSON array of 3 *NEW*, creative names for these directions (e.
         const generateArtifact = async (artifact: Artifact, styleInstruction: string) => {
             try {
                 const prompt = `
-You are ComponentStudio. Create a stunning, high-fidelity UI component for: "${trimmedInput}".
+                You are ComponentStudio. Create a stunning, high-fidelity UI component for: "${trimmedInput}".
 
-**CONCEPTUAL DIRECTION: ${styleInstruction}**
+                **CONCEPTUAL DIRECTION: ${styleInstruction}**
 
-**VISUAL EXECUTION RULES:**
-1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use \`feTurbulence\` for grain and \`mix-blend-mode: multiply\` for ink layering).
-2. **Typography**: Use high-quality web fonts. Pair a bold sans-serif with a refined monospace for data.
-3. **Motion**: Include subtle, high-performance CSS/JS animations (hover transitions, entry reveals).
-4. **IP SAFEGUARD**: No artist names or trademarks.
-5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards.
+                **VISUAL EXECUTION RULES:**
+                1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use ` + String.fromCharCode(96) + `feTurbulence` + String.fromCharCode(96) + ` for grain and ` + String.fromCharCode(96) + `mix-blend-mode: multiply` + String.fromCharCode(96) + ` for ink layering).
+                2. **Typography**: Use high-quality web fonts. Pair a bold sans-serif with a refined monospace for data.
+                3. **Motion**: Include subtle, high-performance CSS/JS animations (hover transitions, entry reveals).
+                4. **IP SAFEGUARD**: No artist names or trademarks.
+                5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards.
 
-Return ONLY RAW HTML. No markdown fences.
-          `.trim();
+                Return ONLY RAW HTML. No markdown fences.
+                  `.trim();
 
                 const responseStream = await ai.models.generateContentStream({
                     model: 'gemini-2.0-flash-exp',
@@ -358,6 +359,8 @@ Return ONLY RAW HTML. No markdown fences.
                     } : sess
                 ));
 
+                return { styleName: styleInstruction, html: finalHtml };
+
             } catch (e: any) {
                 console.error('Error generating artifact:', e);
                 setSessions(prev => prev.map(sess =>
@@ -368,10 +371,25 @@ Return ONLY RAW HTML. No markdown fences.
                         )
                     } : sess
                 ));
+                return null;
             }
         };
 
-        await Promise.all(placeholderArtifacts.map((art, i) => generateArtifact(art, generatedStyles[i])));
+        const results = await Promise.all(placeholderArtifacts.map((art, i) => generateArtifact(art, generatedStyles[i])));
+        
+        // Auto-save successful generations to Knowledge Base
+        const successfulArtifacts = results.filter(r => r !== null && r.html && r.html.length > 100);
+        if (successfulArtifacts.length > 0) {
+            saveToKnowledgeBase({
+                content: `ComponentStudio UI Component for "${trimmedInput}":\n\nStyles: ${successfulArtifacts.map(r => r?.styleName).join(", ")}\n\nCode Snippet (HTML/CSS): ${successfulArtifacts[0]?.html.substring(0, 1000)}...`,
+                sourceApp: 'component-studio',
+                sourceType: 'ui_component',
+                metadata: {
+                    prompt: trimmedInput,
+                    variations: successfulArtifacts.length
+                }
+            });
+        }
 
     } catch (e) {
         console.error("Fatal error in generation process", e);

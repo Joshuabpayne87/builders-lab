@@ -8,6 +8,8 @@ import { analyzePromptWithGemini, rewritePromptWithGemini, extractVariablesWithG
 import { AppStep, PromptState } from './types';
 import { Play, Sparkles, ArrowRight, CornerDownLeft, FileDown } from 'lucide-react';
 
+import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+
 const INITIAL_STATE: PromptState = {
   originalPrompt: '',
   refinedPrompt: '',
@@ -96,6 +98,19 @@ export default function PromptStashPage() {
       const rewritten = await rewritePromptWithGemini(state.originalPrompt, state.analysis);
       setState(prev => ({ ...prev, refinedPrompt: rewritten, isRewriting: false }));
       setStep(AppStep.REWRITE);
+
+      // Auto-save the refined prompt to knowledge base
+      saveToKnowledgeBase({
+        content: `Refined Prompt: ${rewritten}\n\nOriginal Intent: ${state.originalPrompt}\n\nOptimization Score: ${state.analysis.score}/100`,
+        sourceApp: 'promptstash',
+        sourceType: 'optimized_prompt',
+        metadata: {
+          original: state.originalPrompt,
+          score: state.analysis.score,
+          strengths: state.analysis.strengths
+        }
+      });
+      
     } catch (err) {
       setError("Failed to rewrite prompt.");
       setState(prev => ({ ...prev, isRewriting: false }));

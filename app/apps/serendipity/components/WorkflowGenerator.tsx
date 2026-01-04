@@ -9,6 +9,8 @@ import {
   Image as ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles
 } from 'lucide-react';
 
+import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+
 export default function WorkflowGenerator() {
   const [mode, setMode] = useState<'topic' | 'source' | null>(null);
   const [activeFormat, setActiveFormat] = useState<ContentFormat>('linkedin');
@@ -122,6 +124,18 @@ export default function WorkflowGenerator() {
       setGeneratedContent(result || "Error generating content.");
       if (result) {
         setShowImagePrompt(true);
+        // Auto-save to Knowledge Base
+        saveToKnowledgeBase({
+          content: `Serendipity Workflow (${activeFormat.toUpperCase()}):\n\n${result.substring(0, 1500)}...`,
+          sourceApp: 'serendipity',
+          sourceType: 'content_workflow',
+          metadata: {
+            mode,
+            topic: topic || "Source Based",
+            framework: selectedFrameworkId,
+            format: activeFormat
+          }
+        });
       }
     } catch (e) {
       setGeneratedContent("Error: Could not generate content. Please check API Key.");

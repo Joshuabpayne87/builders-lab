@@ -9,6 +9,8 @@ import MindMap from './components/MindMap';
 import Library from './components/Library';
 import WorkflowBuilder from './components/WorkflowBuilder';
 
+import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+
 type ViewState = 'HOME' | 'LIBRARY' | 'WORKFLOW';
 
 export default function InsightLensPage() {
@@ -132,6 +134,18 @@ export default function InsightLensPage() {
       const data = await transformContent(input, inputMode, selectedLens);
       setResult(data);
       setStatus('COMPLETE');
+
+      // Auto-save to Knowledge Base
+      saveToKnowledgeBase({
+        content: `InsightLens [${selectedLens}] Output:\n\n${data.text ? data.text.substring(0, 1500) : "Visual/Audio Content Generated"}...`,
+        sourceApp: 'insightlens',
+        sourceType: selectedLens.toLowerCase(),
+        metadata: {
+          lens: selectedLens,
+          input_type: inputMode
+        }
+      });
+
     } catch (error) {
       console.error(error);
       setStatus('ERROR');
