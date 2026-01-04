@@ -180,7 +180,7 @@ export default function JoinPage() {
         .join-landing-page .layer-card h3 { color: #C73E1D; margin-bottom: 1rem; text-transform: uppercase; font-size: 1.25rem; }
         .join-landing-page .layer-card ul { list-style: none; padding-left: 0; }
         .join-landing-page .layer-card ul li { padding-left: 1.5rem; position: relative; margin-bottom: 0.75rem; }
-        .join-landing-page .layer-card ul li:before { content: "â†’"; position: absolute; left: 0; color: #C73E1D; font-weight: 700; }
+        .join-landing-page .layer-card ul li:before { content: "→"; position: absolute; left: 0; color: #C73E1D; font-weight: 700; }
 
         .join-landing-page .steps { counter-reset: step-counter; }
         .join-landing-page .step { counter-increment: step-counter; margin-bottom: 2.5rem; padding-left: 4rem; position: relative; }
@@ -192,15 +192,15 @@ export default function JoinPage() {
         .join-landing-page .column-box h3 { color: #C73E1D; margin-bottom: 1.5rem; text-transform: uppercase; }
         .join-landing-page .column-box ul { list-style: none; padding-left: 0; }
         .join-landing-page .column-box ul li { padding-left: 1.5rem; position: relative; margin-bottom: 0.75rem; }
-        .join-landing-page .column-box ul li:before { content: "âœ“"; position: absolute; left: 0; color: #C73E1D; font-weight: 900; }
-        .join-landing-page .column-box.not-for ul li:before { content: "âœ—"; }
+        .join-landing-page .column-box ul li:before { content: "✓"; position: absolute; left: 0; color: #C73E1D; font-weight: 900; }
+        .join-landing-page .column-box.not-for ul li:before { content: "✕"; }
 
         .join-landing-page .pricing-card { background-color: #1a1a1a; color: #E8DCC4; padding: 3rem; border-radius: 4px; text-align: center; max-width: 600px; margin: 3rem auto; border: 4px solid #C73E1D; box-shadow: 8px 8px 0 #C73E1D; }
         .join-landing-page .pricing-card .price { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; color: #E8DCC4; margin: 1rem 0; }
         .join-landing-page .pricing-card .price-breakdown { font-size: 1.25rem; color: #E8DCC4; margin-bottom: 2rem; }
         .join-landing-page .pricing-card ul { text-align: left; list-style: none; padding-left: 0; margin: 2rem 0; }
         .join-landing-page .pricing-card ul li { padding-left: 2rem; position: relative; margin-bottom: 1rem; font-size: 1.125rem; color: #E8DCC4; }
-        .join-landing-page .pricing-card ul li:before { content: "âœ“"; position: absolute; left: 0; color: #C73E1D; font-weight: 900; font-size: 1.5rem; }
+        .join-landing-page .pricing-card ul li:before { content: "✓"; position: absolute; left: 0; color: #C73E1D; font-weight: 900; font-size: 1.5rem; }
         .join-landing-page .pricing-card .guarantee { color: #E8DCC4; font-size: 1rem; margin-top: 2rem; font-style: italic; }
 
         .join-landing-page .bonus-highlight { background-color: #C73E1D; color: #E8DCC4; padding: 2.5rem; border-radius: 4px; margin: 3rem 0; border: 4px solid #1a1a1a; text-align: center; }
