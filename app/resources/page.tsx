@@ -42,10 +42,20 @@ export default function ResourcesPage() {
     setSelectedPage(resource);
     try {
       const res = await fetch(`/api/resources/page?pageId=${resource.id}`);
-      const blocks = await res.json();
-      console.log("Page blocks:", blocks);
-      console.log("Block types found:", [...new Set(blocks.map((b: any) => b.type))]);
-      setPageBlocks(blocks);
+      const data = await res.json();
+      
+      if (!res.ok || data.error) {
+        console.error("Server error fetching blocks:", data.error || res.statusText);
+        setPageBlocks([]);
+        return;
+      }
+
+      if (Array.isArray(data)) {
+        setPageBlocks(data);
+      } else {
+        console.error("Invalid blocks format received:", data);
+        setPageBlocks([]);
+      }
     } catch (err) {
       console.error("Error fetching page blocks:", err);
       setPageBlocks([]);

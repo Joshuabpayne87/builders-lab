@@ -36,12 +36,20 @@ export function NotionWidget() {
     // Fetch page blocks
     try {
       const res = await fetch(`/api/notion/page?pageId=${page.id}`);
-      const blocks = await res.json();
-      console.log("Page blocks:", blocks);
-      // Log unique block types
-      const blockTypes = [...new Set(blocks.map((b: any) => b.type))];
-      console.log("Block types found:", blockTypes);
-      setPageBlocks(blocks);
+      const data = await res.json();
+      
+      if (!res.ok || data.error) {
+        console.error("Server error fetching blocks:", data.error || res.statusText);
+        setPageBlocks([]);
+        return;
+      }
+
+      if (Array.isArray(data)) {
+        setPageBlocks(data);
+      } else {
+        console.error("Invalid blocks format received:", data);
+        setPageBlocks([]);
+      }
     } catch (err) {
       console.error("Error fetching page blocks:", err);
       setPageBlocks([]);
