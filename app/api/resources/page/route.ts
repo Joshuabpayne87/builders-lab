@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Client } from "@notionhq/client";
-
-const PUBLIC_NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY || process.env.NOTION_API_KEY || "";
+import { createNotionClient } from "@/lib/notion";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,9 +13,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
+    // Ensure environment variables are available for the client
+    if (!process.env.NOTION_API_KEY && process.env.PUBLIC_NOTION_API_KEY) {
+      process.env.NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY;
+    }
 
-    const blocks = await notion.blocks.children.list({
+    const notion = createNotionClient();
+
+    // Use type casting to bypass potential SDK discrepancies in v5.6.0
+    const blocks = await (notion as any).blocks.children.list({
       block_id: pageId,
       page_size: 100,
     });
@@ -26,7 +30,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Error fetching page blocks:", error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
