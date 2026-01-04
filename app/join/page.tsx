@@ -1,9 +1,30 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import Script from 'next/script';
 
 export default function JoinPage() {
   useEffect(() => {
+    // Attach success handler to window for MailerLite to find
+    (window as any).ml_webform_success_35300521 = function() {
+      const $ = (window as any).jQuery || (window as any).ml_jQuery;
+      if ($) {
+        $('.ml-subscribe-form-35300521 .row-success').show();
+        $('.ml-subscribe-form-35300521 .row-form').hide();
+      } else {
+        // Fallback if jQuery is not available
+        const successBody = document.querySelector('.ml-subscribe-form-35300521 .row-success') as HTMLElement;
+        const formBody = document.querySelector('.ml-subscribe-form-35300521 .row-form') as HTMLElement;
+        if (successBody) successBody.style.display = 'block';
+        if (formBody) formBody.style.display = 'none';
+      }
+
+      // Redirect to thebuilderslab.pro after 2 seconds
+      setTimeout(function() {
+        window.location.href = 'https://www.thebuilderslab.pro';
+      }, 2000);
+    };
+
     // FAQ Accordion logic
     const questions = document.querySelectorAll('.faq-question');
     questions.forEach(button => {
@@ -36,9 +57,11 @@ export default function JoinPage() {
 
     document.addEventListener('mouseleave', handleMouseLeave);
     closePopup?.addEventListener('click', () => exitPopup?.classList.remove('visible'));
-    exitPopup?.addEventListener('click', (e) => {
-      if (e.target === exitPopup) exitPopup.classList.remove('visible');
-    });
+    
+    const handlePopupClick = (e: MouseEvent) => {
+      if (e.target === exitPopup) exitPopup?.classList.remove('visible');
+    };
+    exitPopup?.addEventListener('click', handlePopupClick);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && exitPopup?.classList.contains('visible')) {
@@ -63,11 +86,27 @@ export default function JoinPage() {
     return () => {
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('keydown', handleKeyDown);
+      exitPopup?.removeEventListener('click', handlePopupClick);
     };
   }, []);
 
   return (
     <div className="join-landing-page">
+      {/* MailerLite Scripts */}
+      <Script 
+        src="https://groot.mailerlite.com/js/w/webforms.min.js?v176e10baa5e7ed80d35ae235be3d5024" 
+        strategy="afterInteractive"
+      />
+      <Script id="mailerlite-universal" strategy="afterInteractive">
+        {`
+          (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+          .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+          n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+          (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+          ml('account', '1387571');
+        `}
+      </Script>
+
       <style dangerouslySetInnerHTML={{ __html: `
         .join-landing-page {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
@@ -205,22 +244,169 @@ export default function JoinPage() {
         .join-landing-page .exit-popup p { font-size: 16px; margin-bottom: 24px; color: #2d2d2d; text-align: center; }
 
         /* MAILERLITE FORM STYLES */
-        #mlb2-35300521.ml-form-embedContainer { box-sizing: border-box; display: table; margin: 0 auto; position: static; width: 100% !important; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-embedWrapper { background-color: transparent; border-width: 0; border-style: solid; padding: 0; width: 100%; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody, #mlb2-35300521.ml-form-embedContainer .ml-form-successBody { padding: 20px 20px 0; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody .ml-form-embedContent h2 { font-size: 24px; font-weight: 700; margin: 0 0 10px; color: #1a1a1a; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody form { margin: 0; width: 100%; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow input { background-color: #ffffff !important; border: 2px solid #1a1a1a !important; border-radius: 4px !important; color: #1a1a1a !important; font-size: 16px !important; padding: 14px 20px !important; width: 100% !important; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow button { background-color: #1a1a1a !important; border: 3px solid #1a1a1a !important; border-radius: 4px !important; color: #E8DCC4 !important; cursor: pointer; font-size: 18px !important; font-weight: 700 !important; padding: 14px 32px !important; width: 100% !important; transition: all 0.2s ease !important; }
-        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow button:hover { background-color: #C73E1D !important; border-color: #C73E1D !important; transform: translateY(-2px); box-shadow: 6px 6px 0 #1a1a1a; }
+        #mlb2-35300521.ml-form-embedContainer,
+        #mlb2-35300521.ml-form-embedCont {
+            box-sizing: border-box;
+            display: table;
+            margin: 0 auto;
+            position: static;
+            width: 100% !important;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer button,
+        #mlb2-35300521.ml-form-embedContainer h2,
+        #mlb2-35300521.ml-form-embedContainer h4,
+        #mlb2-35300521.ml-form-embedContainer p,
+        #mlb2-35300521.ml-form-embedContainer span {
+            text-transform: none !important;
+            letter-spacing: normal !important;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedWrapper {
+            background-color: transparent;
+            border-width: 0;
+            border-style: solid;
+            padding: 0;
+            width: 100%;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody,
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody {
+            padding: 20px 20px 0;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody.ml-form-embedBodyDefault {
+            padding-bottom: 0;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody .ml-form-embedContent,
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent {
+            text-align: left;
+            margin: 0 0 20px;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody .ml-form-embedContent h2,
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 10px;
+            word-break: break-word;
+            color: #1a1a1a;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody .ml-form-embedContent p,
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent p {
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 24px;
+            margin: 0 0 10px;
+            color: #2d2d2d;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedBody form {
+            margin: 0;
+            width: 100%;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-formContent.horozintalForm {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow {
+            margin: 0 0 12px;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow.ml-last-item {
+            margin: 0;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow input {
+            background-color: #ffffff !important;
+            border: 2px solid #1a1a1a !important;
+            border-radius: 4px !important;
+            color: #1a1a1a !important;
+            font-size: 16px !important;
+            line-height: 24px !important;
+            padding: 14px 20px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow input:focus {
+            outline: none;
+            border-color: #C73E1D !important;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow button {
+            background-color: #1a1a1a !important;
+            border: 3px solid #1a1a1a !important;
+            border-radius: 4px !important;
+            color: #E8DCC4 !important;
+            cursor: pointer;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            line-height: 24px !important;
+            padding: 14px 32px !important;
+            text-align: center;
+            white-space: normal;
+            width: 100% !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+            transition: all 0.2s ease !important;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow button:hover {
+            background-color: #C73E1D !important;
+            border-color: #C73E1D !important;
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 0 #1a1a1a;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedSubmit {
+            margin: 0 0 20px;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedWrapper.embedPopup,
+        #mlb2-35300521.ml-form-embedContainer .ml-form-embedWrapper.embedDefault {
+            width: 100%;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent {
+            background-color: #1a1a1a;
+            color: #E8DCC4;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent h2 {
+            color: #E8DCC4;
+        }
+
+        #mlb2-35300521.ml-form-embedContainer .ml-form-successBody .ml-form-successContent p {
+            color: #E8DCC4;
+        }
+
+        @media only screen and (max-width: 768px) {
+            #mlb2-35300521.ml-form-embedContainer .ml-form-formContent.horozintalForm {
+                flex-direction: column;
+            }
+
+            #mlb2-35300521.ml-form-embedContainer .ml-form-fieldRow {
+                width: 100% !important;
+            }
+        }
       ` }} />
 
-      {/* HEADER BANNER */} 
+      {/* HEADER BANNER */}
       <header className="header-banner">
           <img src="https://storage.mlcdn.com/account_image/1387571/XeuQOU1ecl37yXEC68calZgG8pCAZ7mn1DefFpQE.png" alt="The Builders Lab - Soviet Propaganda Style Header" />
       </header>
 
-      {/* SECTION 1: HERO */} 
+      {/* SECTION 1: HERO */}
       <section className="hero section">
           <div className="container">
               <h1>Stop Losing 10+ Hours a Month to Problems Someone Else Already Solved</h1>
@@ -236,7 +422,7 @@ export default function JoinPage() {
 
                   <p style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#2d2d2d', textAlign: 'center' }}><strong>Or get The Builders Playbook first:</strong></p>
 
-                  {/* MailerLite Embedded Form */} 
+                  {/* MailerLite Embedded Form */}
                   <div id="mlb2-35300521" className="ml-form-embedContainer ml-subscribe-form ml-subscribe-form-35300521" style={{ maxWidth: '400px', margin: '0 auto' }}>
                     <div className="ml-form-align-center">
                       <div className="ml-form-embedWrapper embedForm">
@@ -272,7 +458,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 2: THE PROBLEM */} 
+      {/* SECTION 2: THE PROBLEM */}
       <section id="problem" className="section">
           <div className="container">
               <div className="section-header">
@@ -296,7 +482,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 3: THE PHILOSOPHY */} 
+      {/* SECTION 3: THE PHILOSOPHY */}
       <section id="philosophy" className="section">
           <div className="container">
               <div className="section-header">
@@ -321,7 +507,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 4: WHAT'S INSIDE */} 
+      {/* SECTION 4: WHAT'S INSIDE */}
       <section id="whats-inside" className="section">
           <div className="container">
               <div className="section-header">
@@ -378,7 +564,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 5: HOW IT WORKS */} 
+      {/* SECTION 5: HOW IT WORKS */}
       <section id="how-it-works" className="section">
           <div className="container">
               <div className="section-header">
@@ -410,7 +596,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 6: WHO THIS IS FOR */} 
+      {/* SECTION 6: WHO THIS IS FOR */}
       <section id="who-this-is-for" className="section">
           <div className="container">
               <div className="section-header">
@@ -443,7 +629,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 7: PRICING + BONUS */} 
+      {/* SECTION 7: PRICING + BONUS */}
       <section id="pricing" className="section">
           <div className="container">
               <div className="section-header">
@@ -478,7 +664,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 8: SOCIAL PROOF */} 
+      {/* SECTION 8: SOCIAL PROOF */}
       <section id="social-proof" className="section">
           <div className="container">
               <div className="section-header">
@@ -494,7 +680,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 9: FAQ */} 
+      {/* SECTION 9: FAQ */}
       <section id="faq" className="section">
           <div className="container">
               <div className="section-header">
@@ -523,7 +709,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 10: THE DECISION */} 
+      {/* SECTION 10: THE DECISION */}
       <section id="decision" className="section">
           <div className="container">
               <div className="section-header">
@@ -570,7 +756,7 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* FOOTER */} 
+      {/* FOOTER */}
       <footer className="footer">
           <div className="container">
               <p><strong>AI for Creative Marketers</strong></p>
@@ -579,7 +765,7 @@ export default function JoinPage() {
           </div>
       </footer>
 
-      {/* EXIT INTENT POPUP */} 
+      {/* EXIT INTENT POPUP */}
       <div className="exit-popup-overlay" id="exitPopup">
           <div className="exit-popup">
               <button className="exit-popup-close" id="closePopup" aria-label="Close">&times;</button>
@@ -587,7 +773,7 @@ export default function JoinPage() {
               <p>Get your free gift: <strong>The Builders Playbook</strong></p>
               <p style={{ fontSize: '14px', marginBottom: '24px' }}>Real strategies from solo builders who've solved the problems you're stuck on.</p>
 
-              {/* MailerLite Embedded Form (Exit Popup) */} 
+              {/* MailerLite Embedded Form (Exit Popup) */}
               <div id="mlb2-35300521" className="ml-form-embedContainer ml-subscribe-form ml-subscribe-form-35300521">
                 <div className="ml-form-align-center">
                   <div className="ml-form-embedWrapper embedForm">
