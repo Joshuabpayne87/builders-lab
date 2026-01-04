@@ -70,4 +70,26 @@ export class KnowledgeService {
     if (error) throw error;
     return data;
   }
+
+  /**
+   * Retrieves all knowledge entries created by the user today.
+   */
+  static async getTodaysKnowledge() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("Unauthorized");
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    const { data, error } = await supabase
+      .from('bl_knowledge_base')
+      .select('content, source_app, source_type, created_at')
+      .eq('user_id', user.id)
+      .gte('created_at', today)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  }
 }

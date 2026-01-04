@@ -48,3 +48,57 @@ You have access to the user's \"Knowledge Base\" which contains data from all th
     return { success: false, error: error.message };
   }
 }
+
+export async function generateSessionSummary() {
+  try {
+    // 1. Get today's data
+    const activities = await KnowledgeService.getTodaysKnowledge();
+    
+    if (!activities || activities.length === 0) {
+      return { success: false, error: "No activities found for today." };
+    }
+
+    // 2. Format activities for the prompt
+    const activityLog = activities
+      .map(a => `[${a.source_app} - ${a.source_type}]: ${a.content}`)
+      .join("\n");
+
+    const prompt = `You are a high-performance productivity coach.
+Summarize the user's session in The Builder's Lab today based on these activities:
+
+${activityLog}
+
+Provide a concise, motivating summary. 
+Include:
+1. Key accomplishments.
+2. Where they left off.
+3. A suggested "next step" for their next session.
+
+Format it as a professional summary.`;
+
+    // 3. Generate Summary with Gemini
+    const client = createGeminiClient();
+    const response = await client.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: [{ parts: [{ text: prompt }] }]
+    });
+
+    const summary = response.text || response.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!summary) throw new Error("Failed to generate summary");
+
+    // 4. Save the summary back to knowledge base so the agent remembers the "last session"
+    await KnowledgeService.save({
+      content: `SESSION SUMMARY (${new Date().toLocaleDateString()}):\n\n${summary}`,
+      sourceApp: 'assistant',
+      sourceType: 'session_summary',
+      metadata: { date: new Date().toISOString() }
+    });
+
+    return { success: true, summary };
+
+  } catch (error: any) {
+    console.error("Session Summary Error:", error);
+    return { success: false, error: error.message };
+  }
+}
