@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
 
-const PUBLIC_NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY || "";
+const PUBLIC_NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY || process.env.NOTION_API_KEY || "";
 
 export async function GET(request: NextRequest) {
   try {

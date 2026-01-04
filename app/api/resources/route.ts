@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
 
-const PUBLIC_NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY || "";
-const PUBLIC_DATABASE_ID = process.env.PUBLIC_DATABASE_ID || "";
+const PUBLIC_NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY || process.env.NOTION_API_KEY || "";
+const PUBLIC_DATABASE_ID = process.env.PUBLIC_DATABASE_ID || process.env.NOTION_DATABASE_ID || "";
 
 export async function GET() {
   try {
     // Validate environment variables
     if (!PUBLIC_NOTION_API_KEY) {
       return NextResponse.json(
-        { error: "PUBLIC_NOTION_API_KEY is not configured" },
+        { error: "Notion API Key is not configured. Please set NOTION_API_KEY or PUBLIC_NOTION_API_KEY in your environment variables." },
         { status: 500 }
       );
     }
 
     if (!PUBLIC_DATABASE_ID) {
       return NextResponse.json(
-        { error: "PUBLIC_DATABASE_ID is not configured" },
+        { error: "Notion Database ID is not configured. Please set NOTION_DATABASE_ID or PUBLIC_DATABASE_ID in your environment variables." },
         { status: 500 }
       );
     }
