@@ -35,9 +35,13 @@ export function NotionWidget() {
     setSelectedPage(page);
     // Fetch page blocks
     try {
+      console.log("[DEBUG] Opening page with ID:", page.id);
       const res = await fetch(`/api/notion/page?pageId=${page.id}`);
+      console.log("[DEBUG] Response status:", res.status, res.statusText);
       const data = await res.json();
-      
+      console.log("[DEBUG] Response data:", data);
+      console.log("[DEBUG] Is array?", Array.isArray(data));
+
       if (!res.ok || data.error) {
         console.error("Server error fetching blocks:", data.error || res.statusText);
         setPageBlocks([]);
@@ -45,6 +49,7 @@ export function NotionWidget() {
       }
 
       if (Array.isArray(data)) {
+        console.log("[DEBUG] Setting pageBlocks with", data.length, "blocks");
         setPageBlocks(data);
       } else {
         console.error("Invalid blocks format received:", data);

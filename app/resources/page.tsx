@@ -41,9 +41,13 @@ export default function ResourcesPage() {
   async function openPage(resource: any) {
     setSelectedPage(resource);
     try {
+      console.log("[DEBUG] Opening page with ID:", resource.id);
       const res = await fetch(`/api/resources/page?pageId=${resource.id}`);
+      console.log("[DEBUG] Response status:", res.status, res.statusText);
       const data = await res.json();
-      
+      console.log("[DEBUG] Response data:", data);
+      console.log("[DEBUG] Is array?", Array.isArray(data));
+
       if (!res.ok || data.error) {
         console.error("Server error fetching blocks:", data.error || res.statusText);
         setPageBlocks([]);
@@ -51,6 +55,7 @@ export default function ResourcesPage() {
       }
 
       if (Array.isArray(data)) {
+        console.log("[DEBUG] Setting pageBlocks with", data.length, "blocks");
         setPageBlocks(data);
       } else {
         console.error("Invalid blocks format received:", data);

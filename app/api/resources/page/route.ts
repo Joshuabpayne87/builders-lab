@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
       page_size: 100,
     });
 
+    console.log("[DEBUG] Fetching blocks for pageId:", pageId);
+    console.log("[DEBUG] Blocks response:", JSON.stringify(blocks, null, 2));
+    console.log("[DEBUG] blocks.results type:", Array.isArray(blocks?.results) ? "array" : typeof blocks?.results);
+    console.log("[DEBUG] blocks.results length:", blocks?.results?.length);
+
     return NextResponse.json(blocks.results);
   } catch (error: any) {
     console.error("Error fetching page blocks:", error);
