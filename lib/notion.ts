@@ -22,14 +22,26 @@ export async function getNotionDatabase(databaseId?: string) {
       throw new Error("NOTION_DATABASE_ID is not configured");
     }
 
-    // Step 1: Query the database using standard API
+    // Step 1: Retrieve the database to get its data source ID
+    const database = await notion.databases.retrieve({
+      database_id: dbId,
+    });
+
+    // Step 2: Get the first data source ID
+    const dataSourceId = (database as any).data_sources?.[0]?.id;
+
+    if (!dataSourceId) {
+      throw new Error("No data source found for this database");
+    }
+
+    // Step 3: Query the data source using v5.6.0 API
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await (notion as any).databases.query({
-        database_id: dbId,
+      const response: any = await (notion as any).dataSources.query({
+        data_source_id: dataSourceId,
         sorts: [
           {
             timestamp: "last_edited_time",

@@ -23,14 +23,28 @@ export async function GET() {
 
     const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
 
-    // Step 1: Query the database using standard API
+    // Step 1: Retrieve the database to get its data source ID (v5.6.0 logic)
+    const database = await notion.databases.retrieve({
+      database_id: PUBLIC_DATABASE_ID,
+    });
+
+    const dataSourceId = (database as any).data_sources?.[0]?.id;
+
+    if (!dataSourceId) {
+      return NextResponse.json(
+        { error: "No data source found for this database. Please check your Notion database configuration." },
+        { status: 500 }
+      );
+    }
+
+    // Step 2: Query the data source using v5.6.0 API
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await (notion as any).databases.query({
-        database_id: PUBLIC_DATABASE_ID,
+      const response: any = await (notion as any).dataSources.query({
+        data_source_id: dataSourceId,
         sorts: [
           {
             timestamp: "last_edited_time",
@@ -57,9 +71,8 @@ export async function GET() {
         title = titleProp.title.map((t: any) => t.plain_text).join("");
       }
 
-      const tags = Object.values(properties)
-        .find((p: any) => p.type === 'multi_select' && (p.id === 'Tags' || p.name === 'Tags')) as any;
-      const tagList = tags?.multi_select?.map((tag: any) => tag.name) || [];
+      const tagsProp = (properties.Tags || Object.values(properties).find((p: any) => p.type === 'multi_select')) as any;
+      const tagList = tagsProp?.multi_select?.map((tag: any) => tag.name) || [];
 
       return {
         id: page.id,
