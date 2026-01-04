@@ -663,22 +663,24 @@ export default function JoinPage() {
           </div>
       </section>
 
-      {/* SECTION 8: SOCIAL PROOF */}
-      <section id="social-proof" className="section">
-          <div className="container">
-              <div className="section-header">
-                  <h2>What a Session Looks Like</h2>
-              </div>
-              <div className="video-container">
-                  <div className="video-placeholder">
-                      <span>Video of actual session where problem was solved</span>
-                      <p style={{ marginTop: '1rem', fontSize: '1rem' }}>Real builders. Real problems. Real solutions.</p>
-                  </div>
-              </div>
-              <p style={{ textAlign: 'center', marginTop: '2rem' }}>No scripted testimonials. Just the work.</p>
-          </div>
-      </section>
-
+            {/* SECTION 8: SOCIAL PROOF */} 
+            <section id="social-proof" className="section">
+                <div className="container">
+                    <div className="section-header">
+                        <h2>What a Session Looks Like</h2>
+                    </div>
+                    <div className="video-container" style={{ position: 'relative', height: 0, paddingBottom: '56.25%', overflow: 'hidden' }}>
+                        <video 
+                          src="/Dubugging Message Center.mp4" 
+                          controls 
+                          className="absolute top-0 left-0 w-full h-full rounded-lg"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <p style={{ textAlign: 'center', marginTop: '2rem' }}>No scripted testimonials. Just the work.</p>
+                </div>
+            </section>
       {/* SECTION 9: FAQ */}
       <section id="faq" className="section">
           <div className="container">
