@@ -253,6 +253,16 @@ export function NotionWidget() {
                         className="w-full rounded-lg border border-white/10"
                       />
                     )}
+                    {block.type === "embed" && (
+                      <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                        <iframe
+                          src={block.embed?.url}
+                          className="w-full h-full"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
                     {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
                       <p className="text-slate-300 text-base leading-relaxed">
                         {getText(block.paragraph.rich_text)}
