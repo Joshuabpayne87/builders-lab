@@ -68,13 +68,21 @@ export default function HomePage() {
               <Sparkles className="w-6 h-6 text-yellow-400" />
               <span className="text-lg font-bold">Builder's Lab</span>
             </div>
-            <Link
-              href="/login"
-              className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg font-semibold transition-all hover:scale-105 flex items-center gap-2"
-            >
-              Log In
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/join"
+                className="text-sm font-semibold text-slate-400 hover:text-white transition-colors"
+              >
+                Join
+              </Link>
+              <Link
+                href="/login"
+                className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg font-semibold transition-all hover:scale-105 flex items-center gap-2"
+              >
+                Log In
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
