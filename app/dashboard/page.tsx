@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { NotionWidget } from "./NotionWidget";
 import { Suspense } from "react";
+import { ExitIntentModal } from "../components/ExitIntentModal";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -354,6 +355,7 @@ export default async function DashboardPage() {
       >
         <span className="hidden group-hover:inline text-xs text-white font-semibold">admin</span>
       </Link>
+      <ExitIntentModal />
     </div>
   );
 }
