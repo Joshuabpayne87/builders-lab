@@ -23,6 +23,24 @@ class BananaBlitzService {
     return descriptions[vibe] || vibe;
   }
 
+  private async saveToMemory(content: string, type: string, metadata: any) {
+    try {
+      await fetch('/api/knowledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          content,
+          sourceApp: 'banana-blitz',
+          sourceType: type,
+          metadata
+        })
+      });
+    } catch (e) {
+      console.error("Failed to save to knowledge base", e);
+    }
+  }
+
   async generatePrompts(
     postText: string,
     vibe: VisualVibe,
@@ -105,6 +123,11 @@ class BananaBlitzService {
 
     try {
       const result = JSON.parse(response.text || '{"promptSets":[], "captions":[]}');
+      
+      // Save the generated strategy to knowledge base
+      const strategySummary = `Campaign Strategy for "${postText.substring(0, 50)}...": Generated ${result.captions.length} captions and ${result.promptSets.length} visual prompt sets. Vibe: ${vibe}, Tone: ${tone}.`;
+      this.saveToMemory(strategySummary, 'campaign_strategy', { vibe, tone, full_captions: result.captions });
+
       return {
         promptSets: result.promptSets || [],
         captions: result.captions || [],

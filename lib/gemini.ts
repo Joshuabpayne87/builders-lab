@@ -10,4 +10,25 @@ export function createGeminiClient() {
   return new GoogleGenAI({ apiKey });
 }
 
+export async function generateEmbedding(text: string): Promise<number[]> {
+  const client = createGeminiClient();
+  const response = await client.models.embedContent({
+    model: "text-embedding-004",
+    contents: [
+      {
+        parts: [{ text }],
+      },
+    ],
+  });
+
+  // @ts-ignore - SDK typing issue
+  const values = response.embedding?.values || response.embeddings?.[0]?.values;
+
+  if (!values) {
+    throw new Error("Failed to generate embedding");
+  }
+
+  return values;
+}
+
 export { Type };

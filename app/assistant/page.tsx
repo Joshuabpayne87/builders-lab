@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createGeminiClient } from "@/lib/gemini";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import { chatWithAgent } from "./actions";
+import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,7 +16,7 @@ export default function AssistantPage() {
     {
       role: "assistant",
       content:
-        "Hello! I'm your AI assistant across all Builder's Lab tools. I can help you with content creation, prompt engineering, insights, and more. How can I assist you today?",
+        "Hello! I'm your connected AI Agent. I have access to your data across all Builder's Lab apps. Ask me about your articles, images, or workflows!",
     },
   ]);
   const [input, setInput] = useState("");
@@ -40,80 +40,22 @@ export default function AssistantPage() {
     setLoading(true);
 
     try {
-      const ai = createGeminiClient();
-      const supabase = createClient();
+      // Call the server action which handles RAG + Gemini
+      const result = await chatWithAgent(input, messages);
 
-      // Get user context from all their saved data
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      let context = "";
-      if (user) {
-        // Get recent articles
-        const { data: articles } = await supabase
-          .from("bl_articles")
-          .select("title, summary")
-          .eq("user_id", user.id)
-          .limit(5)
-          .order("created_at", { ascending: false });
-
-        // Get recent prompts
-        const { data: prompts } = await supabase
-          .from("bl_prompts")
-          .select("title, content")
-          .eq("user_id", user.id)
-          .limit(5)
-          .order("created_at", { ascending: false });
-
-        if (articles?.length || prompts?.length) {
-          context = `\n\nUser Context (their recent work):\n`;
-          if (articles?.length) {
-            context += `Recent Articles: ${articles.map((a) => a.title).join(", ")}\n`;
-          }
-          if (prompts?.length) {
-            context += `Recent Prompts: ${prompts.map((p) => p.title).join(", ")}\n`;
-          }
-        }
+      if (result.success && result.response) {
+        const assistantMessage: Message = {
+          role: "assistant",
+          content: result.response,
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        toast.error("Failed to get response");
+        setMessages((prev) => [...prev, { role: "assistant", content: "I encountered an error accessing your knowledge base." }]);
       }
-
-      const conversationHistory = messages
-        .slice(-10)
-        .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
-        .join("\n");
-
-      const systemPrompt = `You are an AI assistant for The Builder's Lab, a unified productivity suite with 5 tools:
-1. Unravel - Convert threads/URLs to articles
-2. PromptStash - Prompt engineering IDE
-3. InsightLens - Content transformation (summaries, mind maps, podcasts)
-4. Banana Blitz - AI image generation
-5. Serendipity - Content strategy planning
-
-You help users across all these tools, maintaining context and providing guidance.${context}
-
-Conversation History:
-${conversationHistory}
-
-User: ${input}
-
-Provide helpful, concise responses. Reference their past work when relevant.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: systemPrompt,
-      });
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: response.text ?? "Sorry, I couldn't generate a response.",
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error(err);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -139,7 +81,7 @@ Provide helpful, concise responses. Reference their past work when relevant.`;
           </Link>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-white/80" />
-            <h1 className="text-lg font-semibold tracking-tight">AI Assistant</h1>
+            <h1 className="text-lg font-semibold tracking-tight">AI Agent</h1>
           </div>
           <div className="w-32" />
         </div>
@@ -198,7 +140,7 @@ Provide helpful, concise responses. Reference their past work when relevant.`;
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Ask me anything about your projects..."
+              placeholder="Ask me about anything you've built..."
               className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
               disabled={loading}
             />
