@@ -199,7 +199,7 @@ export default async function DashboardPage() {
           {/* Horizontal Scrolling App Launcher */}
           <div className="relative -mx-6 px-6">
             <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
-              {[...apps, ...apps].map((app, index) => {
+              {apps.map((app, index) => {
                 const Icon = app.icon;
                 return (
                   <Link
