@@ -439,19 +439,18 @@ export default function JoinPage() {
                               </div>
                             </div>
                             <input type="hidden" name="ml-submit" value="1" />
-                            <div className="ml-form-embedSubmit">
-                              <button type="submit" className="primary">Get The Playbook</button>
-                            </div>
-                            <input type="hidden" name="anticsrf" value="true" />
-                          </form>
-                        </div>
-                        <div className="ml-form-successBody row-success" style={{ display: 'none' }}>
-                          <div className="ml-form-successContent">
-                            <h4>Thank you!</h4>
-                            <p>Check your email for The Builders Playbook.</p>
-                          </div>
-                        </div>
-                      </div>
+                                                    <div className="ml-form-embedSubmit">
+                                                      <button type="submit" className="primary" style={{ backgroundColor: '#C73E1D', color: '#E8DCC4', cursor: 'pointer', fontWeight: 'bold' }}>Get The Playbook</button>
+                                                    </div>
+                                                    <input type="hidden" name="anticsrf" value="true" />
+                                                  </form>
+                                                </div>
+                                                <div className="ml-form-successBody row-success" style={{ display: 'none' }}>
+                                                  <div className="ml-form-successContent">
+                                                    <h4>Success!</h4>
+                                                    <p>You are being redirected to the Builders Playbook. Make sure to check your email and save the link so you don't lose it!</p>
+                                                  </div>
+                                                </div>                      </div>
                     </div>
                   </div>
               </div>
@@ -787,19 +786,18 @@ export default function JoinPage() {
                           </div>
                         </div>
                         <input type="hidden" name="ml-submit" value="1" />
-                        <div className="ml-form-embedSubmit">
-                          <button type="submit" className="primary">Get The Playbook (Free)</button>
-                        </div>
-                        <input type="hidden" name="anticsrf" value="true" />
-                      </form>
-                    </div>
-                    <div className="ml-form-successBody row-success" style={{ display: 'none' }}>
-                      <div className="ml-form-successContent">
-                        <h4>Perfect! Check your email.</h4>
-                        <p>The Builders Playbook is on its way.</p>
-                      </div>
-                    </div>
-                  </div>
+                                              <div className="ml-form-embedSubmit">
+                                                <button type="submit" className="primary" style={{ backgroundColor: '#C73E1D', color: '#E8DCC4', cursor: 'pointer', fontWeight: 'bold' }}>Get The Playbook (Free)</button>
+                                              </div>
+                                              <input type="hidden" name="anticsrf" value="true" />
+                                            </form>
+                                          </div>
+                                          <div className="ml-form-successBody row-success" style={{ display: 'none' }}>
+                                            <div className="ml-form-successContent">
+                                              <h4>Success!</h4>
+                                              <p>You are being redirected to the Builders Playbook. Make sure to check your email and save the link so you don't lose it!</p>
+                                            </div>
+                                          </div>                  </div>
                 </div>
               </div>
           </div>
