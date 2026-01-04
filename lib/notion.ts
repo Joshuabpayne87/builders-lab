@@ -22,33 +22,21 @@ export async function getNotionDatabase(databaseId?: string) {
       throw new Error("NOTION_DATABASE_ID is not configured");
     }
 
-    // Step 1: Retrieve the database to get its data source ID
-    const database = await notion.databases.retrieve({
-      database_id: dbId,
-    });
-
-    // Step 2: Get the first data source ID
-    const dataSourceId = (database as any).data_sources?.[0]?.id;
-
-    if (!dataSourceId) {
-      throw new Error("No data source found for this database");
-    }
-
-    // Step 3: Query the data source (fetch all entries with pagination)
+    // Step 1: Query the database using standard API
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response = await notion.dataSources.query({
-        data_source_id: dataSourceId,
+      const response: any = await (notion as any).databases.query({
+        database_id: dbId,
         sorts: [
           {
             timestamp: "last_edited_time",
             direction: "descending",
           },
         ],
-        page_size: 100, // Max allowed per request
+        page_size: 100,
         start_cursor: startCursor,
       });
 
@@ -60,21 +48,20 @@ export async function getNotionDatabase(databaseId?: string) {
     // Fetch blocks (content) for each page to get images
     const pagesWithImages = await Promise.all(
       allResults.map(async (page: any) => {
-      // Extract properties - adjust based on your database structure
-      const properties = page.properties;
+      // Extract properties safely
+      const properties = page.properties || {};
 
-      // Common property extraction (adjust to match your database)
-      const title = properties.Name?.title?.[0]?.plain_text ||
-                   properties.Title?.title?.[0]?.plain_text ||
-                   "Untitled";
+      const titleProp = Object.values(properties).find((p: any) => p.type === 'title') as any;
+      const title = titleProp?.title?.[0]?.plain_text || "Untitled";
 
-      const status = properties.Status?.status?.name ||
-                    properties.Status?.select?.name ||
-                    "";
+      const statusProp = properties.Status as any;
+      const status = statusProp?.status?.name || statusProp?.select?.name || "";
 
-      const tags = properties.Tags?.multi_select?.map((tag: any) => tag.name) || [];
+      const tagsProp = (properties.Tags || Object.values(properties).find((p: any) => p.type === 'multi_select')) as any;
+      const tags = tagsProp?.multi_select?.map((tag: any) => tag.name) || [];
 
-      const date = properties.Date?.date?.start || page.last_edited_time;
+      const dateProp = properties.Date as any;
+      const date = dateProp?.date?.start || page.last_edited_time;
 
       // Extract cover image/GIF
       let coverImage = null;

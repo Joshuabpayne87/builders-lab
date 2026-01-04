@@ -23,29 +23,14 @@ export async function GET() {
 
     const notion = new Client({ auth: PUBLIC_NOTION_API_KEY });
 
-    // Step 1: Retrieve the database to get its data source ID
-    const database = await notion.databases.retrieve({
-      database_id: PUBLIC_DATABASE_ID,
-    });
-
-    // Step 2: Get the first data source ID
-    const dataSourceId = (database as any).data_sources?.[0]?.id;
-
-    if (!dataSourceId) {
-      return NextResponse.json(
-        { error: "No data source found for this database. Please check your Notion database configuration." },
-        { status: 500 }
-      );
-    }
-
-    // Step 3: Query the data source using v5.6.0 API
+    // Step 1: Query the database using standard API
     let allResults: any[] = [];
     let hasMore = true;
     let startCursor: string | undefined = undefined;
 
     while (hasMore) {
-      const response: any = await (notion as any).dataSources.query({
-        data_source_id: dataSourceId,
+      const response: any = await (notion as any).databases.query({
+        database_id: PUBLIC_DATABASE_ID,
         sorts: [
           {
             timestamp: "last_edited_time",
@@ -62,49 +47,24 @@ export async function GET() {
     }
 
     // Process results
-    const resources = allResults.map((page: any, index: number) => {
+    const resources = allResults.map((page: any) => {
       const properties = page.properties || {};
 
-      // Try multiple approaches to get title
+      // Safe property extraction
       let title = "Untitled";
-
-      // Approach 1: Check if there's a direct title property
-      if (page.title && Array.isArray(page.title) && page.title.length > 0) {
-        title = page.title.map((t: any) => t.plain_text || t.text?.content || "").join("");
+      const titleProp = Object.values(properties).find((p: any) => p.type === 'title') as any;
+      if (titleProp?.title?.[0]) {
+        title = titleProp.title.map((t: any) => t.plain_text).join("");
       }
 
-      // Approach 2: Check properties for title-like fields
-      if (title === "Untitled") {
-        const titleProps = ["Resource Title", "Name", "Title", "name", "title", "页面"];
-        for (const prop of titleProps) {
-          if (properties[prop]) {
-            const propData = properties[prop];
-            if (propData.title && Array.isArray(propData.title) && propData.title.length > 0) {
-              title = propData.title.map((t: any) => t.plain_text || t.text?.content || "").join("");
-              break;
-            }
-          }
-        }
-      }
-
-      // Approach 3: Try to get from any property that has type "title"
-      if (title === "Untitled") {
-        for (const [key, value] of Object.entries(properties)) {
-          const prop = value as any;
-          if (prop?.type === "title" && prop.title && Array.isArray(prop.title) && prop.title.length > 0) {
-            title = prop.title.map((t: any) => t.plain_text || t.text?.content || "").join("");
-            break;
-          }
-        }
-      }
-
-      const tags =
-        properties.Tags?.multi_select?.map((tag: any) => tag.name) || [];
+      const tags = Object.values(properties)
+        .find((p: any) => p.type === 'multi_select' && (p.id === 'Tags' || p.name === 'Tags')) as any;
+      const tagList = tags?.multi_select?.map((tag: any) => tag.name) || [];
 
       return {
         id: page.id,
         title,
-        tags,
+        tags: tagList,
         url: page.url,
         lastEdited: page.last_edited_time,
         coverImage: null, // Will be populated below
