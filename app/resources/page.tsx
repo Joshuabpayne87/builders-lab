@@ -322,13 +322,26 @@ export default function ResourcesPage() {
                         />
                       )}
                       {block.type === "embed" && (
-                        <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
-                          <iframe
-                            src={block.embed?.url}
-                            className="w-full h-full"
-                            allowFullScreen
-                            loading="lazy"
-                          />
+                        <div className="w-full flex flex-col gap-2">
+                          <div className="flex justify-end">
+                            <a 
+                              href={block.embed?.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Open in new tab
+                            </a>
+                          </div>
+                          <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                            <iframe
+                              src={block.embed?.url}
+                              className="w-full h-full"
+                              allowFullScreen
+                              loading="lazy"
+                            />
+                          </div>
                         </div>
                       )}
                       {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
