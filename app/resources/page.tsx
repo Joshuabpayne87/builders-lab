@@ -11,6 +11,7 @@ export default function ResourcesPage() {
   const [selectedPage, setSelectedPage] = useState<any | null>(null);
   const [pageBlocks, setPageBlocks] = useState<any[]>([]);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [loadingBlocks, setLoadingBlocks] = useState(false);
 
   useEffect(() => {
     async function fetchResources() {
@@ -40,6 +41,8 @@ export default function ResourcesPage() {
 
   async function openPage(resource: any) {
     setSelectedPage(resource);
+    setPageBlocks([]);
+    setLoadingBlocks(true);
     try {
       console.log("[DEBUG] Opening page with ID:", resource.id);
       const res = await fetch(`/api/resources/page?pageId=${resource.id}`);
@@ -64,6 +67,8 @@ export default function ResourcesPage() {
     } catch (err) {
       console.error("Error fetching page blocks:", err);
       setPageBlocks([]);
+    } finally {
+      setLoadingBlocks(false);
     }
   }
 
@@ -308,7 +313,12 @@ export default function ResourcesPage() {
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 py-8">
               <div className="max-w-4xl mx-auto space-y-6">
-                {pageBlocks.length === 0 && (
+                {loadingBlocks ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-10 h-10 border-4 border-white/10 border-t-white rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-400">Loading page content...</p>
+                  </div>
+                ) : pageBlocks.length === 0 ? (
                    <div className="flex flex-col items-center justify-center py-12 text-center">
                      <p className="text-slate-400 mb-4">No preview content available.</p>
                      <a 
@@ -321,139 +331,141 @@ export default function ResourcesPage() {
                      </a>
                      <p className="text-xs text-slate-600 mt-4 font-mono">ID: {selectedPage.id}</p>
                    </div>
-                )}
-                {pageBlocks.map((block: any, idx: number) => {
-                  // Extract text content from any block type
-                  const getText = (richText: any[]) => richText?.map((t: any) => t.plain_text).join("") || "";
+                ) : (
+                  pageBlocks.map((block: any, idx: number) => {
+                    // Extract text content from any block type
+                    const getText = (richText: any[]) => richText?.map((t: any) => t.plain_text).join("") || "";
 
-                  return (
-                    <div key={idx}>
-                      {block.type === "image" && (
-                        <img
-                          src={block.image?.file?.url || block.image?.external?.url}
-                          alt="Content"
-                          className="w-full rounded-lg border border-white/10"
-                        />
-                      )}
-                      {block.type === "embed" && (
-                        <div className="w-full flex flex-col gap-2">
-                          <div className="flex justify-end">
-                            <a 
-                              href={block.embed?.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Open in new tab
-                            </a>
+                    return (
+                      <div key={idx}>
+                        {block.type === "image" && (
+                          <img
+                            src={block.image?.file?.url || block.image?.external?.url}
+                            alt="Content"
+                            className="w-full rounded-lg border border-white/10"
+                          />
+                        )}
+                        {block.type === "embed" && (
+                          <div className="w-full flex flex-col gap-2">
+                            <div className="flex justify-end">
+                              <a 
+                                href={block.embed?.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Open in new tab
+                              </a>
+                            </div>
+                            <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                              <iframe
+                                src={block.embed?.url}
+                                className="w-full h-full"
+                                allowFullScreen
+                                loading="lazy"
+                              />
+                            </div>
                           </div>
-                          <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
-                            <iframe
-                              src={block.embed?.url}
-                              className="w-full h-full"
-                              allowFullScreen
-                              loading="lazy"
-                            />
-                          </div>
-                        </div>
-                      )}
-                      {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
-                        <p className="text-slate-300 text-base leading-relaxed">
-                          {getText(block.paragraph.rich_text)}
-                        </p>
-                      )}
-                      {block.type === "heading_1" && (
-                        <h1 className="text-3xl font-bold text-white mt-8 mb-4">
-                          {getText(block.heading_1?.rich_text)}
-                        </h1>
-                      )}
-                      {block.type === "heading_2" && (
-                        <h2 className="text-2xl font-semibold text-white mt-6 mb-3">
-                          {getText(block.heading_2?.rich_text)}
-                        </h2>
-                      )}
-                      {block.type === "heading_3" && (
-                        <h3 className="text-xl font-medium text-white mt-4 mb-2">
-                          {getText(block.heading_3?.rich_text)}
-                        </h3>
-                      )}
-                      {block.type === "bulleted_list_item" && (
-                        <li className="text-slate-300 text-base ml-6 list-disc">
-                          {getText(block.bulleted_list_item?.rich_text)}
-                        </li>
-                      )}
-                      {block.type === "numbered_list_item" && (
-                        <li className="text-slate-300 text-base ml-6 list-decimal">
-                          {getText(block.numbered_list_item?.rich_text)}
-                        </li>
-                      )}
-                      {block.type === "quote" && (
-                        <blockquote className="border-l-4 border-white/20 pl-4 py-2 text-slate-400 italic">
-                          {getText(block.quote?.rich_text)}
-                        </blockquote>
-                      )}
-                      {block.type === "callout" && (
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <p className="text-slate-300 text-base">
-                            {block.callout?.icon?.emoji} {getText(block.callout?.rich_text)}
+                        )}
+                        {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
+                          <p className="text-slate-300 text-base leading-relaxed">
+                            {getText(block.paragraph.rich_text)}
                           </p>
-                        </div>
-                      )}
-                      {block.type === "code" && (
-                        <pre className="bg-black/50 border border-white/10 rounded-lg p-4 overflow-x-auto">
-                          <code className="text-sm text-slate-300 font-mono">
-                            {getText(block.code?.rich_text)}
-                          </code>
-                        </pre>
-                      )}
-                      {block.type === "divider" && (
-                        <hr className="border-t border-white/10 my-8" />
-                      )}
-                      {block.type === "toggle" && (
-                        <details className="bg-white/5 border border-white/10 rounded-lg p-4">
-                          <summary className="text-white font-medium cursor-pointer">
-                            {getText(block.toggle?.rich_text)}
-                          </summary>
-                        </details>
-                      )}
-                      {/* Fallback for unsupported block types */}
-                      {![
-                        "image",
-                        "paragraph",
-                        "heading_1",
-                        "heading_2",
-                        "heading_3",
-                        "bulleted_list_item",
-                        "numbered_list_item",
-                        "quote",
-                        "callout",
-                        "code",
-                        "divider",
-                        "toggle",
-                      ].includes(block.type) && (
-                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                          <p className="text-xs text-yellow-400 font-mono mb-2">
-                            Unsupported block type: {block.type}
-                          </p>
-                          {block[block.type]?.rich_text && (
-                            <p className="text-slate-300 text-sm">
-                              {getText(block[block.type].rich_text)}
+                        )}
+                        {block.type === "heading_1" && (
+                          <h1 className="text-3xl font-bold text-white mt-8 mb-4">
+                            {getText(block.heading_1?.rich_text)}
+                          </h1>
+                        )}
+                        {block.type === "heading_2" && (
+                          <h2 className="text-2xl font-semibold text-white mt-6 mb-3">
+                            {getText(block.heading_2?.rich_text)}
+                          </h2>
+                        )}
+                        {block.type === "heading_3" && (
+                          <h3 className="text-xl font-medium text-white mt-4 mb-2">
+                            {getText(block.heading_3?.rich_text)}
+                          </h3>
+                        )}
+                        {block.type === "bulleted_list_item" && (
+                          <li className="text-slate-300 text-base ml-6 list-disc">
+                            {getText(block.bulleted_list_item?.rich_text)}
+                          </li>
+                        )}
+                        {block.type === "numbered_list_item" && (
+                          <li className="text-slate-300 text-base ml-6 list-decimal">
+                            {getText(block.numbered_list_item?.rich_text)}
+                          </li>
+                        )}
+                        {block.type === "quote" && (
+                          <blockquote className="border-l-4 border-white/20 pl-4 py-2 text-slate-400 italic">
+                            {getText(block.quote?.rich_text)}
+                          </blockquote>
+                        )}
+                        {block.type === "callout" && (
+                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <p className="text-slate-300 text-base">
+                              {block.callout?.icon?.emoji} {getText(block.callout?.rich_text)}
                             </p>
-                          )}
-                          <details className="mt-2">
-                            <summary className="text-xs text-slate-500 cursor-pointer">
-                              View raw data
+                          </div>
+                        )}
+                        {block.type === "code" && (
+                          <pre className="bg-black/50 border border-white/10 rounded-lg p-4 overflow-x-auto">
+                            <code className="text-sm text-slate-300 font-mono">
+                              {getText(block.code?.rich_text)}
+                            </code>
+                          </pre>
+                        )}
+                        {block.type === "divider" && (
+                          <hr className="border-t border-white/10 my-8" />
+                        )}
+                        {block.type === "toggle" && (
+                          <details className="bg-white/5 border border-white/10 rounded-lg p-4">
+                            <summary className="text-white font-medium cursor-pointer">
+                              {getText(block.toggle?.rich_text)}
                             </summary>
-                            <pre className="text-xs text-slate-400 mt-2 overflow-x-auto">
-                              {JSON.stringify(block, null, 2)}
-                            </pre>
                           </details>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        )}
+                        {/* Fallback for unsupported block types */}
+                        {![
+                          "image",
+                          "paragraph",
+                          "heading_1",
+                          "heading_2",
+                          "heading_3",
+                          "bulleted_list_item",
+                          "numbered_list_item",
+                          "quote",
+                          "callout",
+                          "code",
+                          "divider",
+                          "toggle",
+                          "embed",
+                        ].includes(block.type) && (
+                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                            <p className="text-xs text-yellow-400 font-mono mb-2">
+                              Unsupported block type: {block.type}
+                            </p>
+                            {block[block.type]?.rich_text && (
+                              <p className="text-slate-300 text-sm">
+                                {getText(block[block.type].rich_text)}
+                              </p>
+                            )}
+                            <details className="mt-2">
+                              <summary className="text-xs text-slate-500 cursor-pointer">
+                                View raw data
+                              </summary>
+                              <pre className="text-xs text-slate-400 mt-2 overflow-x-auto">
+                                {JSON.stringify(block, null, 2)}
+                              </pre>
+                            </details>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
