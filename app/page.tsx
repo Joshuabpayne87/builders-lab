@@ -42,10 +42,19 @@ export default function HomePage() {
     setSelectedPage(resource);
     try {
       const res = await fetch(`/api/resources/page?pageId=${resource.id}`);
-      const blocks = await res.json();
-      console.log("Page blocks:", blocks);
-      console.log("Block types found:", [...new Set(blocks.map((b: any) => b.type))]);
-      setPageBlocks(blocks);
+      const data = await res.json();
+
+      // Check if response is an error object
+      if (!res.ok || data.error) {
+        console.error("API error:", data.error || "Unknown error");
+        console.error("Status:", res.status);
+        setPageBlocks([]);
+        return;
+      }
+
+      console.log("Page blocks:", data);
+      console.log("Block types found:", [...new Set(data.map((b: any) => b.type))]);
+      setPageBlocks(data);
     } catch (err) {
       console.error("Error fetching page blocks:", err);
       setPageBlocks([]);
@@ -401,6 +410,16 @@ export default function HomePage() {
                           </summary>
                         </details>
                       )}
+                      {block.type === "embed" && (
+                        <div className="w-full">
+                          <iframe
+                            src={block.embed?.url}
+                            className="w-full h-96 rounded-lg border border-white/10"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
                       {/* Fallback for unsupported block types */}
                       {![
                         "image",
@@ -415,6 +434,7 @@ export default function HomePage() {
                         "code",
                         "divider",
                         "toggle",
+                        "embed",
                       ].includes(block.type) && (
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                           <p className="text-xs text-yellow-400 font-mono mb-2">
