@@ -414,7 +414,7 @@ export default function HomePage() {
                         <div className="w-full">
                           <iframe
                             src={block.embed?.url}
-                            className="w-full h-96 rounded-lg border border-white/10"
+                            className="w-full min-h-[600px] rounded-lg border border-white/10"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                           />

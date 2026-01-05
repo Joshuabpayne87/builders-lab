@@ -85,7 +85,7 @@ export async function GET() {
     });
 
     // Fetch images from page content for each resource
-    const resourcesWithImages = await Promise.all(
+    const resourcesWithImagesAndAccess = await Promise.all(
       resources.map(async (resource: any) => {
         const page = allResults.find((p: any) => p.id === resource.id);
 
@@ -99,8 +99,9 @@ export async function GET() {
           }
         }
 
-        // Fetch blocks (page content) to find images
+        // Fetch blocks (page content) to find images and verify access
         let contentImage = null;
+        let hasAccess = true;
         try {
           const blocks = await notion.blocks.children.list({
             block_id: resource.id,
@@ -117,16 +118,23 @@ export async function GET() {
               contentImage = img.file?.url;
             }
           }
-        } catch (err) {
-          console.error(`Error fetching blocks for page ${resource.id}:`, err);
+        } catch (err: any) {
+          console.error(`Error fetching blocks for page ${resource.id}:`, err.message);
+          // If any error accessing blocks (permission, not found, etc.), mark as no access
+          // This includes: "Could not find block", "object_not_found", unauthorized, etc.
+          hasAccess = false;
         }
 
         return {
           ...resource,
-          coverImage: contentImage || coverImage, // Prefer content image
+          coverImage: contentImage || coverImage,
+          hasAccess, // Add access flag
         };
       })
     );
+
+    // Filter out pages without access
+    const resourcesWithImages = resourcesWithImagesAndAccess.filter((r: any) => r.hasAccess);
 
     return NextResponse.json(resourcesWithImages);
   } catch (error: any) {
