@@ -43,14 +43,14 @@ export default async function DashboardPage() {
       description: "Image Generator",
       icon: ImageIcon,
       href: "/apps/banana-blitz",
-      image: "/app-cards/unravel.png",
+      image: "/app-cards/banana-blitz.png",
     },
     {
       name: "Unravel",
       description: "Thread to Article Converter",
       icon: FileText,
       href: "/apps/unravel",
-      image: "/app-cards/banana-blitz.png",
+      image: "/app-cards/unravel.png",
     },
     {
       name: "Serendipity",
@@ -215,7 +215,6 @@ export default async function DashboardPage() {
                           alt={`${app.name} banner`}
                           fill
                           className="object-cover"
-                          priority
                         />
                         {/* Overlay with app icon */}
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/30 via-purple-900/10 to-slate-900/30 flex items-center justify-center pointer-events-none">

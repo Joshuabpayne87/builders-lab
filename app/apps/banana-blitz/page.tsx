@@ -128,15 +128,9 @@ export default function BananaBlitzPage() {
             ...prev, progress: Math.round(((i + 1) / allImages.length) * 100),
             images: prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } : item)
           }));
-          await new Promise(r => setTimeout(r, 700)); // Short breather to stay under limits
+          await new Promise(r => setTimeout(r, 500)); // Short breather
         } catch (err: any) {
-          if (err.message.includes("429")) {
-            setBlitzStatus("COOLING DOWN (RATE LIMIT HIT)...");
-            await new Promise(r => setTimeout(r, 6000));
-            i--; // Retry same image
-          } else {
-            setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } : item) }));
-          }
+          setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } : item) }));
         }
       }
 
@@ -271,7 +265,7 @@ export default function BananaBlitzPage() {
       <aside className="hidden lg:flex flex-col w-64 mr-8 border-r border-zinc-900 pr-8 overflow-hidden">
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Recent Blitzes</h3>
-          <Link href="/dashboard" className="text-zinc-600 hover:text-white transition-colors">
+          <Link href="/dashboard" prefetch={false} className="text-zinc-600 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>

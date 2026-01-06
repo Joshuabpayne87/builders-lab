@@ -41,6 +41,28 @@ class BananaBlitzService {
     }
   }
 
+  private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 5, initialDelay = 2000): Promise<T> {
+    let lastError: any;
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        // Check if it's a rate limit error (429) or a server error (5xx)
+        if (error.message?.includes('429') || error.status === 429 || (error.status >= 500 && error.status < 600)) {
+          const delay = initialDelay * Math.pow(2, i); // Exponential backoff
+          console.log(`Rate limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        // If it's not a transient error, throw immediately
+        throw error;
+      }
+    }
+    throw lastError;
+  }
+
   async generatePrompts(
     postText: string,
     vibe: VisualVibe,
@@ -77,7 +99,7 @@ class BananaBlitzService {
       });
     }
 
-    const response = await ai.models.generateContent({
+    const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
       contents: { parts },
       config: {
@@ -113,7 +135,7 @@ class BananaBlitzService {
           required: ["promptSets", "captions"]
         }
       }
-    });
+    }));
 
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     const sources = groundingChunks
@@ -149,14 +171,14 @@ class BananaBlitzService {
         }
       });
     }
-    const response = await ai.models.generateContent({
+    const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],
         imageConfig: { aspectRatio: ratio }
       }
-    });
+    }));
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
     }
@@ -168,7 +190,7 @@ class BananaBlitzService {
     const [header, base64] = coverImageUrl.split(',');
     const mimeType = header.split(';')[0].split(':')[1];
 
-    const response = await ai.models.generateContent({
+    const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
       contents: {
         parts: [
@@ -183,7 +205,7 @@ class BananaBlitzService {
           items: { type: Type.STRING }
         }
       }
-    });
+    }));
     return JSON.parse(response.text || "[]");
   }
 
@@ -195,7 +217,7 @@ class BananaBlitzService {
     Joe: [content]
     Jane: [content]`;
 
-    const response = await ai.models.generateContent({
+    const response = await this.retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: prompt }] }],
       config: {
@@ -209,7 +231,7 @@ class BananaBlitzService {
           }
         }
       }
-    });
+    }));
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || '';
   }
 }
