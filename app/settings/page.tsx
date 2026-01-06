@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Upload,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,6 +26,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
 
   const [userEmail, setUserEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -89,6 +91,25 @@ export default function SettingsPage() {
       setError(err.message || "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleClearData = () => {
+    if (confirm("Are you sure you want to clear all local data? This action cannot be undone.")) {
+      setClearingData(true);
+      try {
+        localStorage.removeItem('banana_history');
+        localStorage.removeItem('unravl_saved');
+        localStorage.removeItem('insight_lens_library');
+        // Add other keys here if needed in the future
+        
+        setSuccess("All app data cleared successfully.");
+        setTimeout(() => setSuccess(""), 3000);
+      } catch (e) {
+        setError("Failed to clear data.");
+      } finally {
+        setClearingData(false);
+      }
     }
   };
 
@@ -276,6 +297,37 @@ export default function SettingsPage() {
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Data Management */}
+        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-400">
+            <Trash2 className="w-5 h-5" />
+            Data Management
+          </h2>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-slate-400">
+              Clear all locally stored data from Banana Blitz, Unravel, and InsightLens. This action cannot be undone.
+            </p>
+            <button
+              onClick={handleClearData}
+              disabled={clearingData}
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+            >
+              {clearingData ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Clearing...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  Clear All App Data
+                </>
+              )}
+            </button>
           </div>
         </div>
 
