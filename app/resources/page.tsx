@@ -374,6 +374,18 @@ export default function ResourcesPage() {
                             className="w-full rounded-lg border border-white/10"
                           />
                         )}
+                        {block.type === "video" && (
+                          <div className="w-full flex flex-col gap-2">
+                            <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                              <iframe
+                                src={block.video?.external?.url?.replace("watch?v=", "embed/")?.replace("youtu.be/", "www.youtube.com/embed/")}
+                                className="w-full h-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </div>
+                          </div>
+                        )}
                         {block.type === "embed" && (
                           <div className="w-full flex flex-col gap-2">
                             <div className="flex justify-end">
@@ -469,10 +481,10 @@ export default function ResourcesPage() {
                           "callout",
                           "code",
                           "divider",
-                          "toggle",
-                          "embed",
-                        ].includes(block.type) && (
-                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                                                  "toggle",
+                                                  "embed",
+                                                  "video",
+                                                ].includes(block.type) && (                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                             <p className="text-xs text-yellow-400 font-mono mb-2">
                               Unsupported block type: {block.type}
                             </p>
