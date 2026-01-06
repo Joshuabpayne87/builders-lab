@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
       for (const child of allChildren) {
         if ("has_children" in child && child.has_children && "id" in child) {
-          child.children = await fetchBlockChildren(child.id, depth + 1);
+          (child as any).children = await fetchBlockChildren(child.id, depth + 1);
         }
       }
 
@@ -92,13 +92,17 @@ export async function GET(request: NextRequest) {
       throw new Error("Invalid response from Notion API");
     }
 
+    const enrichedBlocks = [];
     for (const block of blocks.results) {
       if ("has_children" in block && block.has_children && "id" in block) {
-        block.children = await fetchBlockChildren(block.id, 0);
+        const children = await fetchBlockChildren(block.id, 0);
+        enrichedBlocks.push({ ...block, children });
+      } else {
+        enrichedBlocks.push(block);
       }
     }
 
-    return NextResponse.json(blocks.results);
+    return NextResponse.json(enrichedBlocks);
   } catch (error: any) {
     console.error("Error fetching page blocks:", error);
     return NextResponse.json(
