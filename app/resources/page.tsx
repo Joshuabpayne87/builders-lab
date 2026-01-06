@@ -150,6 +150,20 @@ export default function ResourcesPage() {
             </div>
           </div>
 
+          {/* Banner above articles */}
+          <div className="mb-10">
+            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+              <img
+                src="/Gemini_Generated_Image_jlpk23jlpk23jlpk.png"
+                alt="Builders Playbook"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <p className="text-xs text-slate-400 text-center mt-2">
+              Full articles will redirect you to Notion.
+            </p>
+          </div>
+
           {/* Resources Grid */}
           {loading ? (
             <div className="text-center py-16">
