@@ -154,7 +154,7 @@ export default function ResourcesPage() {
           <div className="mb-10">
             <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
               <img
-                src="/Gemini_Generated_Image_jlpk23jlpk23jlpk.png"
+                src="/builders-playbook-banner.png"
                 alt="Builders Playbook"
                 className="w-full h-auto object-cover"
               />
