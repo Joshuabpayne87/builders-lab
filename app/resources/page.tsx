@@ -160,7 +160,7 @@ export default function ResourcesPage() {
               />
             </div>
             <p className="text-xs text-slate-400 text-center mt-2">
-              Full articles will redirect you to Notion.
+              Full article will open in Notion
             </p>
           </div>
 
