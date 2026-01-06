@@ -49,7 +49,7 @@ User: ${message}
     // 3. Call Gemini
     const client = createGeminiClient();
     const response = await client.models.generateContent({
-      model: "gemini-2.0-flash-exp", // Use the fast, smart model
+      model: "gemini-2.5-flash",
       contents: [
         {
           parts: [{ text: systemPrompt }]
@@ -102,7 +102,7 @@ Format it as a professional summary.`;
     // 3. Generate Summary with Gemini
     const client = createGeminiClient();
     const response = await client.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
       contents: [{ parts: [{ text: prompt }] }]
     });
 

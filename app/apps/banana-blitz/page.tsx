@@ -324,8 +324,8 @@ export default function BananaBlitzPage() {
 
         {/* Main Input Section */}
         <section className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-[32px] mb-12 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-          {state.isGenerating && (
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-md z-20 flex flex-col items-center justify-center">
+        {state.isGenerating && (
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md z-20 flex flex-col items-center justify-center pointer-events-none">
                <div className="w-24 h-24 mb-6 relative">
                   <div className="absolute inset-0 border-4 border-yellow-400/20 rounded-full"></div>
                   <div className="absolute inset-0 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
@@ -369,7 +369,8 @@ export default function BananaBlitzPage() {
                 value={state.postText}
                 onChange={(e) => setState(p => ({ ...p, postText: e.target.value }))}
                 placeholder="Talk to me or paste your content..."
-                className="w-full bg-black border-2 border-zinc-800 rounded-2xl p-6 h-48 focus:border-yellow-400 focus:outline-none transition-all text-lg shadow-inner scrollbar-hide"
+                disabled={state.isGenerating}
+                className="w-full bg-black border-2 border-zinc-800 rounded-2xl p-6 h-48 focus:border-yellow-400 focus:outline-none transition-all text-lg shadow-inner scrollbar-hide disabled:opacity-70"
               />
               <div className="absolute bottom-4 right-4 flex gap-3">
                 <button
@@ -398,6 +399,7 @@ export default function BananaBlitzPage() {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
+                disabled={state.isGenerating}
                 className={`w-full h-48 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-all ${state.referenceImage ? 'border-yellow-400 bg-yellow-400/5' : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/50'}`}
               >
                 {state.referenceImage ? (

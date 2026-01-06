@@ -80,7 +80,7 @@ export default function ComponentStudioPage() {
               if (!apiKey) return;
               const ai = new GoogleGenAI({ apiKey });
               const response = await ai.models.generateContent({
-                  model: 'gemini-2.0-flash-exp',
+                  model: 'gemini-2.5-flash',
                   contents: {
                       role: 'user',
                       parts: [{
@@ -181,7 +181,7 @@ export default function ComponentStudioPage() {
         `.trim();
 
         const responseStream = await ai.models.generateContentStream({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash',
              contents: [{ parts: [{ text: prompt }], role: 'user' }],
              config: { temperature: 1.2 }
         });
@@ -270,7 +270,7 @@ export default function ComponentStudioPage() {
         `.trim();
 
         const styleResponse = await ai.models.generateContent({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash',
             contents: { role: 'user', parts: [{ text: stylePrompt }] }
         });
 
@@ -325,7 +325,7 @@ export default function ComponentStudioPage() {
                   `.trim();
 
                 const responseStream = await ai.models.generateContentStream({
-                    model: 'gemini-2.0-flash-exp',
+                    model: 'gemini-2.5-flash',
                     contents: [{ parts: [{ text: prompt }], role: "user" }],
                 });
 

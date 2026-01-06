@@ -160,7 +160,7 @@ async function generateScoringInsights(
   scoreFactors: ScoreFactors,
   lead_score: number
 ): Promise<{ reasoning: string; recommended_actions: AINextAction[] }> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `Analyze this contact's engagement and provide insights:
 

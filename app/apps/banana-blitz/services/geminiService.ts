@@ -78,7 +78,7 @@ class BananaBlitzService {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: { parts },
       config: {
         systemInstruction,
@@ -150,7 +150,7 @@ class BananaBlitzService {
       });
     }
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],

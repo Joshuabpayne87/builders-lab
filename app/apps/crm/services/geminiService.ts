@@ -20,7 +20,7 @@ export async function generateContactSummary(
   activities: Activity[],
   deals: Deal[]
 ): Promise<AIContactSummary> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `Analyze this contact and provide a concise 2-3 sentence summary:
 
@@ -83,7 +83,7 @@ export async function suggestNextActions(
   activities: Activity[],
   deals: Deal[]
 ): Promise<AINextAction[]> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const lastActivity = activities[0];
   const lastContactDate = contact.last_contacted_at
@@ -146,7 +146,7 @@ export async function draftEmail(
   purpose: string,
   context?: string
 ): Promise<AIEmailDraft> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `Draft a professional email to this contact:
 
@@ -210,7 +210,7 @@ export async function analyzeDealHealth(
   contact: Contact,
   activities: Activity[]
 ): Promise<AIDealAnalysis> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const dealAge = Math.floor(
     (Date.now() - new Date(deal.created_at).getTime()) / (1000 * 60 * 60 * 24)
