@@ -41,7 +41,7 @@ class BananaBlitzService {
     }
   }
 
-  private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 5, initialDelay = 2000): Promise<T> {
+  private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 7, initialDelay = 3000): Promise<T> {
     let lastError: any;
     
     for (let i = 0; i < maxRetries; i++) {
@@ -49,10 +49,14 @@ class BananaBlitzService {
         return await operation();
       } catch (error: any) {
         lastError = error;
-        // Check if it's a rate limit error (429) or a server error (5xx)
-        if (error.message?.includes('429') || error.status === 429 || (error.status >= 500 && error.status < 600)) {
+        const msg = error.message?.toLowerCase() || '';
+        // Check for rate limit (429), quota exhaustion, or server errors (5xx)
+        const isRateLimit = msg.includes('429') || msg.includes('quota') || msg.includes('limit') || msg.includes('exhausted');
+        const isServerError = error.status === 429 || (error.status >= 500 && error.status < 600) || msg.includes('503') || msg.includes('500');
+
+        if (isRateLimit || isServerError) {
           const delay = initialDelay * Math.pow(2, i); // Exponential backoff
-          console.log(`Rate limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+          console.log(`API Busy/Limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
