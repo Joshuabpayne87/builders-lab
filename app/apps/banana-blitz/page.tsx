@@ -2,10 +2,15 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ArrowLeft } from 'lucide-react';
 import { Category, VisualVibe, AspectRatio, VoiceTone, MusicStyle, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
-import ImageCard from './components/ImageCard';
+
+const ImageCard = dynamic(() => import('./components/ImageCard'), {
+  loading: () => <div className="w-full aspect-square bg-zinc-900/20 rounded-3xl animate-pulse" />,
+  ssr: false
+});
 
 const VIBES: VisualVibe[] = [
   'Corporate Sleek', 'Dark Mode Luxury', 'Minimalist', 'Studio Photography',
