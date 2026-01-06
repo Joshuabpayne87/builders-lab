@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       } while (cursor);
 
       for (const child of allChildren) {
-        if (child?.has_children) {
+        if ("has_children" in child && child.has_children && "id" in child) {
           child.children = await fetchBlockChildren(child.id, depth + 1);
         }
       }
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
 
     for (const block of blocks.results) {
-      if (block?.has_children) {
+      if ("has_children" in block && block.has_children && "id" in block) {
         block.children = await fetchBlockChildren(block.id, 0);
       }
     }
