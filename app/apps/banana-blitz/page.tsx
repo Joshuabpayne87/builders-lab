@@ -133,7 +133,7 @@ export default function BananaBlitzPage() {
             ...prev, progress: Math.round(((i + 1) / allImages.length) * 100),
             images: prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } : item)
           }));
-          await new Promise(r => setTimeout(r, 5000)); // Breather between requests (Safe for 15 RPM limit)
+          await new Promise(r => setTimeout(r, 200)); // Quick breather for active plan
         } catch (err: any) {
           setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } : item) }));
         }

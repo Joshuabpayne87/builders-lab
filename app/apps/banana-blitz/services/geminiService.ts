@@ -41,7 +41,7 @@ class BananaBlitzService {
     }
   }
 
-  private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 7, initialDelay = 3000): Promise<T> {
+  private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 7, initialDelay = 1000): Promise<T> {
     let lastError: any;
     
     for (let i = 0; i < maxRetries; i++) {
