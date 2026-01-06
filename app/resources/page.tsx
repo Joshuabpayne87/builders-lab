@@ -312,27 +312,56 @@ export default function ResourcesPage() {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 py-8">
-              <div className="max-w-4xl mx-auto space-y-6">
+              <div className="max-w-4xl mx-auto space-y-8">
+                {/* Hero Section of Modal */}
+                <div className="space-y-6">
+                  {selectedPage.coverImage && (
+                    <div className="w-full h-64 md:h-80 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                      <img
+                        src={selectedPage.coverImage}
+                        alt={selectedPage.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Primary Action Button if Link exists */}
+                  {selectedPage.externalUrl && (
+                    <div className="flex justify-center">
+                       <a 
+                         href={selectedPage.externalUrl} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all hover:scale-105 flex items-center gap-2 shadow-lg shadow-white/10"
+                       >
+                         Visit Website <ExternalLink className="w-5 h-5" />
+                       </a>
+                    </div>
+                  )}
+                </div>
+
                 {loadingBlocks ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-10 h-10 border-4 border-white/10 border-t-white rounded-full animate-spin mb-4"></div>
-                    <p className="text-slate-400">Loading page content...</p>
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-8 h-8 border-4 border-white/10 border-t-white rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-400">Loading content...</p>
                   </div>
                 ) : pageBlocks.length === 0 ? (
-                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                     <p className="text-slate-400 mb-4">No preview content available.</p>
-                     <a 
-                       href={selectedPage.url} 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       className="px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2"
-                     >
-                       Open Resource <ExternalLink className="w-4 h-4" />
-                     </a>
-                     <p className="text-xs text-slate-600 mt-4 font-mono">ID: {selectedPage.id}</p>
+                   <div className="flex flex-col items-center justify-center py-8 text-center border-t border-white/10 pt-8">
+                     <p className="text-slate-500 mb-4">No additional text content found.</p>
+                     {!selectedPage.externalUrl && (
+                       <a 
+                         href={selectedPage.url} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="px-6 py-3 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-colors flex items-center gap-2"
+                       >
+                         Open in Notion <ExternalLink className="w-4 h-4" />
+                       </a>
+                     )}
                    </div>
                 ) : (
-                  pageBlocks.map((block: any, idx: number) => {
+                  <div className="space-y-6">
+                  {pageBlocks.map((block: any, idx: number) => {
                     // Extract text content from any block type
                     const getText = (richText: any[]) => richText?.map((t: any) => t.plain_text).join("") || "";
 
@@ -464,7 +493,8 @@ export default function ResourcesPage() {
                         )}
                       </div>
                     );
-                  })
+                  })}
+                  </div>
                 )}
               </div>
             </div>

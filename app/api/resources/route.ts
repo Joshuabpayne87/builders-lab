@@ -74,18 +74,23 @@ export async function GET() {
       const tagsProp = (properties.Tags || Object.values(properties).find((p: any) => p.type === 'multi_select')) as any;
       const tagList = tagsProp?.multi_select?.map((tag: any) => tag.name) || [];
 
+      // Extract external link if available
+      const linkProp = (properties.Link || Object.values(properties).find((p: any) => p.type === 'url')) as any;
+      const externalUrl = linkProp?.url || null;
+
       return {
         id: page.id,
         title,
         tags: tagList,
         url: page.url,
+        externalUrl,
         lastEdited: page.last_edited_time,
         coverImage: null, // Will be populated below
       };
     });
 
     // Fetch images from page content for each resource
-    const resourcesWithImagesAndAccess = await Promise.all(
+    const resourcesWithImages = await Promise.all(
       resources.map(async (resource: any) => {
         const page = allResults.find((p: any) => p.id === resource.id);
 
@@ -99,9 +104,8 @@ export async function GET() {
           }
         }
 
-        // Fetch blocks (page content) to find images and verify access
+        // Fetch blocks (page content) to find images
         let contentImage = null;
-        let hasAccess = true;
         try {
           const blocks = await notion.blocks.children.list({
             block_id: resource.id,
@@ -120,21 +124,14 @@ export async function GET() {
           }
         } catch (err: any) {
           console.error(`Error fetching blocks for page ${resource.id}:`, err.message);
-          // If any error accessing blocks (permission, not found, etc.), mark as no access
-          // This includes: "Could not find block", "object_not_found", unauthorized, etc.
-          hasAccess = false;
         }
 
         return {
           ...resource,
           coverImage: contentImage || coverImage,
-          hasAccess, // Add access flag
         };
       })
     );
-
-    // Filter out pages without access
-    const resourcesWithImages = resourcesWithImagesAndAccess.filter((r: any) => r.hasAccess);
 
     return NextResponse.json(resourcesWithImages);
   } catch (error: any) {
