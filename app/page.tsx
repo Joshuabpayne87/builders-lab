@@ -360,11 +360,11 @@ export default function HomePage() {
                     </div>
                   )}
                   
-                  {/* Primary Action Button if Link exists */}
-                  {selectedPage.externalUrl && (
+                  {/* Primary Action Button - Use externalUrl OR find first embed URL */}
+                  {(selectedPage.externalUrl || pageBlocks.find((b: any) => b.type === "embed")?.embed?.url) && (
                     <div className="flex justify-center">
                        <a 
-                         href={selectedPage.externalUrl} 
+                         href={selectedPage.externalUrl || pageBlocks.find((b: any) => b.type === "embed")?.embed?.url}
                          target="_blank" 
                          rel="noopener noreferrer"
                          className="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition-all hover:scale-105 flex items-center gap-2 shadow-lg shadow-white/10"
@@ -481,25 +481,23 @@ export default function HomePage() {
                           </div>
                         )}
                         {block.type === "embed" && (
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="flex justify-end">
-                              <a 
-                                href={block.embed?.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                Open in new tab
-                              </a>
+                          <a 
+                            href={block.embed?.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block group"
+                          >
+                            <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center gap-4 hover:bg-white/10 transition-all hover:scale-[1.01]">
+                              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                                <ExternalLink className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-slate-400 mb-1">Embedded Resource</p>
+                                <p className="text-white font-medium truncate">{block.embed?.url}</p>
+                              </div>
+                              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                             </div>
-                            <iframe
-                              src={block.embed?.url}
-                              className="w-full min-h-[600px] rounded-lg border border-white/10 bg-white/5"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          </div>
+                          </a>
                         )}
                         {/* Fallback for unsupported block types */}
                         {![
