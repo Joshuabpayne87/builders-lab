@@ -119,25 +119,37 @@ export default function BananaBlitzPage() {
 
       setState(prev => ({ ...prev, images: allImages, captions, sources }));
 
-      // Sequential rendering with better status feedback
-      for (let i = 0; i < allImages.length; i++) {
-        const img = allImages[i];
-        const variantNum = allImages.filter(im => im.category === img.category).indexOf(img) + 1;
-        setBlitzStatus(`RENDERING: ${img.category.toUpperCase()} V${variantNum}`);
+      setBlitzStatus('RENDERING ASSET SUITE...');
 
-        setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'generating' } : item) }));
+      // Parallel rendering for Paid Tier 1
+      await Promise.all(allImages.map(async (img, i) => {
+        setState(prev => ({
+          ...prev,
+          images: prev.images.map(item => item.id === img.id ? { ...item, status: 'generating' } : item)
+        }));
 
         try {
+          // Slight stagger to prevent simultaneous network burst
+          await new Promise(r => setTimeout(r, i * 150));
+          
           const url = await bananaBlitzService.generateImage(img.prompt, state.selectedRatio, state.referenceImage);
-          setState(prev => ({
-            ...prev, progress: Math.round(((i + 1) / allImages.length) * 100),
-            images: prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } : item)
-          }));
-          await new Promise(r => setTimeout(r, 200)); // Quick breather for active plan
+          
+          setState(prev => {
+            const updatedImages = prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } : item);
+            const finished = updatedImages.filter(im => im.status === 'completed' || im.status === 'error').length;
+            return {
+              ...prev,
+              progress: Math.round((finished / allImages.length) * 100),
+              images: updatedImages
+            };
+          });
         } catch (err: any) {
-          setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } : item) }));
+          setState(prev => ({
+            ...prev,
+            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } : item)
+          }));
         }
-      }
+      }));
 
       setBlitzStatus('COMPILING HISTORY...');
       setState(prev => {
@@ -225,21 +237,27 @@ export default function BananaBlitzPage() {
       }));
       setState(prev => ({ ...prev, images: [...prev.images, ...newSlides] }));
 
-      // Generate carousel slides sequentially
-      for (let i = 0; i < newSlides.length; i++) {
-        const slide = newSlides[i];
-        setState(prev => ({ ...prev, images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' } : item) }));
+      // Generate carousel slides in parallel
+      await Promise.all(newSlides.map(async (slide, i) => {
+        setState(prev => ({
+          ...prev,
+          images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' } : item)
+        }));
+
         try {
+          await new Promise(r => setTimeout(r, i * 200));
           const url = await bananaBlitzService.generateImage(slide.prompt, coverImage.aspectRatio, state.referenceImage);
           setState(prev => ({
             ...prev,
             images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' } : item)
           }));
-          await new Promise(r => setTimeout(r, 900));
         } catch (err) {
-          setState(prev => ({ ...prev, images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' } : item) }));
+          setState(prev => ({
+            ...prev,
+            images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' } : item)
+          }));
         }
-      }
+      }));
     } catch (e: any) {
       setState(prev => ({ ...prev, error: "Carousel Slide rendering failed." }));
     } finally {
