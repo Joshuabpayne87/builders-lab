@@ -40,6 +40,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const MAX_DEPTH = 5;
+    async function fetchBlockChildren(blockId: string, depth: number): Promise<any[]> {
+      if (depth >= MAX_DEPTH) {
+        return [];
+      }
+
+      const allChildren: any[] = [];
+      let cursor: string | undefined = undefined;
+
+      do {
+        const response = await notion.blocks.children.list({
+          block_id: blockId,
+          page_size: 100,
+          start_cursor: cursor,
+        });
+
+        if (Array.isArray(response.results)) {
+          allChildren.push(...response.results);
+        }
+
+        cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+      } while (cursor);
+
+      for (const child of allChildren) {
+        if (child?.has_children) {
+          child.children = await fetchBlockChildren(child.id, depth + 1);
+        }
+      }
+
+      return allChildren;
+    }
+
     // Fetch blocks using the confirmed page ID
     let blocks;
     try {
@@ -58,6 +90,12 @@ export async function GET(request: NextRequest) {
 
     if (!blocks.results || !Array.isArray(blocks.results)) {
       throw new Error("Invalid response from Notion API");
+    }
+
+    for (const block of blocks.results) {
+      if (block?.has_children) {
+        block.children = await fetchBlockChildren(block.id, 0);
+      }
     }
 
     return NextResponse.json(blocks.results);

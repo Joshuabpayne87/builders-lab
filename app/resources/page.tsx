@@ -361,149 +361,167 @@ export default function ResourcesPage() {
                    </div>
                 ) : (
                   <div className="space-y-6">
-                  {pageBlocks.map((block: any, idx: number) => {
-                    // Extract text content from any block type
-                    const getText = (richText: any[]) => richText?.map((t: any) => t.plain_text).join("") || "";
+                    {(() => {
+                      const getText = (richText: any[]) =>
+                        richText?.map((t: any) => t.plain_text).join("") || "";
 
-                    return (
-                      <div key={idx}>
-                        {block.type === "image" && (
-                          <img
-                            src={block.image?.file?.url || block.image?.external?.url}
-                            alt="Content"
-                            className="w-full rounded-lg border border-white/10"
-                          />
-                        )}
-                        {block.type === "video" && (
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
-                              <iframe
-                                src={block.video?.external?.url?.replace("watch?v=", "embed/")?.replace("youtu.be/", "www.youtube.com/embed/")}
-                                className="w-full h-full"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
+                      const renderBlock = (block: any, depth: number, idx: number) => {
+                        const key = block?.id ?? `${block.type}-${depth}-${idx}`;
+                        return (
+                          <div key={key}>
+                            {block.type === "image" && (
+                              <img
+                                src={block.image?.file?.url || block.image?.external?.url}
+                                alt="Content"
+                                className="w-full rounded-lg border border-white/10"
                               />
-                            </div>
-                          </div>
-                        )}
-                        {block.type === "embed" && (
-                          <div className="w-full flex flex-col gap-2">
-                            <div className="flex justify-end">
-                              <a 
-                                href={block.embed?.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                Open in new tab
-                              </a>
-                            </div>
-                            <iframe
-                              src={block.embed?.url}
-                              className="w-full min-h-[600px] rounded-lg border border-white/10 bg-white/5"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          </div>
-                        )}
-                        {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
-                          <p className="text-slate-300 text-base leading-relaxed">
-                            {getText(block.paragraph.rich_text)}
-                          </p>
-                        )}
-                        {block.type === "heading_1" && (
-                          <h1 className="text-3xl font-bold text-white mt-8 mb-4">
-                            {getText(block.heading_1?.rich_text)}
-                          </h1>
-                        )}
-                        {block.type === "heading_2" && (
-                          <h2 className="text-2xl font-semibold text-white mt-6 mb-3">
-                            {getText(block.heading_2?.rich_text)}
-                          </h2>
-                        )}
-                        {block.type === "heading_3" && (
-                          <h3 className="text-xl font-medium text-white mt-4 mb-2">
-                            {getText(block.heading_3?.rich_text)}
-                          </h3>
-                        )}
-                        {block.type === "bulleted_list_item" && (
-                          <li className="text-slate-300 text-base ml-6 list-disc">
-                            {getText(block.bulleted_list_item?.rich_text)}
-                          </li>
-                        )}
-                        {block.type === "numbered_list_item" && (
-                          <li className="text-slate-300 text-base ml-6 list-decimal">
-                            {getText(block.numbered_list_item?.rich_text)}
-                          </li>
-                        )}
-                        {block.type === "quote" && (
-                          <blockquote className="border-l-4 border-white/20 pl-4 py-2 text-slate-400 italic">
-                            {getText(block.quote?.rich_text)}
-                          </blockquote>
-                        )}
-                        {block.type === "callout" && (
-                          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                            <p className="text-slate-300 text-base">
-                              {block.callout?.icon?.emoji} {getText(block.callout?.rich_text)}
-                            </p>
-                          </div>
-                        )}
-                        {block.type === "code" && (
-                          <pre className="bg-black/50 border border-white/10 rounded-lg p-4 overflow-x-auto">
-                            <code className="text-sm text-slate-300 font-mono">
-                              {getText(block.code?.rich_text)}
-                            </code>
-                          </pre>
-                        )}
-                        {block.type === "divider" && (
-                          <hr className="border-t border-white/10 my-8" />
-                        )}
-                        {block.type === "toggle" && (
-                          <details className="bg-white/5 border border-white/10 rounded-lg p-4">
-                            <summary className="text-white font-medium cursor-pointer">
-                              {getText(block.toggle?.rich_text)}
-                            </summary>
-                          </details>
-                        )}
-                        {/* Fallback for unsupported block types */}
-                        {![
-                          "image",
-                          "paragraph",
-                          "heading_1",
-                          "heading_2",
-                          "heading_3",
-                          "bulleted_list_item",
-                          "numbered_list_item",
-                          "quote",
-                          "callout",
-                          "code",
-                          "divider",
-                                                  "toggle",
-                                                  "embed",
-                                                  "video",
-                                                ].includes(block.type) && (                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                            <p className="text-xs text-yellow-400 font-mono mb-2">
-                              Unsupported block type: {block.type}
-                            </p>
-                            {block[block.type]?.rich_text && (
-                              <p className="text-slate-300 text-sm">
-                                {getText(block[block.type].rich_text)}
+                            )}
+                            {block.type === "video" && (
+                              <div className="w-full flex flex-col gap-2">
+                                <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/20">
+                                  <iframe
+                                    src={block.video?.external?.url
+                                      ?.replace("watch?v=", "embed/")
+                                      ?.replace("youtu.be/", "www.youtube.com/embed/")}
+                                    className="w-full h-full"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                </div>
+                              </div>
+                            )}
+                            {block.type === "embed" && (
+                              <div className="w-full flex flex-col gap-2">
+                                <div className="flex justify-end">
+                                  <a
+                                    href={block.embed?.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    Open in new tab
+                                  </a>
+                                </div>
+                                <iframe
+                                  src={block.embed?.url}
+                                  className="w-full min-h-[600px] rounded-lg border border-white/10 bg-white/5"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            )}
+                            {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
+                              <p className="text-slate-300 text-base leading-relaxed">
+                                {getText(block.paragraph.rich_text)}
                               </p>
                             )}
-                            <details className="mt-2">
-                              <summary className="text-xs text-slate-500 cursor-pointer">
-                                View raw data
-                              </summary>
-                              <pre className="text-xs text-slate-400 mt-2 overflow-x-auto">
-                                {JSON.stringify(block, null, 2)}
+                            {block.type === "heading_1" && (
+                              <h1 className="text-3xl font-bold text-white mt-8 mb-4">
+                                {getText(block.heading_1?.rich_text)}
+                              </h1>
+                            )}
+                            {block.type === "heading_2" && (
+                              <h2 className="text-2xl font-semibold text-white mt-6 mb-3">
+                                {getText(block.heading_2?.rich_text)}
+                              </h2>
+                            )}
+                            {block.type === "heading_3" && (
+                              <h3 className="text-xl font-medium text-white mt-4 mb-2">
+                                {getText(block.heading_3?.rich_text)}
+                              </h3>
+                            )}
+                            {block.type === "bulleted_list_item" && (
+                              <li className="text-slate-300 text-base ml-6 list-disc">
+                                {getText(block.bulleted_list_item?.rich_text)}
+                              </li>
+                            )}
+                            {block.type === "numbered_list_item" && (
+                              <li className="text-slate-300 text-base ml-6 list-decimal">
+                                {getText(block.numbered_list_item?.rich_text)}
+                              </li>
+                            )}
+                            {block.type === "quote" && (
+                              <blockquote className="border-l-4 border-white/20 pl-4 py-2 text-slate-400 italic">
+                                {getText(block.quote?.rich_text)}
+                              </blockquote>
+                            )}
+                            {block.type === "callout" && (
+                              <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                <p className="text-slate-300 text-base">
+                                  {block.callout?.icon?.emoji} {getText(block.callout?.rich_text)}
+                                </p>
+                              </div>
+                            )}
+                            {block.type === "code" && (
+                              <pre className="bg-black/50 border border-white/10 rounded-lg p-4 overflow-x-auto">
+                                <code className="text-sm text-slate-300 font-mono">
+                                  {getText(block.code?.rich_text)}
+                                </code>
                               </pre>
-                            </details>
+                            )}
+                            {block.type === "divider" && (
+                              <hr className="border-t border-white/10 my-8" />
+                            )}
+                            {block.type === "toggle" && (
+                              <details className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                <summary className="text-white font-medium cursor-pointer">
+                                  {getText(block.toggle?.rich_text)}
+                                </summary>
+                              </details>
+                            )}
+                            {![
+                              "image",
+                              "paragraph",
+                              "heading_1",
+                              "heading_2",
+                              "heading_3",
+                              "bulleted_list_item",
+                              "numbered_list_item",
+                              "quote",
+                              "callout",
+                              "code",
+                              "divider",
+                              "toggle",
+                              "embed",
+                              "video",
+                            ].includes(block.type) && (
+                              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                                <p className="text-xs text-yellow-400 font-mono mb-2">
+                                  Unsupported block type: {block.type}
+                                </p>
+                                {block[block.type]?.rich_text && (
+                                  <p className="text-slate-300 text-sm">
+                                    {getText(block[block.type].rich_text)}
+                                  </p>
+                                )}
+                                <details className="mt-2">
+                                  <summary className="text-xs text-slate-500 cursor-pointer">
+                                    View raw data
+                                  </summary>
+                                  <pre className="text-xs text-slate-400 mt-2 overflow-x-auto">
+                                    {JSON.stringify(block, null, 2)}
+                                  </pre>
+                                </details>
+                              </div>
+                            )}
+                            {Array.isArray(block.children) && block.children.length > 0 && (
+                              <div className="mt-3 space-y-4 pl-4 border-l border-white/10">
+                                {block.children.map((child: any, childIdx: number) =>
+                                  renderBlock(child, depth + 1, childIdx)
+                                )}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        );
+                      };
+
+                      return pageBlocks.map((block: any, idx: number) =>
+                        renderBlock(block, 0, idx)
+                      );
+                    })()}
                   </div>
                 )}
               </div>
