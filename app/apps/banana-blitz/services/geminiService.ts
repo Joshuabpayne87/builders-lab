@@ -222,7 +222,7 @@ class BananaBlitzService {
       model: "gemini-2.0-flash-exp",
       contents: [{ text: prompt }],
       config: {
-        responseModalities: [Modality.TEXT, Modality.AUDIO], // AUDIO requires TEXT modality
+        responseModalities: [Modality.AUDIO],
         speechConfig: {
           multiSpeakerVoiceConfig: {
             speakerVoiceConfigs: [
