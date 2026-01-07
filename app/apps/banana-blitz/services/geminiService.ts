@@ -105,9 +105,9 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: { parts },
+      contents: [{ role: 'user', parts }],
       config: {
-        systemInstruction,
+        systemInstruction: systemInstruction,
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
@@ -166,9 +166,9 @@ class BananaBlitzService {
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
     const ai = createGeminiClient();
-    const contents: any[] = [{ text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k.` }];
+    const parts: any[] = [{ text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k.` }];
     if (refImage) {
-      contents.push({
+      parts.push({
         inlineData: {
           data: refImage.split(',')[1],
           mimeType: refImage.split(';')[0].split(':')[1]
@@ -177,9 +177,9 @@ class BananaBlitzService {
     }
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: { parts: contents },
+      contents: [{ role: 'user', parts }],
       config: {
-        responseModalities: ["image"],
+        responseModalities: [Modality.IMAGE],
         imageConfig: { aspectRatio: ratio }
       }
     }));
@@ -196,12 +196,13 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: {
+      contents: [{
+        role: 'user',
         parts: [
           { inlineData: { data: base64, mimeType } },
           { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy. Output ONLY a JSON array of 7 distinct prompt strings.` }
         ]
-      },
+      }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -223,7 +224,7 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
