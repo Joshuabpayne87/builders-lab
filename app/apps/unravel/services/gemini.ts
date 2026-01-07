@@ -93,23 +93,20 @@ export const unravelUrl = async (url: string, format: OutputFormat): Promise<Unr
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        // responseMimeType is NOT allowed when using googleSearch tools
       }
     });
 
     let text = response.text;
     if (!text) throw new Error("No response from AI");
     
-    // Robust cleanup: extract the JSON object using Regex
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       text = jsonMatch[0];
     } else {
-        // If no JSON found, check for refusal messages
         if (text.toLowerCase().includes("sorry") || text.toLowerCase().includes("cannot")) {
             throw new Error("AI could not access this content. It might be behind a paywall, login, or blocked by robots.txt.");
         }
@@ -118,25 +115,17 @@ export const unravelUrl = async (url: string, format: OutputFormat): Promise<Unr
 
     try {
         const data = JSON.parse(text) as UnravelResponse;
-        
-        // Strict check for hallucination prevention logic
         if (data.markdownContent === "ACCESS_DENIED" || data.title === "ACCESS_DENIED") {
              throw new Error("Content is inaccessible (paywall, login, or bot-blocking). Cannot unravel.");
         }
-
         return { ...data, originalUrl: url };
     } catch (parseError: any) {
         if (parseError.message.includes("inaccessible")) throw parseError;
-
-        console.error("JSON Parse Error:", parseError);
-        console.error("Raw Text:", text);
-        // Fallback for malformed JSON if possible, otherwise throw
         throw new Error("Failed to parse the content. The AI output was malformed.");
     }
 
   } catch (error: any) {
     console.error("Gemini URL Error:", error);
-    // Return a cleaner error message to the UI
     if (error.message.includes("paywall") || error.message.includes("blocked") || error.message.includes("inaccessible")) {
         throw error;
     }
@@ -162,7 +151,7 @@ export const unravelText = async (rawText: string, format: OutputFormat): Promis
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -181,8 +170,6 @@ export const unravelText = async (rawText: string, format: OutputFormat): Promis
 
     const text = response.text;
     if (!text) throw new Error("No response from AI");
-    
-    // For unravelText we use Structured Output, so it should be valid JSON
     return JSON.parse(text) as UnravelResponse;
 
   } catch (error) {

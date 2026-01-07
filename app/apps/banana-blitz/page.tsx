@@ -128,39 +128,30 @@ export default function BananaBlitzPage() {
 
       setState(prev => ({ ...prev, images: allImages, captions, sources }));
 
-      setBlitzStatus('RENDERING ASSET SUITE...');
+      // Revert to Sequential rendering for better stability
+      for (let i = 0; i < allImages.length; i++) {
+        const img = allImages[i];
+        const variantNum = allImages.filter(im => im.category === img.category).indexOf(img) + 1;
+        setBlitzStatus(`RENDERING: ${img.category.toUpperCase()} V${variantNum}`);
 
-      // Parallel rendering for Paid Tier 1
-      await Promise.all(allImages.map(async (img, i) => {
-        setState(prev => ({
-          ...prev,
-          images: prev.images.map(item => item.id === img.id ? { ...item, status: 'generating' } as GeneratedImage : item)
-        }));
+        setState(prev => ({ ...prev, images: prev.images.map(item => item.id === img.id ? { ...item, status: 'generating' } as GeneratedImage : item) }));
 
         try {
-          // Slight stagger to prevent simultaneous network burst
-          await new Promise(r => setTimeout(r, i * 150));
-          
           const url = await bananaBlitzService.generateImage(img.prompt, state.selectedRatio, state.referenceImage);
-          
-          setState(prev => {
-            const updatedImages = prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' as const } as GeneratedImage : item);
-            const finished = updatedImages.filter(im => im.status === 'completed' || im.status === 'error').length;
-            return {
-              ...prev,
-              progress: Math.round((finished / allImages.length) * 100),
-              images: updatedImages
-            };
-          });
+          setState(prev => ({
+            ...prev, progress: Math.round(((i + 1) / allImages.length) * 100),
+            images: prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } as GeneratedImage : item)
+          }));
+          await new Promise(r => setTimeout(r, 1000)); // Sturdy breather between images
         } catch (err: any) {
           console.error("Image generation failed:", err);
-          setState(prev => ({
-            ...prev,
-            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' as const } as GeneratedImage : item),
-            error: `Image generation failed: ${err.message}`
+          setState(prev => ({ 
+            ...prev, 
+            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } as GeneratedImage : item),
+            error: `Blitz stall: ${err.message}`
           }));
         }
-      }));
+      }
 
       setBlitzStatus('COMPILING HISTORY...');
       setState(prev => {
@@ -249,28 +240,25 @@ export default function BananaBlitzPage() {
       }));
       setState(prev => ({ ...prev, images: [...prev.images, ...newSlides] }));
 
-      // Generate carousel slides in parallel
-      await Promise.all(newSlides.map(async (slide, i) => {
-        setState(prev => ({
-          ...prev,
-          images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' as const } as GeneratedImage : item)
-        }));
-
+      // Generate carousel slides sequentially
+      for (let i = 0; i < newSlides.length; i++) {
+        const slide = newSlides[i];
+        setState(prev => ({ ...prev, images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' } as GeneratedImage : item) }));
         try {
-          await new Promise(r => setTimeout(r, i * 200));
           const url = await bananaBlitzService.generateImage(slide.prompt, coverImage.aspectRatio, state.referenceImage);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' as const } as GeneratedImage : item)
+            images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' } as GeneratedImage : item)
           }));
+          await new Promise(r => setTimeout(r, 1000));
         } catch (err: any) {
           console.error("Carousel slide generation failed:", err);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' as const } as GeneratedImage : item)
+            images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' } as GeneratedImage : item)
           }));
         }
-      }));
+      }
     } catch (e: any) {
       console.error("Carousel strategy failed:", e);
       setState(prev => ({ ...prev, error: `Carousel Slide rendering failed: ${e.message}` }));
