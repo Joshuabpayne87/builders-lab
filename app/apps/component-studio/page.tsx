@@ -400,7 +400,7 @@ export default function ComponentStudioPage() {
                 if (finalHtml.endsWith('```')) finalHtml = finalHtml.substring(0, finalHtml.length - 3).trimEnd();
 
                 // INJECT BOILERPLATE (Tailwind + Fonts)
-                const fullHtml = \`
+                const fullHtml = `
                     <!DOCTYPE html>
                     <html>
                     <head>
@@ -413,10 +413,10 @@ export default function ComponentStudioPage() {
                         </style>
                     </head>
                     <body>
-                        \${finalHtml}
+                        ${finalHtml}
                     </body>
                     </html>
-                \`;
+                `;
 
                 setSessions(prev => prev.map(sess =>
                     sess.id === sessionId ? {
@@ -550,7 +550,7 @@ export default function ComponentStudioPage() {
                     {componentVariations.map((v, i) => (
                          <div key={i} className="sexy-card" onClick={() => applyVariation(v.html)}>
                              <div className="sexy-preview">
-                                 <iframe srcDoc={v.html} title={v.name} sandbox="allow-scripts allow-same-origin" />
+                                 <iframe srcDoc={v.html} title={v.name} sandbox="allow-scripts" />
                              </div>
                              <div className="sexy-label">{v.name}</div>
                          </div>
