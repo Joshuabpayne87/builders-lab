@@ -6,7 +6,8 @@ import { CONTENT_FRAMEWORKS } from '@/lib/serendipity-constants';
 import { generateCustomContent, generatePostImage } from '@/lib/serendipity-service';
 import {
   Wand2, Loader2, Copy, FileText, Link as LinkIcon, Upload, X,
-  Image as ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles
+  Image as ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles,
+  Bookmark, BookmarkCheck
 } from 'lucide-react';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
@@ -14,6 +15,7 @@ import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 export default function WorkflowGenerator() {
   const [mode, setMode] = useState<'topic' | 'source' | null>(null);
   const [activeFormat, setActiveFormat] = useState<ContentFormat>('linkedin');
+  const [isSaved, setIsSaved] = useState(false);
 
   const [selectedFrameworkId, setSelectedFrameworkId] = useState<string>('how-to');
   const [topic, setTopic] = useState("");
@@ -32,6 +34,24 @@ export default function WorkflowGenerator() {
   const [showImagePrompt, setShowImagePrompt] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSaveToLibrary = () => {
+    if (!generatedContent || isSaved) return;
+    
+    const newItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: topic || (fileData ? fileData.name : 'Untitled Workflow'),
+      content: generatedContent,
+      image: generatedImage,
+      format: activeFormat,
+      timestamp: Date.now()
+    };
+
+    const stored = localStorage.getItem('serendipity_library');
+    const library = stored ? JSON.parse(stored) : [];
+    localStorage.setItem('serendipity_library', JSON.stringify([newItem, ...library]));
+    setIsSaved(true);
+  };
 
   const extractDocxText = async (file: File): Promise<string> => {
     try {
@@ -108,6 +128,7 @@ export default function WorkflowGenerator() {
     setGeneratedContent("");
     setGeneratedImage(null);
     setShowImagePrompt(false);
+    setIsSaved(false);
 
     try {
       const result = await generateCustomContent({
@@ -439,11 +460,23 @@ export default function WorkflowGenerator() {
                     <div className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
                     <span className="font-bold text-slate-200 text-xs uppercase tracking-widest">Output Terminal</span>
                  </div>
-                 {generatedContent && (
-                    <button onClick={copyToClipboard} className="text-[10px] font-bold bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg flex items-center transition-colors uppercase tracking-wider border border-white/5">
-                       <Copy className="w-3 h-3 mr-2" /> Copy
-                    </button>
-                 )}
+                 <div className="flex gap-2">
+                    {generatedContent && (
+                        <button 
+                            onClick={handleSaveToLibrary} 
+                            disabled={isSaved}
+                            className={`text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center transition-all uppercase tracking-wider border ${isSaved ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-white/5 hover:bg-white/10 text-white border-white/5'}`}
+                        >
+                            {isSaved ? <BookmarkCheck className="w-3 h-3 mr-2" /> : <Bookmark className="w-3 h-3 mr-2" />}
+                            {isSaved ? 'Saved' : 'Save'}
+                        </button>
+                    )}
+                    {generatedContent && (
+                        <button onClick={copyToClipboard} className="text-[10px] font-bold bg-white/5 hover:bg-white/10 text-white px-3 py-1.5 rounded-lg flex items-center transition-colors uppercase tracking-wider border border-white/5">
+                        <Copy className="w-3 h-3 mr-2" /> Copy
+                        </button>
+                    )}
+                 </div>
               </div>
               <div className="flex-1 p-8 relative">
                  {generatedContent ? (

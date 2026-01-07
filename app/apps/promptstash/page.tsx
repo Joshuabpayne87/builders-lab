@@ -6,9 +6,17 @@ import { AnalysisView } from './components/AnalysisView';
 import { VariableManager } from './components/VariableManager';
 import { analyzePromptWithGemini, rewritePromptWithGemini, extractVariablesWithGemini } from './services/geminiService';
 import { AppStep, PromptState } from './types';
-import { Play, Sparkles, ArrowRight, CornerDownLeft, FileDown } from 'lucide-react';
+import { Play, Sparkles, ArrowRight, CornerDownLeft, FileDown, History, Clock, Trash2 } from 'lucide-react';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+
+interface SavedPrompt {
+  id: string;
+  original: string;
+  refined: string;
+  score: number;
+  timestamp: number;
+}
 
 const INITIAL_STATE: PromptState = {
   originalPrompt: '',
@@ -25,7 +33,47 @@ const INITIAL_STATE: PromptState = {
 export default function PromptStashPage() {
   const [step, setStep] = useState<AppStep>(AppStep.DRAFT);
   const [state, setState] = useState<PromptState>(INITIAL_STATE);
+  const [history, setHistory] = useState<SavedPrompt[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem('promptstash_history');
+    if (stored) {
+      try { setHistory(JSON.parse(stored)); } catch (e) { console.error(e); }
+    }
+  }, []);
+
+  const handleSaveToHistory = (refined: string, score: number) => {
+    const newItem: SavedPrompt = {
+      id: Math.random().toString(36).substr(2, 9),
+      original: state.originalPrompt,
+      refined,
+      score,
+      timestamp: Date.now()
+    };
+    const newHistory = [newItem, ...history].slice(0, 50);
+    setHistory(newHistory);
+    localStorage.setItem('promptstash_history', JSON.stringify(newHistory));
+  };
+
+  const handleDeleteHistory = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this prompt from history?")) return;
+    const newHistory = history.filter(h => h.id !== id);
+    setHistory(newHistory);
+    localStorage.setItem('promptstash_history', JSON.stringify(newHistory));
+  };
+
+  const handleLoadHistory = (item: SavedPrompt) => {
+    setState({
+      ...INITIAL_STATE,
+      originalPrompt: item.original,
+      refinedPrompt: item.refined
+    });
+    setStep(AppStep.REWRITE);
+    setShowHistory(false);
+  };
 
   // Styling injection
   const ideStyles = `
@@ -98,6 +146,8 @@ export default function PromptStashPage() {
       const rewritten = await rewritePromptWithGemini(state.originalPrompt, state.analysis);
       setState(prev => ({ ...prev, refinedPrompt: rewritten, isRewriting: false }));
       setStep(AppStep.REWRITE);
+      
+      handleSaveToHistory(rewritten, state.analysis.score);
 
       // Auto-save the refined prompt to knowledge base
       saveToKnowledgeBase({
@@ -168,9 +218,18 @@ export default function PromptStashPage() {
         {/* VIEW: DRAFT */}
         {step === AppStep.DRAFT && (
           <div className="flex flex-col h-full p-8 max-w-4xl mx-auto w-full justify-center">
-             <header className="mb-8">
-               <h2 className="text-3xl font-bold mb-2 text-white">New Prompt Session</h2>
-               <p className="text-ide-muted">Enter your rough idea below. We'll help you refine it into a professional prompt.</p>
+             <header className="mb-8 flex justify-between items-end">
+               <div>
+                 <h2 className="text-3xl font-bold mb-2 text-white">New Prompt Session</h2>
+                 <p className="text-ide-muted">Enter your rough idea below. We'll help you refine it into a professional prompt.</p>
+               </div>
+               <button 
+                 onClick={() => setShowHistory(true)}
+                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-ide-panel border border-ide-border hover:bg-white/5 transition-all text-sm font-semibold"
+               >
+                 <History size={16} />
+                 History
+               </button>
              </header>
              
              <div className="flex-1 max-h-[600px] bg-ide-panel rounded-lg border border-ide-border p-1 flex flex-col shadow-xl">
@@ -206,6 +265,50 @@ export default function PromptStashPage() {
                  </button>
                </div>
              </div>
+          </div>
+        )}
+
+        {/* History Sidebar */}
+        {showHistory && (
+          <div className="absolute inset-0 z-[100] flex justify-end">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowHistory(false)} />
+            <div className="relative w-full max-w-md bg-ide-bg border-l border-ide-border flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+              <header className="p-6 border-b border-ide-border flex justify-between items-center bg-ide-panel/50">
+                <h3 className="text-xl font-bold flex items-center gap-3">
+                  <History className="text-ide-accent" />
+                  Past Sessions
+                </h3>
+                <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/5 rounded-full">&times;</button>
+              </header>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {history.length === 0 ? (
+                  <div className="text-center py-20 text-ide-muted italic">No history yet.</div>
+                ) : (
+                  history.map(item => (
+                    <div 
+                      key={item.id}
+                      onClick={() => handleLoadHistory(item)}
+                      className="group p-4 bg-ide-panel rounded-xl border border-ide-border hover:border-ide-accent transition-all cursor-pointer relative"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-[10px] font-black bg-ide-success/20 text-ide-success px-2 py-0.5 rounded uppercase">Score: {item.score}</span>
+                        <span className="text-[10px] text-ide-muted flex items-center gap-1">
+                          <Clock size={10} />
+                          {new Date(item.timestamp).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-ide-text line-clamp-2 font-mono opacity-80">{item.original}</p>
+                      <button 
+                        onClick={(e) => handleDeleteHistory(item.id, e)}
+                        className="absolute bottom-3 right-3 p-2 text-ide-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
 

@@ -24,6 +24,7 @@ import {
     ArrowUpIcon,
     GridIcon
 } from './components/Icons';
+import { Trash2, Clock, History } from 'lucide-react';
 
 import './index.css';
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
@@ -31,7 +32,36 @@ import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 export default function ComponentStudioPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionIndex, setCurrentSessionIndex] = useState<number>(-1);
+  const [showHistory, setShowHistory] = useState(false);
   const [focusedArtifactIndex, setFocusedArtifactIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('component_studio_sessions');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setSessions(parsed);
+        if (parsed.length > 0) setCurrentSessionIndex(parsed.length - 1);
+      } catch (e) { console.error(e); }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sessions.length > 0) {
+      localStorage.setItem('component_studio_sessions', JSON.stringify(sessions));
+    }
+  }, [sessions]);
+
+  const handleDeleteSession = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this session?")) return;
+    const newSessions = sessions.filter(s => s.id !== id);
+    setSessions(newSessions);
+    localStorage.setItem('component_studio_sessions', JSON.stringify(newSessions));
+    if (currentSessionIndex >= newSessions.length) {
+      setCurrentSessionIndex(newSessions.length - 1);
+    }
+  };
 
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -505,9 +535,16 @@ export default function ComponentStudioPage() {
                      <div className="empty-content">
                          <h1>ComponentStudio</h1>
                          <p>Creative UI generation in a flash</p>
-                         <button className="surprise-button" onClick={handleSurpriseMe} disabled={isLoading}>
-                             <SparklesIcon /> Surprise Me
-                         </button>
+                         <div className="flex gap-4 justify-center">
+                            <button className="surprise-button" onClick={handleSurpriseMe} disabled={isLoading}>
+                                <SparklesIcon /> Surprise Me
+                            </button>
+                            {sessions.length > 0 && (
+                                <button className="surprise-button" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => setShowHistory(true)}>
+                                    <History className="w-4 h-4 mr-2" /> Library
+                                </button>
+                            )}
+                         </div>
                      </div>
                  </div>
 
@@ -595,6 +632,42 @@ export default function ComponentStudioPage() {
                 </div>
             </div>
         </div>
+
+        {/* History Overlay */}
+        {showHistory && (
+          <div className="absolute inset-0 z-[200] flex justify-center items-center p-4 md:p-20">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={() => setShowHistory(false)} />
+            <div className="relative w-full max-w-4xl max-h-full bg-[#09090b] border border-white/10 rounded-[40px] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+              <header className="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 className="text-2xl font-black uppercase tracking-tighter italic">Session Library</h3>
+                <button onClick={() => setShowHistory(false)} className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center font-bold">&times;</button>
+              </header>
+              <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {sessions.map((sess, idx) => (
+                  <div 
+                    key={sess.id}
+                    onClick={() => { setCurrentSessionIndex(idx); setShowHistory(false); setFocusedArtifactIndex(null); }}
+                    className="group relative bg-white/5 border border-white/5 hover:border-white/20 rounded-3xl p-6 transition-all cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <button 
+                        onClick={(e) => handleDeleteSession(sess.id, e)}
+                        className="p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-2 line-clamp-2">{sess.prompt}</h4>
+                    <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">{new Date(sess.timestamp).toLocaleDateString()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

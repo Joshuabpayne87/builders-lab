@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Category, VisualVibe, AspectRatio, VoiceTone, MusicStyle, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
 
@@ -93,6 +93,15 @@ export default function BananaBlitzPage() {
       localStorage.setItem('banana_history', JSON.stringify(state.history));
     }
   }, [state.history]);
+
+  const handleDeleteCampaign = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this campaign?")) return;
+    setState(prev => ({
+      ...prev,
+      history: prev.history.filter(c => c.id !== id)
+    }));
+  };
 
   const handleGenerate = async () => {
     if (!state.postText.trim() || state.isGenerating) return;
@@ -294,17 +303,24 @@ export default function BananaBlitzPage() {
         </div>
         <div className="space-y-4 overflow-y-auto max-h-[80vh] scrollbar-hide">
           {state.history.map(camp => (
-            <button
-              key={camp.id}
-              onClick={() => setState(p => ({ ...p, postText: camp.postText, images: camp.images, captions: camp.captions, selectedVibe: camp.vibe }))}
-              className="w-full text-left p-4 bg-zinc-900/50 rounded-2xl hover:bg-zinc-800 transition-all border border-transparent hover:border-zinc-700"
-            >
-              <p className="text-xs font-bold text-white line-clamp-1 mb-1">{camp.postText}</p>
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] text-zinc-500">{new Date(camp.timestamp).toLocaleDateString()}</p>
-                <p className="text-[9px] font-black text-zinc-700 uppercase">{camp.vibe}</p>
-              </div>
-            </button>
+            <div key={camp.id} className="relative group">
+              <button
+                onClick={() => setState(p => ({ ...p, postText: camp.postText, images: camp.images, captions: camp.captions, selectedVibe: camp.vibe }))}
+                className="w-full text-left p-4 bg-zinc-900/50 rounded-2xl hover:bg-zinc-800 transition-all border border-transparent hover:border-zinc-700"
+              >
+                <p className="text-xs font-bold text-white line-clamp-1 mb-1 pr-6">{camp.postText}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-zinc-500">{new Date(camp.timestamp).toLocaleDateString()}</p>
+                  <p className="text-[9px] font-black text-zinc-700 uppercase">{camp.vibe}</p>
+                </div>
+              </button>
+              <button
+                onClick={(e) => handleDeleteCampaign(camp.id, e)}
+                className="absolute top-3 right-3 p-1.5 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-500/10"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           ))}
         </div>
       </aside>
