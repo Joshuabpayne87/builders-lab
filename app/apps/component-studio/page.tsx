@@ -28,38 +28,90 @@ import { Trash2, Clock, History } from 'lucide-react';
 
 import './index.css';
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+import { saveSession, listSessions, deleteSession, updateSession } from '@/lib/session-client';
+import type { Session as SupabaseSession } from '@/lib/session-service';
 
 export default function ComponentStudioPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionIndex, setCurrentSessionIndex] = useState<number>(-1);
   const [showHistory, setShowHistory] = useState(false);
   const [focusedArtifactIndex, setFocusedArtifactIndex] = useState<number | null>(null);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+  const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map()); // Map local ID to Supabase ID
 
   useEffect(() => {
-    const stored = localStorage.getItem('component_studio_sessions');
-    if (stored) {
+    async function loadSessions() {
       try {
-        const parsed = JSON.parse(stored);
-        setSessions(parsed);
-        if (parsed.length > 0) setCurrentSessionIndex(parsed.length - 1);
-      } catch (e) { console.error(e); }
+        const supabaseSessions = await listSessions('component-studio', 50);
+        const loadedSessions: Session[] = supabaseSessions.map((session: SupabaseSession) => ({
+          id: session.data.localId, // Use the original local ID
+          prompt: session.data.prompt,
+          timestamp: session.data.timestamp,
+          artifacts: session.data.artifacts
+        }));
+        setSessions(loadedSessions);
+
+        // Build map of local ID -> Supabase ID for updates/deletes
+        const idMap = new Map<string, string>();
+        supabaseSessions.forEach((session: SupabaseSession) => {
+          idMap.set(session.data.localId, session.id);
+        });
+        setSessionIdMap(idMap);
+
+        if (loadedSessions.length > 0) setCurrentSessionIndex(loadedSessions.length - 1);
+      } catch (err) {
+        console.error('Failed to load component sessions:', err);
+      } finally {
+        setIsLoadingSessions(false);
+      }
     }
+    loadSessions();
   }, []);
 
-  useEffect(() => {
-    if (sessions.length > 0) {
-      localStorage.setItem('component_studio_sessions', JSON.stringify(sessions));
-    }
-  }, [sessions]);
+  // DEPRECATED: Old localStorage code - replaced by Supabase sessions
+  // useEffect(() => {
+  //   const stored = localStorage.getItem('component_studio_sessions');
+  //   if (stored) {
+  //     try {
+  //       const parsed = JSON.parse(stored);
+  //       setSessions(parsed);
+  //       if (parsed.length > 0) setCurrentSessionIndex(parsed.length - 1);
+  //     } catch (e) { console.error(e); }
+  //   }
+  // }, []);
 
-  const handleDeleteSession = (id: string, e: React.MouseEvent) => {
+  // useEffect(() => {
+  //   if (sessions.length > 0) {
+  //     localStorage.setItem('component_studio_sessions', JSON.stringify(sessions));
+  //   }
+  // }, [sessions]);
+
+  const handleDeleteSession = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this session?")) return;
-    const newSessions = sessions.filter(s => s.id !== id);
-    setSessions(newSessions);
-    localStorage.setItem('component_studio_sessions', JSON.stringify(newSessions));
-    if (currentSessionIndex >= newSessions.length) {
-      setCurrentSessionIndex(newSessions.length - 1);
+
+    try {
+      // Get the Supabase ID from the map
+      const supabaseId = sessionIdMap.get(id);
+      if (supabaseId) {
+        await deleteSession(supabaseId);
+      }
+
+      // Remove from local state immediately (optimistic UI)
+      const newSessions = sessions.filter(s => s.id !== id);
+      setSessions(newSessions);
+
+      // Remove from ID map
+      const newMap = new Map(sessionIdMap);
+      newMap.delete(id);
+      setSessionIdMap(newMap);
+
+      if (currentSessionIndex >= newSessions.length) {
+        setCurrentSessionIndex(newSessions.length - 1);
+      }
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+      alert('Failed to delete session');
     }
   };
 
@@ -447,7 +499,7 @@ export default function ComponentStudioPage() {
         };
 
         const results = await Promise.all(placeholderArtifacts.map((art, i) => generateArtifact(art, generatedStyles[i])));
-        
+
         // Auto-save successful generations to Knowledge Base
         const successfulArtifacts = results.filter(r => r !== null && r.html && r.html.length > 100);
         if (successfulArtifacts.length > 0) {
@@ -460,6 +512,34 @@ export default function ComponentStudioPage() {
                     variations: successfulArtifacts.length
                 }
             });
+        }
+
+        // Save session to Supabase after generation is complete
+        try {
+            const currentSession = sessions.find(s => s.id === sessionId);
+            if (currentSession) {
+                const saved = await saveSession({
+                    appName: 'component-studio',
+                    sessionType: 'component',
+                    title: trimmedInput.substring(0, 100),
+                    data: {
+                        localId: sessionId, // Store the local ID for reference
+                        prompt: trimmedInput,
+                        timestamp: baseTime,
+                        artifacts: currentSession.artifacts
+                    },
+                    metadata: {
+                        artifactCount: currentSession.artifacts.length,
+                        successCount: successfulArtifacts.length
+                    }
+                });
+
+                // Update ID map with new Supabase ID
+                setSessionIdMap(prev => new Map(prev).set(sessionId, saved.session.id));
+            }
+        } catch (err) {
+            console.error('Failed to save component session:', err);
+            // Don't block the user if save fails
         }
 
     } catch (e) {
@@ -684,27 +764,42 @@ export default function ComponentStudioPage() {
                 <button onClick={() => setShowHistory(false)} className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center font-bold">&times;</button>
               </header>
               <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {sessions.map((sess, idx) => (
-                  <div 
-                    key={sess.id}
-                    onClick={() => { setCurrentSessionIndex(idx); setShowHistory(false); setFocusedArtifactIndex(null); }}
-                    className="group relative bg-white/5 border border-white/5 hover:border-white/20 rounded-3xl p-6 transition-all cursor-pointer"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-slate-400" />
-                      </div>
-                      <button 
-                        onClick={(e) => handleDeleteSession(sess.id, e)}
-                        className="p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <h4 className="text-lg font-bold text-white mb-2 line-clamp-2">{sess.prompt}</h4>
-                    <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">{new Date(sess.timestamp).toLocaleDateString()}</p>
+                {isLoadingSessions ? (
+                  <div className="col-span-full flex flex-col items-center justify-center py-20">
+                    <div className="animate-spin h-12 w-12 border-4 border-white border-t-transparent rounded-full mb-4"></div>
+                    <p className="text-slate-400 text-sm">Loading sessions...</p>
                   </div>
-                ))}
+                ) : sessions.length === 0 ? (
+                  <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+                    <div className="w-16 h-16 mb-4 opacity-30 flex items-center justify-center">
+                      <GridIcon />
+                    </div>
+                    <p className="text-lg font-bold mb-2">No sessions yet</p>
+                    <p className="text-sm text-center">Generate your first component to get started</p>
+                  </div>
+                ) : (
+                  sessions.map((sess, idx) => (
+                    <div
+                      key={sess.id}
+                      onClick={() => { setCurrentSessionIndex(idx); setShowHistory(false); setFocusedArtifactIndex(null); }}
+                      className="group relative bg-white/5 border border-white/5 hover:border-white/20 rounded-3xl p-6 transition-all cursor-pointer"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                          <Clock className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteSession(sess.id, e)}
+                          className="p-2 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <h4 className="text-lg font-bold text-white mb-2 line-clamp-2">{sess.prompt}</h4>
+                      <p className="text-xs text-slate-500 font-mono uppercase tracking-widest">{new Date(sess.timestamp).toLocaleDateString()}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

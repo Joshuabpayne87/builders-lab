@@ -9,6 +9,8 @@ import { AppStep, PromptState } from './types';
 import { Play, Sparkles, ArrowRight, CornerDownLeft, FileDown, History, Clock, Trash2 } from 'lucide-react';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
+import type { Session } from '@/lib/session-service';
 
 interface SavedPrompt {
   id: string;
@@ -36,33 +38,79 @@ export default function PromptStashPage() {
   const [history, setHistory] = useState<SavedPrompt[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
   React.useEffect(() => {
-    const stored = localStorage.getItem('promptstash_history');
-    if (stored) {
-      try { setHistory(JSON.parse(stored)); } catch (e) { console.error(e); }
+    async function loadSessions() {
+      try {
+        const sessions = await listSessions('promptstash', 50);
+        const historyItems: SavedPrompt[] = sessions.map((session: Session) => ({
+          id: session.id,
+          original: session.data.original,
+          refined: session.data.refined,
+          score: session.data.score,
+          timestamp: new Date(session.created_at).getTime()
+        }));
+        setHistory(historyItems);
+      } catch (err) {
+        console.error('Failed to load prompt history:', err);
+      } finally {
+        setIsLoadingSessions(false);
+      }
     }
+    loadSessions();
   }, []);
 
-  const handleSaveToHistory = (refined: string, score: number) => {
-    const newItem: SavedPrompt = {
-      id: Math.random().toString(36).substr(2, 9),
-      original: state.originalPrompt,
-      refined,
-      score,
-      timestamp: Date.now()
-    };
-    const newHistory = [newItem, ...history].slice(0, 50);
-    setHistory(newHistory);
-    localStorage.setItem('promptstash_history', JSON.stringify(newHistory));
+  // DEPRECATED: Old localStorage code - replaced by Supabase sessions
+  // React.useEffect(() => {
+  //   const stored = localStorage.getItem('promptstash_history');
+  //   if (stored) {
+  //     try { setHistory(JSON.parse(stored)); } catch (e) { console.error(e); }
+  //   }
+  // }, []);
+
+  const handleSaveToHistory = async (refined: string, score: number) => {
+    try {
+      const result = await saveSession({
+        appName: 'promptstash',
+        sessionType: 'prompt',
+        title: state.originalPrompt.substring(0, 50) + (state.originalPrompt.length > 50 ? '...' : ''),
+        data: {
+          original: state.originalPrompt,
+          refined,
+          score,
+          analysis: state.analysis
+        },
+        metadata: { score }
+      });
+
+      // Add to local state immediately (optimistic UI)
+      const newItem: SavedPrompt = {
+        id: result.session.id,
+        original: state.originalPrompt,
+        refined,
+        score,
+        timestamp: new Date(result.session.created_at).getTime()
+      };
+      setHistory([newItem, ...history]);
+    } catch (err) {
+      console.error('Failed to save prompt:', err);
+      setError('Failed to save prompt to history');
+    }
   };
 
-  const handleDeleteHistory = (id: string, e: React.MouseEvent) => {
+  const handleDeleteHistory = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this prompt from history?")) return;
-    const newHistory = history.filter(h => h.id !== id);
-    setHistory(newHistory);
-    localStorage.setItem('promptstash_history', JSON.stringify(newHistory));
+
+    try {
+      await deleteSession(id);
+      // Remove from local state immediately (optimistic UI)
+      setHistory(history.filter(h => h.id !== id));
+    } catch (err) {
+      console.error('Failed to delete prompt:', err);
+      setError('Failed to delete prompt from history');
+    }
   };
 
   const handleLoadHistory = (item: SavedPrompt) => {
@@ -281,7 +329,12 @@ export default function PromptStashPage() {
                 <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/5 rounded-full">&times;</button>
               </header>
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {history.length === 0 ? (
+                {isLoadingSessions ? (
+                  <div className="text-center py-20">
+                    <div className="animate-spin h-8 w-8 border-2 border-ide-accent border-t-transparent rounded-full mx-auto mb-3"></div>
+                    <div className="text-ide-muted italic">Loading sessions...</div>
+                  </div>
+                ) : history.length === 0 ? (
                   <div className="text-center py-20 text-ide-muted italic">No history yet.</div>
                 ) : (
                   history.map(item => (

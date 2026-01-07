@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Category, VisualVibe, AspectRatio, VoiceTone, MusicStyle, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
+import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
+import type { Session as SupabaseSession } from '@/lib/session-service';
 
 const ImageCard = dynamic(() => import('./components/ImageCard'), {
   loading: () => <div className="w-full aspect-square bg-zinc-900/20 rounded-3xl animate-pulse" />,
@@ -75,51 +77,94 @@ async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: 
 }
 
 export default function BananaBlitzPage() {
-  const [state, setState] = useState<AppState>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('banana_history');
-        return { ...INITIAL_STATE, history: saved ? JSON.parse(saved) : [] };
-      } catch (e) { return INITIAL_STATE; }
-    }
-    return INITIAL_STATE;
-  });
-
+  const [state, setState] = useState<AppState>(INITIAL_STATE);
   const [blitzStatus, setBlitzStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+  const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map());
 
+  // Load campaigns from Supabase on mount
   useEffect(() => {
-    if (typeof window !== 'undefined' && state.history.length > 0) {
+    async function loadCampaigns() {
       try {
-        localStorage.setItem('banana_history', JSON.stringify(state.history));
-      } catch (e: any) {
-        // Handle quota exceeded error by reducing history size
-        if (e.name === 'QuotaExceededError') {
-          console.warn('LocalStorage quota exceeded, reducing history size...');
-          // Try saving with fewer items
-          const reducedHistory = state.history.slice(0, 3);
-          try {
-            localStorage.setItem('banana_history', JSON.stringify(reducedHistory));
-            // Update state to match what was actually saved
-            setState(prev => ({ ...prev, history: reducedHistory }));
-          } catch (innerError) {
-            // If even 3 items fail, clear history
-            console.error('Unable to save history, clearing...');
-            localStorage.removeItem('banana_history');
-            setState(prev => ({ ...prev, history: [] }));
-          }
-        }
+        const sessions = await listSessions('banana-blitz', 50);
+        const campaigns: Campaign[] = sessions.map((session: SupabaseSession) => ({
+          id: session.data.localId,
+          timestamp: session.data.timestamp,
+          postText: session.data.postText,
+          images: session.data.images,
+          captions: session.data.captions,
+          vibe: session.data.vibe,
+          sources: session.data.sources,
+          audioUrl: session.data.audioUrl,
+          producedVideoUrl: session.data.producedVideoUrl,
+          producedReelUrl: session.data.producedReelUrl
+        }));
+
+        setState(prev => ({ ...prev, history: campaigns }));
+
+        // Build ID map
+        const idMap = new Map<string, string>();
+        sessions.forEach((session: SupabaseSession) => {
+          idMap.set(session.data.localId, session.id);
+        });
+        setSessionIdMap(idMap);
+      } catch (err) {
+        console.error('Failed to load campaign history:', err);
+      } finally {
+        setIsLoadingSessions(false);
       }
     }
-  }, [state.history]);
+    loadCampaigns();
+  }, []);
 
-  const handleDeleteCampaign = (id: string, e: React.MouseEvent) => {
+  // DEPRECATED: Old localStorage code - replaced by Supabase sessions
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && state.history.length > 0) {
+  //     try {
+  //       localStorage.setItem('banana_history', JSON.stringify(state.history));
+  //     } catch (e: any) {
+  //       if (e.name === 'QuotaExceededError') {
+  //         console.warn('LocalStorage quota exceeded, reducing history size...');
+  //         const reducedHistory = state.history.slice(0, 3);
+  //         try {
+  //           localStorage.setItem('banana_history', JSON.stringify(reducedHistory));
+  //           setState(prev => ({ ...prev, history: reducedHistory }));
+  //         } catch (innerError) {
+  //           console.error('Unable to save history, clearing...');
+  //           localStorage.removeItem('banana_history');
+  //           setState(prev => ({ ...prev, history: [] }));
+  //         }
+  //       }
+  //     }
+  //   }
+  // }, [state.history]);
+
+  const handleDeleteCampaign = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this campaign?")) return;
-    setState(prev => ({
-      ...prev,
-      history: prev.history.filter(c => c.id !== id)
-    }));
+
+    try {
+      // Get the Supabase ID from the map
+      const supabaseId = sessionIdMap.get(id);
+      if (supabaseId) {
+        await deleteSession(supabaseId);
+      }
+
+      // Remove from local state immediately (optimistic UI)
+      setState(prev => ({
+        ...prev,
+        history: prev.history.filter(c => c.id !== id)
+      }));
+
+      // Remove from ID map
+      const newMap = new Map(sessionIdMap);
+      newMap.delete(id);
+      setSessionIdMap(newMap);
+    } catch (err) {
+      console.error('Failed to delete campaign:', err);
+      setState(prev => ({ ...prev, error: 'Failed to delete campaign' }));
+    }
   };
 
   const handleGenerate = async () => {
@@ -173,11 +218,14 @@ export default function BananaBlitzPage() {
       }
 
       setBlitzStatus('COMPILING HISTORY...');
+      const campaignId = Math.random().toString(36).substr(2, 9);
+      const timestamp = Date.now();
+
       setState(prev => {
         const finalImages = prev.images;
         const newCampaign: Campaign = {
-          id: Math.random().toString(36).substr(2, 9),
-          timestamp: Date.now(),
+          id: campaignId,
+          timestamp: timestamp,
           postText: prev.postText,
           images: finalImages,
           captions: prev.captions,
@@ -186,6 +234,35 @@ export default function BananaBlitzPage() {
         };
         return { ...prev, history: [newCampaign, ...prev.history].slice(0, 5) };
       });
+
+      // Save campaign to Supabase (non-blocking)
+      try {
+        const currentState = state;
+        const saved = await saveSession({
+          appName: 'banana-blitz',
+          sessionType: 'campaign',
+          title: currentState.postText.substring(0, 100),
+          data: {
+            localId: campaignId,
+            timestamp: timestamp,
+            postText: currentState.postText,
+            images: currentState.images,
+            captions: currentState.captions,
+            vibe: currentState.selectedVibe,
+            sources: currentState.sources
+          },
+          metadata: {
+            imageCount: currentState.images.length,
+            vibe: currentState.selectedVibe
+          }
+        });
+
+        // Update ID map with new Supabase ID
+        setSessionIdMap(prev => new Map(prev).set(campaignId, saved.session.id));
+      } catch (saveErr) {
+        console.error('Failed to save campaign to Supabase:', saveErr);
+        // Don't block the user if save fails
+      }
 
     } catch (err: any) {
       setState(prev => ({ ...prev, error: err.message || "Blitz failed." }));
@@ -314,26 +391,38 @@ export default function BananaBlitzPage() {
           </Link>
         </div>
         <div className="space-y-4 overflow-y-auto max-h-[80vh] scrollbar-hide">
-          {state.history.map(camp => (
-            <div key={camp.id} className="relative group">
-              <button
-                onClick={() => setState(p => ({ ...p, postText: camp.postText, images: camp.images, captions: camp.captions, selectedVibe: camp.vibe }))}
-                className="w-full text-left p-4 bg-zinc-900/50 rounded-2xl hover:bg-zinc-800 transition-all border border-transparent hover:border-zinc-700"
-              >
-                <p className="text-xs font-bold text-white line-clamp-1 mb-1 pr-6">{camp.postText}</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] text-zinc-500">{new Date(camp.timestamp).toLocaleDateString()}</p>
-                  <p className="text-[9px] font-black text-zinc-700 uppercase">{camp.vibe}</p>
-                </div>
-              </button>
-              <button
-                onClick={(e) => handleDeleteCampaign(camp.id, e)}
-                className="absolute top-3 right-3 p-1.5 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-500/10"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
+          {isLoadingSessions ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin h-8 w-8 border-4 border-yellow-400 border-t-transparent rounded-full mb-3"></div>
+              <p className="text-xs text-zinc-500">Loading history...</p>
             </div>
-          ))}
+          ) : state.history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-600">
+              <p className="text-xs font-bold mb-1">No campaigns yet</p>
+              <p className="text-[10px] text-center">Create your first Blitz!</p>
+            </div>
+          ) : (
+            state.history.map(camp => (
+              <div key={camp.id} className="relative group">
+                <button
+                  onClick={() => setState(p => ({ ...p, postText: camp.postText, images: camp.images, captions: camp.captions, selectedVibe: camp.vibe }))}
+                  className="w-full text-left p-4 bg-zinc-900/50 rounded-2xl hover:bg-zinc-800 transition-all border border-transparent hover:border-zinc-700"
+                >
+                  <p className="text-xs font-bold text-white line-clamp-1 mb-1 pr-6">{camp.postText}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-zinc-500">{new Date(camp.timestamp).toLocaleDateString()}</p>
+                    <p className="text-[9px] font-black text-zinc-700 uppercase">{camp.vibe}</p>
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => handleDeleteCampaign(camp.id, e)}
+                  className="absolute top-3 right-3 p-1.5 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-500/10"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </aside>
 

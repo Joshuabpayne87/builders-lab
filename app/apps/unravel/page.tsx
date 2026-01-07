@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
+import type { Session } from '@/lib/session-service';
 
 export default function UnravelPage() {
   // State
@@ -39,15 +41,42 @@ export default function UnravelPage() {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false); // Track if current result is saved
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
   useEffect(() => {
-    try {
-        const stored = localStorage.getItem('unravl_saved');
-        setSavedItems(stored ? JSON.parse(stored) : []);
-    } catch (e) {
-        setSavedItems([]);
+    async function loadSessions() {
+      try {
+        const sessions = await listSessions('unravel', 50);
+        const items: SavedItem[] = sessions.map((session: Session) => ({
+          id: session.id,
+          title: session.data.title,
+          markdownContent: session.data.markdownContent,
+          summary: session.data.summary,
+          author: session.data.author,
+          originalUrl: session.data.originalUrl,
+          format: session.data.format as OutputFormat,
+          timestamp: new Date(session.created_at).getTime()
+        }));
+        setSavedItems(items);
+      } catch (err) {
+        console.error('Failed to load saved articles:', err);
+        setErrorMsg('Failed to load saved articles');
+      } finally {
+        setIsLoadingSessions(false);
+      }
     }
+    loadSessions();
   }, []);
+
+  // DEPRECATED: Old localStorage code - replaced by Supabase sessions
+  // useEffect(() => {
+  //   try {
+  //       const stored = localStorage.getItem('unravl_saved');
+  //       setSavedItems(stored ? JSON.parse(stored) : []);
+  //   } catch (e) {
+  //       setSavedItems([]);
+  //   }
+  // }, []);
 
   // Check if current result is already in saved items
   useEffect(() => {
@@ -171,36 +200,67 @@ export default function UnravelPage() {
     setTimeout(() => setCopied(false), 2000);
   }, [result, format]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!result) return;
-    
+
     // Prevent duplicates
     if (savedItems.some(item => item.title === result.title && item.markdownContent === result.markdownContent)) {
         return;
     }
 
-    const newItem: SavedItem = {
-        ...result,
-        id: Date.now().toString(),
-        timestamp: Date.now(),
-        format: format
-    };
+    try {
+      const saved = await saveSession({
+        appName: 'unravel',
+        sessionType: 'article',
+        title: result.title,
+        data: {
+          title: result.title,
+          markdownContent: result.markdownContent,
+          summary: result.summary,
+          author: result.author,
+          originalUrl: result.originalUrl,
+          format: format
+        },
+        metadata: { format }
+      });
 
-    const updatedItems = [newItem, ...savedItems];
-    setSavedItems(updatedItems);
-    localStorage.setItem('unravl_saved', JSON.stringify(updatedItems));
-    setIsSaved(true);
+      // Add to local state immediately (optimistic UI)
+      const newItem: SavedItem = {
+        id: saved.session.id,
+        title: result.title,
+        markdownContent: result.markdownContent,
+        summary: result.summary,
+        author: result.author,
+        originalUrl: result.originalUrl,
+        format: format,
+        timestamp: new Date(saved.session.created_at).getTime()
+      };
+
+      setSavedItems([newItem, ...savedItems]);
+      setIsSaved(true);
+    } catch (err) {
+      console.error('Failed to save article:', err);
+      setErrorMsg('Failed to save article');
+    }
   };
 
-  const handleDeleteItem = (id: string, e: React.MouseEvent) => {
+  const handleDeleteItem = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updatedItems = savedItems.filter(item => item.id !== id);
-    setSavedItems(updatedItems);
-    localStorage.setItem('unravl_saved', JSON.stringify(updatedItems));
-    
-    // If we deleted the currently viewed item, unmark it as saved
-    if (result && savedItems.find(item => item.id === id)?.title === result.title) {
+
+    try {
+      await deleteSession(id);
+
+      // Remove from local state immediately (optimistic UI)
+      const updatedItems = savedItems.filter(item => item.id !== id);
+      setSavedItems(updatedItems);
+
+      // If we deleted the currently viewed item, unmark it as saved
+      if (result && savedItems.find(item => item.id === id)?.title === result.title) {
         setIsSaved(false);
+      }
+    } catch (err) {
+      console.error('Failed to delete article:', err);
+      setErrorMsg('Failed to delete article');
     }
   };
 
@@ -486,12 +546,13 @@ export default function UnravelPage() {
     <style dangerouslySetInnerHTML={{ __html: vintageStyles }} />
     <div className="unravel-container min-h-screen selection:bg-black selection:text-white grain">
       {renderHeader()}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
         items={savedItems}
         onLoad={handleLoadItem}
         onDelete={handleDeleteItem}
+        isLoading={isLoadingSessions}
       />
       <main className="relative z-10">
         {renderHero()}

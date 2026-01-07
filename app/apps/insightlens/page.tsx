@@ -166,15 +166,22 @@ export default function InsightLensPage() {
     }
   };
 
-  const handleSaveToLibrary = () => {
+  const handleSaveToLibrary = async () => {
     if (!result) return;
-    
+
     let title = "Untitled Insight";
     if (inputMode === InputMode.FILE && file) title = file.name;
     else if (textContent) title = textContent.split('\n')[0] || "Text Content";
 
-    saveToLibrary(result, title);
-    setIsSaved(true);
+    try {
+      const savedItem = await saveToLibrary(result, title);
+      if (savedItem) {
+        setIsSaved(true);
+      }
+    } catch (error) {
+      console.error("Failed to save to library:", error);
+      // Error is already handled in saveToLibrary with alert
+    }
   };
 
   const handleLoadItem = (item: LibraryItem) => {

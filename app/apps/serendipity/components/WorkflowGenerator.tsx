@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+import { saveSession } from '@/lib/session-client';
 
 export default function WorkflowGenerator() {
   const [mode, setMode] = useState<'topic' | 'source' | null>(null);
@@ -35,22 +36,39 @@ export default function WorkflowGenerator() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveToLibrary = () => {
+  const handleSaveToLibrary = async () => {
     if (!generatedContent || isSaved) return;
-    
-    const newItem = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: topic || (fileData ? fileData.name : 'Untitled Workflow'),
-      content: generatedContent,
-      image: generatedImage,
-      format: activeFormat,
-      timestamp: Date.now()
-    };
 
-    const stored = localStorage.getItem('serendipity_library');
-    const library = stored ? JSON.parse(stored) : [];
-    localStorage.setItem('serendipity_library', JSON.stringify([newItem, ...library]));
-    setIsSaved(true);
+    try {
+      const workflowTitle = topic || (fileData?.name) || 'Untitled Workflow';
+
+      await saveSession({
+        appName: 'serendipity',
+        sessionType: 'workflow',
+        title: workflowTitle.substring(0, 100),
+        data: {
+          title: workflowTitle,
+          content: generatedContent,
+          image: generatedImage,
+          format: activeFormat,
+          mode,
+          topic,
+          audience,
+          goal,
+          framework: selectedFrameworkId,
+          timestamp: Date.now()
+        },
+        metadata: {
+          format: activeFormat,
+          hasImage: !!generatedImage
+        }
+      });
+
+      setIsSaved(true);
+    } catch (error) {
+      console.error("Failed to save to library:", error);
+      alert("Failed to save workflow. Please try again.");
+    }
   };
 
   const extractDocxText = async (file: File): Promise<string> => {

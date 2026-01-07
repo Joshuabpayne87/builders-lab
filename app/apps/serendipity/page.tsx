@@ -10,13 +10,15 @@ import {
   Menu,
   X,
   Palette,
-  Globe
+  Globe,
+  Library as LibraryIcon
 } from "lucide-react";
 import WorkflowGenerator from "./components/WorkflowGenerator";
 import MarketResearch from "./components/MarketResearch";
 import CanvasStudio from "./components/CanvasStudio";
 import HookLibrary from "./components/HookLibrary";
 import ScriptView from "./components/ScriptView";
+import Library from "./components/Library";
 
 export default function SerendipityPage() {
   const [activeTab, setActiveTab] = useState("workflows");
@@ -29,6 +31,7 @@ export default function SerendipityPage() {
     { id: "canvas", label: "Canvas Studio", icon: Palette },
     { id: "hooks", label: "Hook Library", icon: Video },
     { id: "script", label: "Lead Magnet Script", icon: Mic },
+    { id: "library", label: "Memory Core", icon: LibraryIcon },
   ];
 
   const handleOpenInCanvas = (imageUrl: string) => {
@@ -53,6 +56,8 @@ export default function SerendipityPage() {
             onClearInitialImage={() => setCanvasInitialImage(null)}
           />
         );
+      case "library":
+        return <Library />;
       default:
         return <WorkflowGenerator />;
     }

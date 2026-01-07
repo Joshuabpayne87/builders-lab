@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, ChevronRight, X, Copy, Download } from 'lucide-react';
+import { Trash2, Clock, FileText, ChevronRight, X, Copy, Download, Loader2 } from 'lucide-react';
+import { listSessions, deleteSession } from '@/lib/session-client';
+import type { Session } from '@/lib/session-service';
 
 interface LibraryItem {
   id: string;
@@ -15,29 +17,44 @@ interface LibraryItem {
 export default function Library() {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<LibraryItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadLibrary();
   }, []);
 
-  const loadLibrary = () => {
-    const stored = localStorage.getItem('serendipity_library');
-    if (stored) {
-      try {
-        setItems(JSON.parse(stored));
-      } catch (e) {
-        console.error(e);
-      }
+  const loadLibrary = async () => {
+    try {
+      const sessions = await listSessions('serendipity', 50);
+      const libraryItems: LibraryItem[] = sessions.map((session: Session) => ({
+        id: session.id,
+        title: session.data.title || session.title,
+        content: session.data.content,
+        image: session.data.image,
+        format: session.data.format,
+        timestamp: session.data.timestamp || new Date(session.created_at).getTime()
+      }));
+      setItems(libraryItems);
+    } catch (error) {
+      console.error("Failed to load library:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteItem = (id: string, e: React.MouseEvent) => {
+  const deleteItem = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this item permanently?")) return;
-    const updated = items.filter(item => item.id !== id);
-    setItems(updated);
-    localStorage.setItem('serendipity_library', JSON.stringify(updated));
-    if (selectedItem?.id === id) setSelectedItem(null);
+
+    try {
+      await deleteSession(id);
+      const updated = items.filter(item => item.id !== id);
+      setItems(updated);
+      if (selectedItem?.id === id) setSelectedItem(null);
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      alert("Failed to delete item. Please try again.");
+    }
   };
 
   const copyContent = (text: string) => {
@@ -53,7 +70,13 @@ export default function Library() {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {isLoading ? (
+        <div className="glass-panel rounded-3xl p-20 text-center flex flex-col items-center">
+          <Loader2 className="w-12 h-12 text-violet-400 animate-spin mb-6" />
+          <h3 className="text-xl font-bold text-white mb-2">Loading Library</h3>
+          <p className="text-slate-500 max-w-xs mx-auto">Retrieving your saved workflows...</p>
+        </div>
+      ) : items.length === 0 ? (
         <div className="glass-panel rounded-3xl p-20 text-center flex flex-col items-center">
           <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-6">
             <FileText className="w-8 h-8 text-slate-600" />

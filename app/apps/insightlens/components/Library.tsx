@@ -20,28 +20,60 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const Library: React.FC<LibraryProps> = ({ onLoadItem, onBack }) => {
   const [items, setItems] = useState<LibraryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setItems(getLibraryItems());
+    async function loadItems() {
+      try {
+        const loadedItems = await getLibraryItems();
+        setItems(loadedItems);
+      } catch (error) {
+        console.error("Failed to load library items:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadItems();
   }, []);
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (window.confirm("Purge this engram from memory core?")) {
-      setItems(deleteLibraryItem(id));
+      try {
+        const updatedItems = await deleteLibraryItem(id);
+        setItems(updatedItems);
+      } catch (error) {
+        console.error("Failed to delete item:", error);
+        alert("Failed to purge engram. Please try again.");
+      }
     }
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (items.length === 0) return;
     if (window.confirm("WARNING: Complete Memory Core Wipe initiated. Proceed?")) {
-      clearLibrary();
-      setItems([]);
+      try {
+        await clearLibrary();
+        setItems([]);
+      } catch (error) {
+        console.error("Failed to clear library:", error);
+        alert("Failed to wipe memory core. Please try again.");
+      }
     }
   };
 
   const groupedItems = groupItemsByCategory(items);
   const categories = Object.keys(groupedItems) as LensType[];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-center animate-fadeIn">
+        <div className="w-24 h-24 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mb-6"></div>
+        <h2 className="text-2xl font-bold text-white mb-2 tech-mono tracking-wider">ACCESSING MEMORY CORE</h2>
+        <p className="text-indigo-300/60 tech-mono text-sm">Retrieving saved engrams...</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -55,7 +87,7 @@ const Library: React.FC<LibraryProps> = ({ onLoadItem, onBack }) => {
         <p className="text-indigo-300/60 mb-8 max-w-md tech-mono text-sm">
           NO SAVED ENGRAMS DETECTED. <br/> INITIATE TRANSFORMATION SEQUENCE.
         </p>
-        <button 
+        <button
           onClick={onBack}
           className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-full transition-all border border-indigo-500/50 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)]"
         >
@@ -134,7 +166,7 @@ const Library: React.FC<LibraryProps> = ({ onLoadItem, onBack }) => {
                     <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
                       <div className="text-xs text-slate-500 group-hover:text-cyan-400 transition-colors flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></span>
-                        STORED_LOCALLY
+                        CLOUD_SYNCED
                       </div>
                       <span className="text-xs font-bold text-white opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">ACCESS →</span>
                     </div>

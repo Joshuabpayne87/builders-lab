@@ -10,9 +10,10 @@ interface SidebarProps {
   items: SavedItem[];
   onLoad: (item: SavedItem) => void;
   onDelete: (id: string, e: React.MouseEvent) => void;
+  isLoading?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, items, onLoad, onDelete }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, items, onLoad, onDelete, isLoading = false }) => {
   return (
     <>
       {/* Backdrop */}
@@ -37,7 +38,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, items, onLoad, onDel
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-paper-100">
-            {items.length === 0 ? (
+            {isLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-ink-400 p-8 text-center">
+                <div className="animate-spin h-12 w-12 border-4 border-black border-t-transparent rounded-full mb-4"></div>
+                <p className="font-mono text-sm text-ink-900">Loading archives...</p>
+              </div>
+            ) : items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-ink-400 p-8 text-center opacity-60">
                 <div className="w-20 h-20 bg-white border-2 border-dashed border-ink-300 rounded-full flex items-center justify-center mb-4">
                   <Calendar className="w-8 h-8 text-ink-300" />
