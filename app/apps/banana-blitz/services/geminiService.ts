@@ -196,9 +196,28 @@ class BananaBlitzService {
         { inlineData: { data: base64, mimeType } },
         { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy.
 
-        CRITICAL: Maintain the visual style "${vibe}" (${vibeDesc}) throughout ALL slides. Each prompt must incorporate these visual elements to ensure brand consistency.
+        CAROUSEL STRUCTURE:
+        - Slide 1: Hook/intro slide that sets up the content (e.g., "Here are 6 ways to learn anything fast")
+        - Slides 2-7: Each slide presents ONE specific point/way/step/tip from the content
 
-        Output ONLY a JSON array of 7 distinct prompt strings.` }
+        EXAMPLE for "6 ways to learn anything fast with NotebookLM":
+        1. "Discover 6 powerful ways to accelerate your learning with NotebookLM"
+        2. "Way #1: Use AI-powered summaries to extract key concepts instantly"
+        3. "Way #2: Create interactive study guides from your notes"
+        4. "Way #3: Generate practice questions to test your understanding"
+        5. "Way #4: Build mind maps to visualize connections between ideas"
+        6. "Way #5: Convert documents into audio podcasts for learning on-the-go"
+        7. "Way #6: Leverage smart search to find information across all your notes"
+
+        YOUR TASK:
+        1. Break down "${postText}" into 6-7 actionable steps/tips/ways
+        2. Create visual prompts for each slide that clearly communicate ONE idea per slide
+        3. Number each point (Way #1, Step #1, Tip #1, etc.) for clarity
+        4. Make each slide self-contained and easy to understand
+
+        VISUAL CONSISTENCY: Maintain the visual style "${vibe}" (${vibeDesc}) throughout ALL slides. Each prompt must incorporate these visual elements to ensure brand consistency.
+
+        Output ONLY a JSON array of 7 distinct prompt strings following the structure above.` }
       ],
       config: {
         responseMimeType: "application/json",
