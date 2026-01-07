@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import StorageManager from "./components/StorageManager";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -302,32 +303,36 @@ export default function SettingsPage() {
 
         {/* Data Management */}
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-red-400">
-            <Trash2 className="w-5 h-5" />
-            Data Management
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-200">
+            <Trash2 className="w-5 h-5 text-slate-400" />
+            Storage Manager
           </h2>
           
-          <div className="space-y-4">
-            <p className="text-sm text-slate-400">
-              Clear all locally stored data from Banana Blitz, Unravel, and InsightLens. This action cannot be undone.
-            </p>
-            <button
-              onClick={handleClearData}
-              disabled={clearingData}
-              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-            >
-              {clearingData ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Clearing...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4" />
-                  Clear All App Data
-                </>
-              )}
-            </button>
+          <div className="space-y-6">
+            <StorageManager />
+
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-sm text-slate-400 mb-3">
+                Nuclear Option: Clear all locally stored data across all apps.
+              </p>
+              <button
+                onClick={handleClearData}
+                disabled={clearingData}
+                className="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
+              >
+                {clearingData ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Clearing System...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Clear All App Data
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
