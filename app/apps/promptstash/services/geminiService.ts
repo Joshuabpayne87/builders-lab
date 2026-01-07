@@ -2,6 +2,7 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { createGeminiClient } from "@/lib/gemini";
 import { AnalysisResult, VariableResult } from "../types";
 
+// Helper to clean JSON string if markdown blocks are present
 const cleanJson = (text: string): string => {
   let clean = text.trim();
   if (clean.startsWith('```json')) {
@@ -42,7 +43,7 @@ export const analyzePromptWithGemini = async (promptText: string): Promise<Analy
     };
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: `Analyze the following prompt for an LLM. Score it on clarity, structure, and effectiveness. 
       Provide actionable feedback and generate 3 multiple-choice questions that would help the user understand the specific weaknesses of their prompt.
       
@@ -68,7 +69,7 @@ export const rewritePromptWithGemini = async (originalPrompt: string, critique: 
     const ai = createGeminiClient();
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: `You are an expert Prompt Engineer. Rewrite the following prompt to be highly effective, structured, and clear for an LLM.
       
       Original Prompt: "${originalPrompt}"
@@ -111,7 +112,7 @@ export const extractVariablesWithGemini = async (promptText: string): Promise<Va
     };
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: `Identify dynamic variables in this prompt (e.g., specific names, topics, numbers, tones). 
       Convert the prompt into a template using {{variableName}} syntax.
       Provide a list of these variables with descriptions and suggested default values based on the original text.

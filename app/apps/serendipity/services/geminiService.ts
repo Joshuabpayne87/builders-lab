@@ -97,7 +97,7 @@ const ensureApiKeySelected = async () => {
 export const generateCustomContent = async (params: ContentGenerationParams) => {
   const ai = getGenAI();
 
-  const modelName = "gemini-2.5-flash";
+  const modelName = "gemini-2.0-flash";
 
   let promptText = "";
   let formatInstructions = "";
@@ -197,7 +197,7 @@ export const generateCustomContent = async (params: ContentGenerationParams) => 
   try {
     const response = await ai.models.generateContent({
       model: modelName,
-      contents: { parts },
+      contents: parts, // FIXED: Correct SDK format
       config: {
         temperature: 0.7,
         tools: tools,
@@ -252,8 +252,8 @@ export const generateMarketResearch = async (topic: string) => {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
+      model: "gemini-2.0-flash",
+      contents: [{ text: prompt }],
       config: {
         tools: [{ googleSearch: {} }], // Enable grounding
       }
@@ -346,8 +346,8 @@ export const generatePostImage = async (
   // First, ask a text model to create a good image prompt based on the post
   try {
     const promptResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: promptInstruction
+      model: "gemini-2.0-flash",
+      contents: [{ text: promptInstruction }]
     });
 
     const imagePrompt = promptResponse.text || "Modern abstract digital art representing business growth and automation";
@@ -367,9 +367,10 @@ export const generatePostImage = async (
 
     // Now generate the image
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: { parts },
+      model: 'gemini-2.0-flash',
+      contents: parts,
       config: {
+        responseModalities: ["image"],
         imageConfig: {
           aspectRatio: options?.aspectRatio || "1:1",
         }
@@ -404,11 +405,10 @@ export const generateImage = async (prompt: string, aspectRatio: "16:9" | "1:1" 
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: prompt }],
-      },
+      model: 'gemini-2.0-flash',
+      contents: [{ text: prompt }],
       config: {
+        responseModalities: ["image"],
         imageConfig: {
           aspectRatio: aspectRatio,
         }
@@ -464,19 +464,18 @@ export const editImageWithPrompt = async (prompt: string, imageBase64: string) =
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              data: imageBase64,
-              mimeType: 'image/png'
-            }
-          },
-          { text: effectivePrompt }
-        ]
-      },
+      model: 'gemini-2.0-flash',
+      contents: [
+        {
+          inlineData: {
+            data: imageBase64,
+            mimeType: 'image/png'
+          }
+        },
+        { text: effectivePrompt }
+      ],
       config: {
+        responseModalities: ["image"],
         imageConfig: {
             aspectRatio: "16:9"
         }
@@ -581,8 +580,8 @@ export const generateHooks = async (existingHooks: string[], topic?: string) => 
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt
+    model: "gemini-2.0-flash",
+    contents: [{ text: prompt }]
   });
   return response.text || "";
 };

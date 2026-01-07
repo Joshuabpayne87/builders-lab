@@ -93,8 +93,8 @@ export const unravelUrl = async (url: string, format: OutputFormat): Promise<Unr
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: prompt,
+      model: "gemini-2.0-flash",
+      contents: prompt, // Standard SDK format
       config: {
         tools: [{ googleSearch: {} }],
       }
@@ -151,8 +151,8 @@ export const unravelText = async (rawText: string, format: OutputFormat): Promis
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: prompt,
+      model: "gemini-2.0-flash",
+      contents: prompt, // Standard SDK format
       config: {
         responseMimeType: "application/json",
         responseSchema: {

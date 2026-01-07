@@ -3,10 +3,10 @@ import { createGeminiClient } from "@/lib/gemini";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
-  TEXT: 'gemini-2.0-flash-exp',
-  COMPLEX: 'gemini-2.0-flash-exp',
-  AUDIO: 'gemini-2.0-flash-exp',
-  IMAGE: 'gemini-2.0-flash-exp'
+  TEXT: 'gemini-2.0-flash',
+  COMPLEX: 'gemini-2.0-flash',
+  AUDIO: 'gemini-2.0-flash',
+  IMAGE: 'gemini-2.0-flash'
 };
 
 /**
@@ -180,7 +180,7 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
 
   const response = await ai.models.generateContent({
     model: modelId,
-    contents: [{ role: 'user', parts }],
+    contents: parts,
     config: config
   });
 
@@ -207,7 +207,7 @@ const generateMindMap = async (content: any, customInstruction?: string): Promis
 
   const response = await ai.models.generateContent({
     model: MODELS.COMPLEX,
-    contents: [{ role: 'user', parts }],
+    contents: parts,
     config: {
       responseMimeType: "application/json",
     }
@@ -247,9 +247,9 @@ const generateVisuals = async (content: any, customInstruction?: string): Promis
 
   const response = await ai.models.generateContent({
     model: MODELS.IMAGE,
-    contents: [{ role: 'user', parts: [{ text: imagePrompt }] }],
+    contents: [{ text: imagePrompt }],
     config: {
-        responseModalities: [Modality.IMAGE]
+        responseModalities: ["image"]
     }
   });
 
@@ -314,7 +314,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
 
   const scriptResponse = await ai.models.generateContent({
     model: MODELS.COMPLEX,
-    contents: [{ role: 'user', parts }],
+    contents: parts,
   });
 
   const script = scriptResponse.text;
@@ -334,7 +334,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
 
   const audioResponse = await ai.models.generateContent({
     model: MODELS.AUDIO,
-    contents: [{ role: 'user', parts: [{ text: ttsPrompt }] }],
+    contents: [{ text: ttsPrompt }],
     config: {
       responseModalities: [Modality.AUDIO], 
       speechConfig: {
