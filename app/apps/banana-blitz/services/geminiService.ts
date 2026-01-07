@@ -179,7 +179,7 @@ class BananaBlitzService {
       model: 'gemini-2.0-flash-exp',
       contents: [{ role: 'user', parts }],
       config: {
-        responseModalities: [Modality.IMAGE],
+        responseModalities: [Modality.TEXT, Modality.IMAGE], // IMAGE requires TEXT modality to be present
         imageConfig: { aspectRatio: ratio }
       }
     }));
@@ -226,7 +226,7 @@ class BananaBlitzService {
       model: "gemini-2.0-flash-exp",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
-        responseModalities: [Modality.AUDIO],
+        responseModalities: [Modality.TEXT, Modality.AUDIO], // AUDIO requires TEXT modality
         speechConfig: {
           multiSpeakerVoiceConfig: {
             speakerVoiceConfigs: [
