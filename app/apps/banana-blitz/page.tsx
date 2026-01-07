@@ -90,7 +90,26 @@ export default function BananaBlitzPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && state.history.length > 0) {
-      localStorage.setItem('banana_history', JSON.stringify(state.history));
+      try {
+        localStorage.setItem('banana_history', JSON.stringify(state.history));
+      } catch (e: any) {
+        // Handle quota exceeded error by reducing history size
+        if (e.name === 'QuotaExceededError') {
+          console.warn('LocalStorage quota exceeded, reducing history size...');
+          // Try saving with fewer items
+          const reducedHistory = state.history.slice(0, 3);
+          try {
+            localStorage.setItem('banana_history', JSON.stringify(reducedHistory));
+            // Update state to match what was actually saved
+            setState(prev => ({ ...prev, history: reducedHistory }));
+          } catch (innerError) {
+            // If even 3 items fail, clear history
+            console.error('Unable to save history, clearing...');
+            localStorage.removeItem('banana_history');
+            setState(prev => ({ ...prev, history: [] }));
+          }
+        }
+      }
     }
   }, [state.history]);
 
@@ -165,7 +184,7 @@ export default function BananaBlitzPage() {
           vibe: prev.selectedVibe,
           sources: prev.sources
         };
-        return { ...prev, history: [newCampaign, ...prev.history].slice(0, 10) };
+        return { ...prev, history: [newCampaign, ...prev.history].slice(0, 5) };
       });
 
     } catch (err: any) {
