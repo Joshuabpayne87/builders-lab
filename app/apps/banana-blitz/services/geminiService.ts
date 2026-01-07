@@ -167,7 +167,7 @@ class BananaBlitzService {
     // The style is already incorporated into the prompt by the generatePrompts step.
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],
