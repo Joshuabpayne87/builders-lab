@@ -163,11 +163,8 @@ class BananaBlitzService {
     const ai = createGeminiClient();
     const contents: any[] = [{ text: `High-fidelity professional social media graphic: ${prompt}. Cinematic lighting, 8k, highly detailed.` }];
     
-    // Note: refImage is not used here to avoid 400 errors during multimodal output generation.
-    // The style is already incorporated into the prompt by the generatePrompts step.
-
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],
