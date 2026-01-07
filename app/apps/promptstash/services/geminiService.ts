@@ -1,5 +1,5 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { createGeminiClient } from "@/lib/gemini";
+import { Type, Schema } from "@google/genai";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import { AnalysisResult, VariableResult } from "../types";
 
 // Helper to clean JSON string if markdown blocks are present
@@ -15,8 +15,6 @@ const cleanJson = (text: string): string => {
 
 export const analyzePromptWithGemini = async (promptText: string): Promise<AnalysisResult> => {
   try {
-    const ai = createGeminiClient();
-    
     const schema: Schema = {
       type: Type.OBJECT,
       properties: {
@@ -42,7 +40,7 @@ export const analyzePromptWithGemini = async (promptText: string): Promise<Analy
       required: ["score", "summary", "strengths", "weaknesses", "questions"]
     };
 
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.0-flash',
       contents: `Analyze the following prompt for an LLM. Score it on clarity, structure, and effectiveness. 
       Provide actionable feedback and generate 3 multiple-choice questions that would help the user understand the specific weaknesses of their prompt.
@@ -66,9 +64,7 @@ export const analyzePromptWithGemini = async (promptText: string): Promise<Analy
 
 export const rewritePromptWithGemini = async (originalPrompt: string, critique: AnalysisResult): Promise<string> => {
   try {
-    const ai = createGeminiClient();
-    
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.0-flash',
       contents: `You are an expert Prompt Engineer. Rewrite the following prompt to be highly effective, structured, and clear for an LLM.
       
@@ -89,8 +85,6 @@ export const rewritePromptWithGemini = async (originalPrompt: string, critique: 
 
 export const extractVariablesWithGemini = async (promptText: string): Promise<VariableResult> => {
   try {
-    const ai = createGeminiClient();
-    
     const schema: Schema = {
       type: Type.OBJECT,
       properties: {
@@ -111,7 +105,7 @@ export const extractVariablesWithGemini = async (promptText: string): Promise<Va
       required: ["template", "variables"]
     };
 
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.0-flash',
       contents: `Identify dynamic variables in this prompt (e.g., specific names, topics, numbers, tones). 
       Convert the prompt into a template using {{variableName}} syntax.

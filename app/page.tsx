@@ -497,15 +497,14 @@ export default function HomePage() {
                                     Open in new tab
                                   </a>
                                 </div>
-                                <iframe
-                                  src={block.embed?.url}
-                                  className="w-full min-h-[600px] rounded-lg border border-white/10 bg-white/5"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
+                                                                  <iframe
+                                                                  src={block.embed?.url}
+                                                                  className="w-full min-h-[600px] rounded-lg border border-white/10 bg-white/5"
+                                                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                  allowFullScreen
+                                                                  sandbox="allow-scripts allow-popups allow-forms allow-presentation"
+                                                                  referrerPolicy="no-referrer"
+                                                                />                              </div>
                             )}
                             {![
                               "image",

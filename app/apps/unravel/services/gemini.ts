@@ -1,5 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { createGeminiClient } from "@/lib/gemini";
+import { Type } from "@google/genai";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import { UnravelResponse, OutputFormat } from "../types";
 
 const getSystemInstruction = (format: OutputFormat, urlOrContext: string) => {
@@ -58,8 +58,6 @@ const getSystemInstruction = (format: OutputFormat, urlOrContext: string) => {
 };
 
 export const unravelUrl = async (url: string, format: OutputFormat): Promise<UnravelResponse> => {
-  const ai = createGeminiClient();
-  
   const prompt = `
     ${getSystemInstruction(format, url)}
     
@@ -92,7 +90,7 @@ export const unravelUrl = async (url: string, format: OutputFormat): Promise<Unr
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: "gemini-2.0-flash",
       contents: prompt, // Standard SDK format
       config: {
@@ -134,8 +132,6 @@ export const unravelUrl = async (url: string, format: OutputFormat): Promise<Unr
 };
 
 export const unravelText = async (rawText: string, format: OutputFormat): Promise<UnravelResponse> => {
-  const ai = createGeminiClient();
-  
   const prompt = `
     ${getSystemInstruction(format, "Raw text provided below")}
     
@@ -150,7 +146,7 @@ export const unravelText = async (rawText: string, format: OutputFormat): Promis
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: "gemini-2.0-flash",
       contents: prompt, // Standard SDK format
       config: {

@@ -1,5 +1,5 @@
 // CRM AI Automation Service using Gemini
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import type {
   Contact,
   Activity,
@@ -10,7 +10,20 @@ import type {
   AIDealAnalysis,
 } from "../types";
 
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
+const callGeminiJson = async (prompt: string, temperature: number) => {
+  const response = await geminiGenerateContent({
+    model: "gemini-2.0-flash-exp",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: {
+      temperature,
+      responseMimeType: "application/json"
+    }
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Empty response from AI");
+  return JSON.parse(text);
+};
 
 /**
  * Generate AI-powered contact summary
@@ -20,8 +33,6 @@ export async function generateContactSummary(
   activities: Activity[],
   deals: Deal[]
 ): Promise<AIContactSummary> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
   const prompt = `Analyze this contact and provide a concise 2-3 sentence summary:
 
 Contact: ${contact.name}
@@ -47,23 +58,7 @@ Return as JSON:
 }`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.3,
-        responseMimeType: "application/json",
-      },
-    });
-
-    const response = result.response;
-    if (!response.candidates || response.candidates.length === 0) {
-      throw new Error("No response from AI");
-    }
-
-    const text = response.candidates[0].content.parts[0].text;
-    if (!text) throw new Error("Empty response from AI");
-
-    const data = JSON.parse(text);
+    const data = await callGeminiJson(prompt, 0.3);
     return {
       summary: data.summary || "No summary available",
       keyInsights: data.keyInsights || [],
@@ -83,8 +78,6 @@ export async function suggestNextActions(
   activities: Activity[],
   deals: Deal[]
 ): Promise<AINextAction[]> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
   const lastActivity = activities[0];
   const lastContactDate = contact.last_contacted_at
     ? new Date(contact.last_contacted_at).toLocaleDateString()
@@ -114,23 +107,7 @@ Return as JSON:
 }`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.5,
-        responseMimeType: "application/json",
-      },
-    });
-
-    const response = result.response;
-    if (!response.candidates || response.candidates.length === 0) {
-      throw new Error("No response from AI");
-    }
-
-    const text = response.candidates[0].content.parts[0].text;
-    if (!text) throw new Error("Empty response from AI");
-
-    const data = JSON.parse(text);
+    const data = await callGeminiJson(prompt, 0.5);
     return data.actions || [];
   } catch (error) {
     console.error("Error suggesting next actions:", error);
@@ -146,8 +123,6 @@ export async function draftEmail(
   purpose: string,
   context?: string
 ): Promise<AIEmailDraft> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
   const prompt = `Draft a professional email to this contact:
 
 To: ${contact.name}
@@ -174,23 +149,7 @@ Return as JSON:
 }`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: "application/json",
-      },
-    });
-
-    const response = result.response;
-    if (!response.candidates || response.candidates.length === 0) {
-      throw new Error("No response from AI");
-    }
-
-    const text = response.candidates[0].content.parts[0].text;
-    if (!text) throw new Error("Empty response from AI");
-
-    const data = JSON.parse(text);
+    const data = await callGeminiJson(prompt, 0.7);
     return {
       subject: data.subject || "Follow-up",
       body: data.body || "",
@@ -210,8 +169,6 @@ export async function analyzeDealHealth(
   contact: Contact,
   activities: Activity[]
 ): Promise<AIDealAnalysis> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
   const dealAge = Math.floor(
     (Date.now() - new Date(deal.created_at).getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -249,23 +206,7 @@ Return as JSON:
 }`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.4,
-        responseMimeType: "application/json",
-      },
-    });
-
-    const response = result.response;
-    if (!response.candidates || response.candidates.length === 0) {
-      throw new Error("No response from AI");
-    }
-
-    const text = response.candidates[0].content.parts[0].text;
-    if (!text) throw new Error("Empty response from AI");
-
-    const data = JSON.parse(text);
+    const data = await callGeminiJson(prompt, 0.4);
     return {
       probability: Math.min(100, Math.max(0, data.probability || 50)),
       insights: data.insights || [],

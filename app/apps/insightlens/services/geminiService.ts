@@ -1,5 +1,5 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { createGeminiClient } from "@/lib/gemini";
+import { Type, Modality } from "@google/genai";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
@@ -158,7 +158,6 @@ export const transformContent = async (
 };
 
 const generateText = async (content: any, basePrompt: string, type: LensType, customInstruction?: string): Promise<TransformationResult> => {
-  const ai = createGeminiClient();
   const modelId = MODELS.TEXT;
   
   const finalPrompt = customInstruction 
@@ -178,7 +177,7 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
     config.tools = [{ googleSearch: {} }];
   }
 
-  const response = await ai.models.generateContent({
+  const response = await geminiGenerateContent({
     model: modelId,
     contents: parts,
     config: config
@@ -191,7 +190,6 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
 };
 
 const generateMindMap = async (content: any, customInstruction?: string): Promise<TransformationResult> => {
-  const ai = createGeminiClient();
   let promptText = "Analyze the provided content and generate a hierarchical mind map structure. The root node should be the main topic. Children should be subtopics.";
   
   if (customInstruction) {
@@ -205,7 +203,7 @@ const generateMindMap = async (content: any, customInstruction?: string): Promis
     parts = [{ text: promptText }, { text: `\n\nContent:\n${content}` }];
   }
 
-  const response = await ai.models.generateContent({
+  const response = await geminiGenerateContent({
     model: MODELS.COMPLEX,
     contents: parts,
     config: {
@@ -229,8 +227,6 @@ const generateMindMap = async (content: any, customInstruction?: string): Promis
 };
 
 const generateVisuals = async (content: any, customInstruction?: string): Promise<TransformationResult> => {
-  const ai = createGeminiClient();
-  
   // Step 1: Distill the content into a clear image description
   let descriptionPrompt = "Create a detailed visual description for an educational infographic or diagram that explains the core concept of this content. The description should be suitable for an illustrator. Focus on visual metaphors, layout, and clarity. Keep it under 150 words.";
   
@@ -245,7 +241,7 @@ const generateVisuals = async (content: any, customInstruction?: string): Promis
   // Step 2: Generate the image using the description
   const imagePrompt = `Create a clean, high-quality, modern flat vector style infographic based on this description: ${visualDescription}. Use a professional color palette. White background.`;
 
-  const response = await ai.models.generateContent({
+  const response = await geminiGenerateContent({
     model: MODELS.IMAGE,
     contents: [{ text: imagePrompt }],
     config: {
@@ -279,8 +275,6 @@ const generateVisuals = async (content: any, customInstruction?: string): Promis
 };
 
 const generatePodcast = async (content: any, customInstruction?: string): Promise<TransformationResult> => {
-  const ai = createGeminiClient();
-  
   // Step 1: Script Generation
   let scriptPrompt = `
     You are an expert audio producer creating a "Deep Dive" podcast.
@@ -312,7 +306,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
     parts = [{ text: scriptPrompt }, { text: `\n\nContent:\n${content}` }];
   }
 
-  const scriptResponse = await ai.models.generateContent({
+  const scriptResponse = await geminiGenerateContent({
     model: MODELS.COMPLEX,
     contents: parts,
   });
@@ -332,7 +326,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
     ${script}
   `;
 
-  const audioResponse = await ai.models.generateContent({
+  const audioResponse = await geminiGenerateContent({
     model: MODELS.AUDIO,
     contents: [{ text: ttsPrompt }],
     config: {

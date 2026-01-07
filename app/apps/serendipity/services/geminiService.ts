@@ -1,102 +1,11 @@
-import { GoogleGenAI } from "@google/genai";
-import { FileData, ContentGenerationParams } from "../types";
+import { geminiFetchVideo, geminiGenerateContent, geminiGenerateVideosStart, geminiGenerateVideosStatus } from "@/lib/gemini-http";
+import { ContentGenerationParams } from "../types";
 import { CONTENT_FRAMEWORKS } from "../constants";
-
-// Helper to safely get the API Key from various environment configurations
-const getApiKey = () => {
-  let key = '';
-
-  // STRATEGY 1: direct process.env access (Common in Webpack/Next.js/CRA)
-  // We use try-catch to handle ReferenceError if process is not defined
-  try {
-    // @ts-ignore
-    if (process.env.API_KEY) key = process.env.API_KEY;
-  } catch (e) {}
-
-  if (!key) {
-    try {
-      // @ts-ignore
-      if (process.env.VITE_API_KEY) key = process.env.VITE_API_KEY;
-    } catch (e) {}
-  }
-
-  if (!key) {
-    try {
-      // @ts-ignore
-      if (process.env.REACT_APP_API_KEY) key = process.env.REACT_APP_API_KEY;
-    } catch (e) {}
-  }
-
-  if (!key) {
-    try {
-      // @ts-ignore
-      if (process.env.NEXT_PUBLIC_API_KEY) key = process.env.NEXT_PUBLIC_API_KEY;
-    } catch (e) {}
-  }
-
-  // STRATEGY 2: import.meta.env (Vite Standard)
-  if (!key) {
-    try {
-      // @ts-ignore
-      if (typeof import.meta !== 'undefined' && import.meta.env) {
-        // @ts-ignore
-        key = import.meta.env.VITE_API_KEY || import.meta.env.API_KEY || '';
-      }
-    } catch (e) {}
-  }
-
-  // STRATEGY 3: Global Window Fallback (Runtime Injection)
-  if (!key && typeof window !== 'undefined') {
-    // @ts-ignore
-    key = (window as any).API_KEY || (window as any).process?.env?.API_KEY || '';
-  }
-
-  return key;
-};
-
-// Singleton instance wrapper to ensure we only instantiate when needed
-let aiInstance: GoogleGenAI | null = null;
-
-const getGenAI = () => {
-  if (!aiInstance) {
-    const apiKey = getApiKey();
-
-    // Debug logging to help troubleshoot (Safe: doesn't log full key)
-    if (apiKey) {
-      console.log(`Gemini Service: API Key detected (Length: ${apiKey.length})`);
-    } else {
-      console.error("Gemini Service: CRITICAL - No API Key found in process.env, import.meta.env, or window.");
-    }
-
-    // Initialize even if empty to prevent startup crash, but calls will fail
-    aiInstance = new GoogleGenAI({ apiKey: apiKey || '' });
-  }
-  return aiInstance;
-};
-
-// Helper to handle API Key selection for Veo/Pro features
-const ensureApiKeySelected = async () => {
-  if (typeof window !== 'undefined' && (window as any).aistudio) {
-    try {
-      const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-      if (!hasKey) {
-        await (window as any).aistudio.openSelectKey();
-        aiInstance = null;
-        return getGenAI();
-      }
-    } catch (e) {
-      console.warn("AI Studio Key Selection Error", e);
-    }
-  }
-  return getGenAI();
-};
 
 /**
  * Generates text content based on dynamic inputs (Topic vs Source).
  */
 export const generateCustomContent = async (params: ContentGenerationParams) => {
-  const ai = getGenAI();
-
   const modelName = "gemini-2.0-flash";
 
   let promptText = "";
@@ -195,7 +104,7 @@ export const generateCustomContent = async (params: ContentGenerationParams) => 
   const tools = isUrl ? [{ googleSearch: {} }] : [];
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: modelName,
       contents: parts, // FIXED: Correct SDK format
       config: {
@@ -215,8 +124,6 @@ export const generateCustomContent = async (params: ContentGenerationParams) => 
  * Conducts deep market research using Google Search grounding.
  */
 export const generateMarketResearch = async (topic: string) => {
-  const ai = getGenAI();
-
   const prompt = `
     You are a world-class Market Intelligence Analyst.
 
@@ -251,7 +158,7 @@ export const generateMarketResearch = async (topic: string) => {
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: "gemini-2.0-flash",
       contents: [{ text: prompt }],
       config: {
@@ -280,8 +187,6 @@ export const generatePostImage = async (
   options?: ImageGenerationOptions,
   referenceImageBase64?: string
 ) => {
-  const ai = getGenAI();
-
   const isThumbnail = options?.style === 'youtube-thumbnail' || options?.aspectRatio === '16:9';
 
   // Define prompt generation strategy based on style
@@ -345,7 +250,7 @@ export const generatePostImage = async (
 
   // First, ask a text model to create a good image prompt based on the post
   try {
-    const promptResponse = await ai.models.generateContent({
+    const promptResponse = await geminiGenerateContent({
       model: "gemini-2.0-flash",
       contents: [{ text: promptInstruction }]
     });
@@ -366,7 +271,7 @@ export const generatePostImage = async (
     }
 
     // Now generate the image
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.5-flash-image',
       contents: parts,
       config: {
@@ -401,10 +306,8 @@ export const generatePostImage = async (
  * Generates an image directly from a prompt.
  */
 export const generateImage = async (prompt: string, aspectRatio: "16:9" | "1:1" | "4:3" | "9:16" = "16:9") => {
-  const ai = getGenAI();
-
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.5-flash-image',
       contents: [{ text: prompt }],
       config: {
@@ -438,8 +341,6 @@ export const generateImage = async (prompt: string, aspectRatio: "16:9" | "1:1" 
  * Edits an existing image based on a prompt or visual cues.
  */
 export const editImageWithPrompt = async (prompt: string, imageBase64: string) => {
-  const ai = getGenAI();
-
   // If the user provided no prompt, we explicitly tell the model to look at the drawing.
   // We use a stronger default prompt for the "Canvas Remix" use case.
   const visualCuePrompt = `
@@ -463,7 +364,7 @@ export const editImageWithPrompt = async (prompt: string, imageBase64: string) =
     : visualCuePrompt;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await geminiGenerateContent({
       model: 'gemini-2.5-flash-image',
       contents: [
         {
@@ -505,13 +406,9 @@ export const editImageWithPrompt = async (prompt: string, imageBase64: string) =
  * Generates a video using Veo 3.1 Pro.
  */
 export const generateVideo = async (prompt: string, imageBase64: string) => {
-  // 1. Ensure User has selected their OWN paid API Key (Required for Veo)
-  const activeAI = await ensureApiKeySelected();
-
   try {
-    // 2. Start Video Generation Operation
-    let operation = await activeAI.models.generateVideos({
-      model: 'veo-3.1-generate-preview', // Pro model as requested
+    let operation = await geminiGenerateVideosStart({
+      model: 'veo-3.1-generate-preview',
       prompt: prompt,
       image: {
         imageBytes: imageBase64,
@@ -519,46 +416,35 @@ export const generateVideo = async (prompt: string, imageBase64: string) => {
       },
       config: {
         numberOfVideos: 1,
-        resolution: '720p', // Veo Pro supports 720p with image input
+        resolution: '720p',
         aspectRatio: '16:9'
       }
     });
 
-    // 3. Poll for completion
-    while (!operation.done) {
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
-      operation = await activeAI.operations.getVideosOperation({ operation: operation });
+    let opState = operation.operation;
+    while (!opState?.done) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const status = await geminiGenerateVideosStatus({ operation: opState });
+      opState = status.operation;
     }
 
-    // 4. Extract Result
-    if (operation.error) {
-      const errorMessage = (operation.error as { message?: string })?.message || "Video generation failed";
+    if (opState?.error) {
+      const errorMessage = (opState.error as { message?: string })?.message || "Video generation failed";
       throw new Error(errorMessage);
     }
 
-    const videoUri = operation.response?.generatedVideos?.[0]?.video?.uri;
+    const videoUri = opState?.response?.generatedVideos?.[0]?.video?.uri;
     if (!videoUri) throw new Error("No video URI returned");
-
-    // 5. Fetch the actual video bytes using the key
-    const videoResponse = await fetch(`${videoUri}&key=${getApiKey()}`);
-    const videoBlob = await videoResponse.blob();
+    const videoBlob = await geminiFetchVideo({ uri: videoUri });
     return URL.createObjectURL(videoBlob);
 
   } catch (error) {
     console.error("Veo API Error:", error);
-    // Handle specific "entity not found" error which might imply key issues
-    if (error instanceof Error && error.message.includes("Requested entity was not found")) {
-        if (typeof window !== 'undefined' && (window as any).aistudio) {
-            (window as any).aistudio.resetApiKey();
-        }
-    }
     throw error;
   }
 };
 
 export const generateHooks = async (existingHooks: string[], topic?: string) => {
-  const ai = getGenAI();
-
   const topicInstruction = topic && topic.trim().length > 0
     ? `FOCUS TOPIC: All generated hooks must be specifically about "${topic}".`
     : "FOCUS TOPIC: General business, AI, and automation growth strategies.";
@@ -579,7 +465,7 @@ export const generateHooks = async (existingHooks: string[], topic?: string) => 
     - If the topic is specific, use specific keywords from that industry.
   `;
 
-  const response = await ai.models.generateContent({
+  const response = await geminiGenerateContent({
     model: "gemini-2.0-flash",
     contents: [{ text: prompt }]
   });

@@ -5,8 +5,8 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import { GoogleGenAI } from '@google/genai';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { geminiGenerateContent, geminiGenerateContentStream } from '@/lib/gemini-http';
 
 import { Artifact, Session, ComponentVariation, LayoutOption } from './types';
 import { INITIAL_PLACEHOLDERS } from './constants';
@@ -106,10 +106,7 @@ export default function ComponentStudioPage() {
   useEffect(() => {
       const fetchDynamicPlaceholders = async () => {
           try {
-              const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-              if (!apiKey) return;
-              const ai = new GoogleGenAI({ apiKey });
-              const response = await ai.models.generateContent({
+              const response = await geminiGenerateContent({
                   model: 'gemini-2.0-flash-exp',
                   contents: {
                       role: 'user',
@@ -138,7 +135,7 @@ export default function ComponentStudioPage() {
     setInputValue(event.target.value);
   };
 
-  const parseJsonStream = async function* (responseStream: AsyncGenerator<any>) {
+  const parseJsonStream = async function* (responseStream: AsyncGenerator<{ text: string }>) {
       let buffer = '';
       for await (const chunk of responseStream) {
           const text = chunk.text;
@@ -173,6 +170,20 @@ export default function ComponentStudioPage() {
       }
   };
 
+  const streamText = async function* (body: ReadableStream<Uint8Array> | null) {
+      if (!body) return;
+      const reader = body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value, { stream: true });
+          if (text) yield { text };
+      }
+      const tail = decoder.decode();
+      if (tail) yield { text: tail };
+  };
+
   const handleGenerateVariations = useCallback(async () => {
     const currentSession = sessions[currentSessionIndex];
     if (!currentSession || focusedArtifactIndex === null) return;
@@ -183,10 +194,6 @@ export default function ComponentStudioPage() {
     setDrawerState({ isOpen: true, mode: 'variations', title: 'Variations', data: currentArtifact.id });
 
     try {
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-        if (!apiKey) throw new Error("Gemini API key is not configured.");
-        const ai = new GoogleGenAI({ apiKey });
-
         const prompt = `
         You are a master UI/UX designer. Generate 3 RADICAL CONCEPTUAL VARIATIONS of: "${currentSession.prompt}".
 
@@ -210,13 +217,13 @@ export default function ComponentStudioPage() {
         ` + String.fromCharCode(96) + `{ "name": "Persona Name", "html": "..." }` + String.fromCharCode(96) + `
         `.trim();
 
-        const responseStream = await ai.models.generateContentStream({
+        const responseStream = await geminiGenerateContentStream({
             model: 'gemini-2.0-flash-exp',
              contents: [{ parts: [{ text: prompt }], role: 'user' }],
              config: { temperature: 1.2 }
         });
 
-        for await (const variation of parseJsonStream(responseStream)) {
+        for await (const variation of parseJsonStream(streamText(responseStream))) {
             if (variation.name && variation.html) {
                 // INJECT BOILERPLATE into variation
                 const fullHtml = `
@@ -295,10 +302,6 @@ export default function ComponentStudioPage() {
     setFocusedArtifactIndex(null);
 
     try {
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-        if (!apiKey) throw new Error("Gemini API key is not configured.");
-        const ai = new GoogleGenAI({ apiKey });
-
         const stylePrompt = `
         Generate 3 distinct, highly evocative design directions for: "${trimmedInput}".
 
@@ -315,7 +318,7 @@ export default function ComponentStudioPage() {
         Return ONLY a raw JSON array of 3 *NEW*, creative names for these directions (e.g. ["Tactile Risograph Press", "Kinetic Silhouette Balance", "Primary Pigment Gridwork"]).
         `.trim();
 
-        const styleResponse = await ai.models.generateContent({
+        const styleResponse = await geminiGenerateContent({
             model: 'gemini-2.0-flash-exp',
             contents: { role: 'user', parts: [{ text: stylePrompt }] }
         });
@@ -372,13 +375,13 @@ export default function ComponentStudioPage() {
                 Output ONLY the code content.
                   `.trim();
 
-                const responseStream = await ai.models.generateContentStream({
+                const responseStream = await geminiGenerateContentStream({
                     model: 'gemini-2.0-flash-exp',
                     contents: [{ parts: [{ text: prompt }], role: "user" }],
                 });
 
                 let accumulatedHtml = '';
-                for await (const chunk of responseStream) {
+                for await (const chunk of streamText(responseStream)) {
                     const text = chunk.text;
                     if (typeof text === 'string') {
                         accumulatedHtml += text;

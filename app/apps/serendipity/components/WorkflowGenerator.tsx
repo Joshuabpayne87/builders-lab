@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { ContentFormat, FileData } from '@/lib/serendipity-types';
 import { CONTENT_FRAMEWORKS } from '@/lib/serendipity-constants';
-import { generateCustomContent, generatePostImage } from '@/lib/serendipity-service';
+import { generateCustomContent, generatePostImage } from '../services/geminiService';
 import {
   Wand2, Loader2, Copy, FileText, Link as LinkIcon, Upload, X,
   Image as ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles,

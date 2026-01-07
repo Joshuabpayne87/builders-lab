@@ -10,10 +10,11 @@ export async function POST(req: Request) {
 
     const ai = createGeminiClient();
     const response = await ai.models.embedContent({ model, contents });
+    const data = response as any;
 
     return Response.json({
-      embedding: response.embedding,
-      embeddings: response.embeddings
+      embedding: data.embedding,
+      embeddings: data.embeddings
     });
   } catch (error: any) {
     const message = error?.message || "Embedding request failed.";

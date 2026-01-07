@@ -1,5 +1,5 @@
 import { Type, Modality } from "@google/genai";
-import { createGeminiClient } from "@/lib/gemini";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import { Category, PromptSet, VisualVibe, AspectRatio, VoiceTone, GroundingSource } from "../types";
 
 class BananaBlitzService {
@@ -74,7 +74,6 @@ class BananaBlitzService {
     tone: VoiceTone,
     refImage?: string | null
   ): Promise<{ promptSets: PromptSet[], captions: { platform: string; text: string }[], sources: GroundingSource[] }> {
-    const ai = createGeminiClient();
     const vibeDesc = this.getVibeDescription(vibe);
 
     const systemInstruction = `You are a world-class social media strategist and visual designer.
@@ -103,8 +102,8 @@ class BananaBlitzService {
       });
     }
 
-    const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
+    const response = await this.retryOperation(() => geminiGenerateContent({
+      model: 'gemini-2.5-flash',
       contents: parts, // Standard format
       config: {
         systemInstruction,
@@ -165,7 +164,6 @@ class BananaBlitzService {
   }
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
-    const ai = createGeminiClient();
     const contents: any[] = [{ text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k.` }];
     if (refImage) {
       contents.push({
@@ -175,8 +173,8 @@ class BananaBlitzService {
         }
       });
     }
-    const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+    const response = await this.retryOperation(() => geminiGenerateContent({
+      model: 'gemini-2.5-flash-image',
       contents: contents,
       config: {
         responseModalities: ["image"],
@@ -190,11 +188,10 @@ class BananaBlitzService {
   }
 
   async generateCarouselStrategy(coverImageUrl: string, postText: string): Promise<string[]> {
-    const ai = createGeminiClient();
     const [header, base64] = coverImageUrl.split(',');
     const mimeType = header.split(';')[0].split(':')[1];
 
-    const response = await this.retryOperation(() => ai.models.generateContent({
+    const response = await this.retryOperation(() => geminiGenerateContent({
       model: 'gemini-2.0-flash',
       contents: [
         { inlineData: { data: base64, mimeType } },
@@ -212,14 +209,13 @@ class BananaBlitzService {
   }
 
   async generatePodcastAudio(postText: string): Promise<string> {
-    const ai = createGeminiClient();
     const prompt = `Create a high-energy podcast dialogue between Joe and Jane discussing this topic: "${postText}".
     Joe is the curious host, Jane is the deep expert. Make it insightful and conversational.
     Format the output as a literal script like:
     Joe: [content]
     Jane: [content]`;
 
-    const response = await this.retryOperation(() => ai.models.generateContent({
+    const response = await this.retryOperation(() => geminiGenerateContent({
       model: "gemini-2.0-flash-exp",
       contents: [{ text: prompt }],
       config: {

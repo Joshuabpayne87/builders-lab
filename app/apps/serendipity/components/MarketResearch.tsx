@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search, Loader2, Users, Target, Zap, Lightbulb, Globe, Download, FileText, Rocket, Copy, X } from 'lucide-react';
-import { generateMarketResearch, generateCustomContent } from '@/lib/serendipity-service';
+import { generateMarketResearch, generateCustomContent } from '../services/geminiService';
 
 export default function MarketResearch() {
   const [topic, setTopic] = useState('');

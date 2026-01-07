@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { INITIAL_HOOKS, Hook } from '@/lib/serendipity-constants';
-import { generateHooks } from '@/lib/serendipity-service';
+import { generateHooks } from '../services/geminiService';
 import { Shuffle, Wand2, Copy, Sparkles, X, Target } from 'lucide-react';
 
 export default function HookLibrary() {
