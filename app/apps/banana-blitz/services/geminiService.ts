@@ -50,17 +50,12 @@ class BananaBlitzService {
       } catch (error: any) {
         lastError = error;
         const msg = error.message?.toLowerCase() || '';
-        // Check for rate limit (429), quota exhaustion, or server errors (5xx)
-        const isRateLimit = msg.includes('429') || msg.includes('quota') || msg.includes('limit') || msg.includes('exhausted');
-        const isServerError = error.status === 429 || (error.status >= 500 && error.status < 600) || msg.includes('503') || msg.includes('500');
-
-        if (isRateLimit || isServerError) {
-          const delay = initialDelay * Math.pow(2, i); // Exponential backoff
+        if (msg.includes('429') || msg.includes('quota') || msg.includes('limit') || msg.includes('exhausted') || error.status === 429 || (error.status >= 500 && error.status < 600)) {
+          const delay = initialDelay * Math.pow(2, i);
           console.log(`API Busy/Limit hit. Retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
-        // If it's not a transient error, throw immediately
         throw error;
       }
     }
@@ -104,9 +99,9 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: { parts },
+      contents: [{ role: 'user', parts }],
       config: {
-        systemInstruction,
+        systemInstruction: { parts: [{ text: systemInstruction }] },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -139,13 +134,10 @@ class BananaBlitzService {
       }
     }));
 
-    // Search results are disabled for now to ensure JSON reliability
     const sources: GroundingSource[] = [];
 
     try {
       const result = JSON.parse(response.text || '{"promptSets":[], "captions":[]}');
-      
-      // Save the generated strategy to knowledge base
       const strategySummary = `Campaign Strategy for "${postText.substring(0, 50)}...": Generated ${result.captions.length} captions and ${result.promptSets.length} visual prompt sets. Vibe: ${vibe}, Tone: ${tone}.`;
       this.saveToMemory(strategySummary, 'campaign_strategy', { vibe, tone, full_captions: result.captions });
 
@@ -159,15 +151,24 @@ class BananaBlitzService {
     }
   }
 
-  async generateImage(prompt: string, ratio: AspectRatio, _refImage?: string | null): Promise<string> {
+  async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
     const ai = createGeminiClient();
-    const contents: any[] = [{ text: `High-fidelity professional social media graphic: ${prompt}. Cinematic lighting, 8k, highly detailed.` }];
+    const parts: any[] = [{ text: `High-fidelity professional social media graphic: ${prompt}. Cinematic lighting, 8k, highly detailed.` }];
     
+    if (refImage) {
+      parts.push({
+        inlineData: {
+          data: refImage.split(',')[1],
+          mimeType: refImage.split(';')[0].split(':')[1]
+        }
+      });
+    }
+
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: { parts: contents },
+      contents: [{ role: 'user', parts }],
       config: {
-        responseModalities: ["image"],
+        responseModalities: [Modality.IMAGE],
         imageConfig: { aspectRatio: ratio }
       }
     }));
@@ -184,12 +185,13 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: {
+      contents: [{
+        role: 'user',
         parts: [
           { inlineData: { data: base64, mimeType } },
           { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy. Output ONLY a JSON array of 7 distinct prompt strings.` }
         ]
-      },
+      }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -211,7 +213,7 @@ class BananaBlitzService {
 
     const response = await this.retryOperation(() => ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {

@@ -3,10 +3,10 @@ import { createGeminiClient } from "@/lib/gemini";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
-  TEXT: 'gemini-2.5-flash',
-  COMPLEX: 'gemini-2.5-flash',
-  AUDIO: 'gemini-2.5-flash-preview-tts',
-  IMAGE: 'gemini-2.5-flash-image'
+  TEXT: 'gemini-2.0-flash-exp',
+  COMPLEX: 'gemini-2.0-flash-exp',
+  AUDIO: 'gemini-2.0-flash-exp',
+  IMAGE: 'gemini-2.0-flash-exp'
 };
 
 /**
@@ -119,9 +119,9 @@ export const transformContent = async (
     };
   } else if (inputType === 'URL') {
     // For URL, we rely on the model's ability to process the URL via search grounding or internal knowledge
-    userContent = `Analyze the content at this URL: ${input}. Focus on the main topics and key details.`;
+    userContent = { parts: [{ text: `Analyze the content at this URL: ${input}. Focus on the main topics and key details.` }] };
   } else {
-    userContent = input;
+    userContent = { parts: [{ text: input as string }] };
   }
 
   try {
@@ -165,17 +165,11 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
     ? `${basePrompt}\n\nAdditional User Instructions: ${customInstruction}`
     : basePrompt;
 
-  let contentsPayload;
-  if (typeof content === 'string') {
-    contentsPayload = { parts: [{ text: finalPrompt }, { text: `\n\nContent:\n${content}` }] };
+  let parts;
+  if (content.parts) {
+    parts = [...content.parts, { text: finalPrompt }];
   } else {
-    // It's a structured part (File)
-    contentsPayload = { 
-      parts: [
-        ...content.parts, 
-        { text: finalPrompt }
-      ] 
-    };
+    parts = [{ text: finalPrompt }, { text: `\n\nContent:\n${content}` }];
   }
 
   // Explicitly conditionally add tools
@@ -186,7 +180,7 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
 
   const response = await ai.models.generateContent({
     model: modelId,
-    contents: contentsPayload,
+    contents: [{ role: 'user', parts }],
     config: config
   });
 
@@ -198,27 +192,22 @@ const generateText = async (content: any, basePrompt: string, type: LensType, cu
 
 const generateMindMap = async (content: any, customInstruction?: string): Promise<TransformationResult> => {
   const ai = createGeminiClient();
-  let prompt = "Analyze the provided content and generate a hierarchical mind map structure. The root node should be the main topic. Children should be subtopics.";
+  let promptText = "Analyze the provided content and generate a hierarchical mind map structure. The root node should be the main topic. Children should be subtopics.";
   
   if (customInstruction) {
-    prompt += `\n\nSpecific Focus: ${customInstruction}`;
+    promptText += `\n\nSpecific Focus: ${customInstruction}`;
   }
 
-  let contentsPayload;
-  if (typeof content === 'string') {
-    contentsPayload = { parts: [{ text: prompt }, { text: `\n\nContent:\n${content}` }] };
+  let parts;
+  if (content.parts) {
+    parts = [...content.parts, { text: promptText }];
   } else {
-    contentsPayload = { 
-        parts: [
-          ...content.parts, 
-          { text: prompt }
-        ] 
-      };
+    parts = [{ text: promptText }, { text: `\n\nContent:\n${content}` }];
   }
 
   const response = await ai.models.generateContent({
     model: MODELS.COMPLEX,
-    contents: contentsPayload,
+    contents: [{ role: 'user', parts }],
     config: {
       responseMimeType: "application/json",
     }
@@ -258,7 +247,10 @@ const generateVisuals = async (content: any, customInstruction?: string): Promis
 
   const response = await ai.models.generateContent({
     model: MODELS.IMAGE,
-    contents: { parts: [{ text: imagePrompt }] },
+    contents: [{ role: 'user', parts: [{ text: imagePrompt }] }],
+    config: {
+        responseModalities: [Modality.IMAGE]
+    }
   });
 
   const images: string[] = [];
@@ -313,21 +305,16 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
     scriptPrompt += `\n\nTone/Style Instructions: ${customInstruction}`;
   }
 
-  let scriptContents;
-  if (typeof content === 'string') {
-    scriptContents = { parts: [{ text: scriptPrompt }, { text: `\n\nContent:\n${content}` }] };
+  let parts;
+  if (content.parts) {
+    parts = [...content.parts, { text: scriptPrompt }];
   } else {
-    scriptContents = { 
-        parts: [
-          ...content.parts, 
-          { text: scriptPrompt }
-        ] 
-      };
+    parts = [{ text: scriptPrompt }, { text: `\n\nContent:\n${content}` }];
   }
 
   const scriptResponse = await ai.models.generateContent({
     model: MODELS.COMPLEX,
-    contents: scriptContents,
+    contents: [{ role: 'user', parts }],
   });
 
   const script = scriptResponse.text;
@@ -347,7 +334,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
 
   const audioResponse = await ai.models.generateContent({
     model: MODELS.AUDIO,
-    contents: { parts: [{ text: ttsPrompt }] },
+    contents: [{ role: 'user', parts: [{ text: ttsPrompt }] }],
     config: {
       responseModalities: [Modality.AUDIO], 
       speechConfig: {
@@ -355,7 +342,7 @@ const generatePodcast = async (content: any, customInstruction?: string): Promis
           speakerVoiceConfigs: [
             {
               speaker: "Alex",
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } // Changed to Kore to ensure compatibility
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } 
             },
             {
               speaker: "Sam",
