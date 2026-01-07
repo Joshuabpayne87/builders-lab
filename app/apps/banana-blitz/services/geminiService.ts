@@ -78,12 +78,12 @@ class BananaBlitzService {
 
     const systemInstruction = `You are a world-class social media strategist and visual designer.
     TASK: Turn the provided text into a high-impact social media campaign.
-    1. Generate 3 specific visual prompts for EVERY one of these 5 categories:
-       - "Scroll Stopper Cover"
-       - "Infographic"
-       - "Quote Graphic"
-       - "Diagram / Framework"
-       - "Carousel Cover"
+    1. Generate visual prompts for these categories:
+       - "Scroll Stopper Cover" - 3 specific prompts
+       - "Infographic" - 3 specific prompts
+       - "Quote Graphic" - 3 specific prompts
+       - "Diagram / Framework" - 3 specific prompts
+       - "Carousel Cover" - 1 specific prompt (Master Carousel)
     2. Generate 3 captions (LinkedIn, Instagram, Twitter) in the tone: "${tone}".
 
     VISUAL STYLE: "${vibe}" (${vibeDesc}).
@@ -185,15 +185,20 @@ class BananaBlitzService {
     throw new Error("Image engine failed to render.");
   }
 
-  async generateCarouselStrategy(coverImageUrl: string, postText: string): Promise<string[]> {
+  async generateCarouselStrategy(coverImageUrl: string, postText: string, vibe: VisualVibe): Promise<string[]> {
     const [header, base64] = coverImageUrl.split(',');
     const mimeType = header.split(';')[0].split(':')[1];
+    const vibeDesc = this.getVibeDescription(vibe);
 
     const response = await this.retryOperation(() => geminiGenerateContent({
       model: 'gemini-2.0-flash',
       contents: [
         { inlineData: { data: base64, mimeType } },
-        { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy. Output ONLY a JSON array of 7 distinct prompt strings.` }
+        { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy.
+
+        CRITICAL: Maintain the visual style "${vibe}" (${vibeDesc}) throughout ALL slides. Each prompt must incorporate these visual elements to ensure brand consistency.
+
+        Output ONLY a JSON array of 7 distinct prompt strings.` }
       ],
       config: {
         responseMimeType: "application/json",

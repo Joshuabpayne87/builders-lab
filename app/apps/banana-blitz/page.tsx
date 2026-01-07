@@ -251,7 +251,7 @@ export default function BananaBlitzPage() {
     if (!coverImage.url || state.isExpanding) return;
     setState(prev => ({ ...prev, isExpanding: true, error: null }));
     try {
-      const innerPrompts = await bananaBlitzService.generateCarouselStrategy(coverImage.url, state.postText);
+      const innerPrompts = await bananaBlitzService.generateCarouselStrategy(coverImage.url, state.postText, state.selectedVibe);
       const newSlides: GeneratedImage[] = innerPrompts.map((p, i) => ({
         id: `slide-${i}-${Math.random().toString(36).substr(2, 5)}`,
         url: '', category: Category.CAROUSEL_SLIDE, prompt: p, status: 'pending',
