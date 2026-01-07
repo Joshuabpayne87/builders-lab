@@ -78,14 +78,13 @@ class BananaBlitzService {
 
     const systemInstruction = `You are a world-class social media strategist and visual designer.
     TASK: Turn the provided text into a high-impact social media campaign.
-    1. Use Google Search for the latest trends/data.
-    2. Generate 3 specific visual prompts for EVERY one of these 5 categories:
+    1. Generate 3 specific visual prompts for EVERY one of these 5 categories:
        - "Scroll Stopper Cover"
        - "Infographic"
        - "Quote Graphic"
        - "Diagram / Framework"
        - "Carousel Cover"
-    3. Generate 3 captions (LinkedIn, Instagram, Twitter) in the tone: "${tone}".
+    2. Generate 3 captions (LinkedIn, Instagram, Twitter) in the tone: "${tone}".
 
     VISUAL STYLE: "${vibe}" (${vibeDesc}).
     ${refImage ? "INCORPORATE STYLE: Strictly follow the characters and style of the attached reference image." : ""}
@@ -107,7 +106,6 @@ class BananaBlitzService {
       contents: parts, // Standard format
       config: {
         systemInstruction,
-        tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
