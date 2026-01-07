@@ -104,7 +104,7 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-image',
       contents: parts, // Standard format
       config: {
         systemInstruction,
@@ -220,7 +220,7 @@ class BananaBlitzService {
     Jane: [content]`;
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.0-flash-exp",
       contents: [{ text: prompt }],
       config: {
         responseModalities: [Modality.AUDIO],

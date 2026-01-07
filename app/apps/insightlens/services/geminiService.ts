@@ -5,8 +5,8 @@ import { LensType, TransformationResult, MindMapNode } from '../types';
 const MODELS = {
   TEXT: 'gemini-2.0-flash',
   COMPLEX: 'gemini-2.0-flash',
-  AUDIO: 'gemini-2.0-flash',
-  IMAGE: 'gemini-2.0-flash'
+  AUDIO: 'gemini-2.0-flash-exp',
+  IMAGE: 'gemini-2.0-flash-image'
 };
 
 /**

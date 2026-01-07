@@ -367,7 +367,7 @@ export const generatePostImage = async (
 
     // Now generate the image
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-image',
       contents: parts,
       config: {
         responseModalities: ["image"],
@@ -405,7 +405,7 @@ export const generateImage = async (prompt: string, aspectRatio: "16:9" | "1:1" 
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-image',
       contents: [{ text: prompt }],
       config: {
         responseModalities: ["image"],
@@ -464,7 +464,7 @@ export const editImageWithPrompt = async (prompt: string, imageBase64: string) =
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-image',
       contents: [
         {
           inlineData: {
