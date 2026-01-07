@@ -218,7 +218,23 @@ export default function ComponentStudioPage() {
 
         for await (const variation of parseJsonStream(responseStream)) {
             if (variation.name && variation.html) {
-                setComponentVariations(prev => [...prev, variation]);
+                // INJECT BOILERPLATE into variation
+                const fullHtml = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+                        <style>
+                            body { font-family: 'Inter', sans-serif; background: transparent; margin: 0; padding: 20px; color: white; }
+                        </style>
+                    </head>
+                    <body>
+                        ${variation.html}
+                    </body>
+                    </html>
+                `;
+                setComponentVariations(prev => [...prev, { ...variation, html: fullHtml }]);
             }
         }
     } catch (e: any) {
@@ -340,18 +356,20 @@ export default function ComponentStudioPage() {
         const generateArtifact = async (artifact: Artifact, styleInstruction: string) => {
             try {
                 const prompt = `
-                You are ComponentStudio. Create a stunning, high-fidelity UI component for: "${trimmedInput}".
+                You are an award-winning Principal Product Designer. 
+                Create a "Best-in-Class", world-level UI component for: "${trimmedInput}".
 
                 **CONCEPTUAL DIRECTION: ${styleInstruction}**
 
                 **VISUAL EXECUTION RULES:**
-                1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use ` + String.fromCharCode(96) + `feTurbulence` + String.fromCharCode(96) + ` for grain and ` + String.fromCharCode(96) + `mix-blend-mode: multiply` + String.fromCharCode(96) + ` for ink layering).
-                2. **Typography**: Use high-quality web fonts. Pair a bold sans-serif with a refined monospace for data.
-                3. **Motion**: Include subtle, high-performance CSS/JS animations (hover transitions, entry reveals).
-                4. **IP SAFEGUARD**: No artist names or trademarks.
-                5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards.
+                1. **Sophisticated Layout**: Avoid generic boxes. Use Bento Grids, Asymmetrical layouts, or layered depth.
+                2. **Typography**: Use high-contrast hierarchy. Use "Inter" or "Geist" fonts.
+                3. **Advanced CSS**: Use backdrop-blur (glassmorphism), complex gradients, and subtle borders.
+                4. **Tailwind Mastery**: Use Tailwind CSS for all styling. Leverage arbitrary values for precision (e.g., bg-[#0a0a0a]).
+                5. **Interactivity**: Add smooth hover states and entry animations using CSS transitions.
+                6. **Self-Contained**: Return ONLY the inner HTML content. Do NOT include <html> or <body> tags.
 
-                Return ONLY RAW HTML. No markdown fences.
+                Output ONLY the code content.
                   `.trim();
 
                 const responseStream = await ai.models.generateContentStream({
@@ -364,6 +382,7 @@ export default function ComponentStudioPage() {
                     const text = chunk.text;
                     if (typeof text === 'string') {
                         accumulatedHtml += text;
+                        // During streaming, just show raw for feedback
                         setSessions(prev => prev.map(sess =>
                             sess.id === sessionId ? {
                                 ...sess,
@@ -380,16 +399,35 @@ export default function ComponentStudioPage() {
                 if (finalHtml.startsWith('```')) finalHtml = finalHtml.substring(3).trimStart();
                 if (finalHtml.endsWith('```')) finalHtml = finalHtml.substring(0, finalHtml.length - 3).trimEnd();
 
+                // INJECT BOILERPLATE (Tailwind + Fonts)
+                const fullHtml = \`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <script src="https://cdn.tailwindcss.com"></script>
+                        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+                        <style>
+                            body { font-family: 'Inter', sans-serif; background: transparent; margin: 0; padding: 20px; color: white; }
+                            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                        </style>
+                    </head>
+                    <body>
+                        \${finalHtml}
+                    </body>
+                    </html>
+                \`;
+
                 setSessions(prev => prev.map(sess =>
                     sess.id === sessionId ? {
                         ...sess,
                         artifacts: sess.artifacts.map(art =>
-                            art.id === artifact.id ? { ...art, html: finalHtml, status: finalHtml ? 'complete' : 'error' } : art
+                            art.id === artifact.id ? { ...art, html: fullHtml, status: finalHtml ? 'complete' : 'error' } : art
                         )
                     } : sess
                 ));
 
-                return { styleName: styleInstruction, html: finalHtml };
+                return { styleName: styleInstruction, html: fullHtml };
 
             } catch (e: any) {
                 console.error('Error generating artifact:', e);
