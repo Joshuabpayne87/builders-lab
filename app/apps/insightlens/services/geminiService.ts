@@ -6,7 +6,7 @@ const MODELS = {
   TEXT: 'gemini-2.0-flash',
   COMPLEX: 'gemini-2.0-flash',
   AUDIO: 'gemini-2.0-flash-exp',
-  IMAGE: 'gemini-2.0-flash-image'
+  IMAGE: 'gemini-2.5-flash-image'
 };
 
 /**
