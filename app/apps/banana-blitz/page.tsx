@@ -153,9 +153,11 @@ export default function BananaBlitzPage() {
             };
           });
         } catch (err: any) {
+          console.error("Image generation failed:", err);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } as GeneratedImage : item)
+            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } as GeneratedImage : item),
+            error: `Image generation failed: ${err.message}`
           }));
         }
       }));
@@ -228,7 +230,8 @@ export default function BananaBlitzPage() {
       const blob = new Blob([wav], { type: 'audio/wav' });
       setState(prev => ({ ...prev, currentAudioUrl: URL.createObjectURL(blob) }));
     } catch (e: any) {
-      setState(prev => ({ ...prev, error: "Podcast studio is unavailable. Please try again." }));
+      console.error("Podcast generation failed:", e);
+      setState(prev => ({ ...prev, error: `Podcast studio is unavailable: ${e.message}` }));
     } finally {
       setState(prev => ({ ...prev, isGeneratingPodcast: false }));
     }
@@ -260,7 +263,8 @@ export default function BananaBlitzPage() {
             ...prev,
             images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' } as GeneratedImage : item)
           }));
-        } catch (err) {
+        } catch (err: any) {
+          console.error("Carousel slide generation failed:", err);
           setState(prev => ({
             ...prev,
             images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' } as GeneratedImage : item)
@@ -268,7 +272,8 @@ export default function BananaBlitzPage() {
         }
       }));
     } catch (e: any) {
-      setState(prev => ({ ...prev, error: "Carousel Slide rendering failed." }));
+      console.error("Carousel strategy failed:", e);
+      setState(prev => ({ ...prev, error: `Carousel Slide rendering failed: ${e.message}` }));
     } finally {
       setState(prev => ({ ...prev, isExpanding: false }));
     }

@@ -104,7 +104,7 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: { parts },
       config: {
         systemInstruction,
@@ -176,7 +176,7 @@ class BananaBlitzService {
       });
     }
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],
@@ -195,7 +195,7 @@ class BananaBlitzService {
     const mimeType = header.split(';')[0].split(':')[1];
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       contents: {
         parts: [
           { inlineData: { data: base64, mimeType } },
@@ -222,7 +222,7 @@ class BananaBlitzService {
     Jane: [content]`;
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
+      model: "gemini-2.0-flash",
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.AUDIO],
