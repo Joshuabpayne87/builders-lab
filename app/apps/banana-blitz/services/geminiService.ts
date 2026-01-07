@@ -79,14 +79,13 @@ class BananaBlitzService {
 
     const systemInstruction = `You are a world-class social media strategist and visual designer.
     TASK: Turn the provided text into a high-impact social media campaign.
-    1. Use Google Search for the latest trends/data.
-    2. Generate 3 specific visual prompts for EVERY one of these 5 categories:
+    1. Generate 3 specific visual prompts for EVERY one of these 5 categories:
        - "Scroll Stopper Cover"
        - "Infographic"
        - "Quote Graphic"
        - "Diagram / Framework"
        - "Carousel Cover"
-    3. Generate 3 captions (LinkedIn, Instagram, Twitter) in the tone: "${tone}".
+    2. Generate 3 captions (LinkedIn, Instagram, Twitter) in the tone: "${tone}".
 
     VISUAL STYLE: "${vibe}" (${vibeDesc}).
     ${refImage ? "INCORPORATE STYLE: Strictly follow the characters and style of the attached reference image." : ""}
@@ -104,11 +103,10 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: { parts },
       config: {
         systemInstruction,
-        tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -141,11 +139,8 @@ class BananaBlitzService {
       }
     }));
 
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-    const sources = groundingChunks
-      ?.map((chunk: any) => chunk.web)
-      .filter((web: any) => web && web.title && web.uri)
-      .map((web: any) => ({ title: web.title, uri: web.uri })) || [];
+    // Search results are disabled for now to ensure JSON reliability
+    const sources: GroundingSource[] = [];
 
     try {
       const result = JSON.parse(response.text || '{"promptSets":[], "captions":[]}');
@@ -164,19 +159,15 @@ class BananaBlitzService {
     }
   }
 
-  async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
+  async generateImage(prompt: string, ratio: AspectRatio, _refImage?: string | null): Promise<string> {
     const ai = createGeminiClient();
-    const contents: any[] = [{ text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k.` }];
-    if (refImage) {
-      contents.push({
-        inlineData: {
-          data: refImage.split(',')[1],
-          mimeType: refImage.split(';')[0].split(':')[1]
-        }
-      });
-    }
+    const contents: any[] = [{ text: `High-fidelity professional social media graphic: ${prompt}. Cinematic lighting, 8k, highly detailed.` }];
+    
+    // Note: refImage is not used here to avoid 400 errors during multimodal output generation.
+    // The style is already incorporated into the prompt by the generatePrompts step.
+
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: { parts: contents },
       config: {
         responseModalities: ["image"],
@@ -195,7 +186,7 @@ class BananaBlitzService {
     const mimeType = header.split(';')[0].split(':')[1];
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: {
         parts: [
           { inlineData: { data: base64, mimeType } },
@@ -222,7 +213,7 @@ class BananaBlitzService {
     Jane: [content]`;
 
     const response = await this.retryOperation(() => ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.0-flash-exp",
       contents: [{ parts: [{ text: prompt }] }],
       config: {
         responseModalities: [Modality.AUDIO],

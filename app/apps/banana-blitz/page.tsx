@@ -144,7 +144,7 @@ export default function BananaBlitzPage() {
           const url = await bananaBlitzService.generateImage(img.prompt, state.selectedRatio, state.referenceImage);
           
           setState(prev => {
-            const updatedImages = prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' } as GeneratedImage : item);
+            const updatedImages = prev.images.map(item => item.id === img.id ? { ...item, url, status: 'completed' as const } as GeneratedImage : item);
             const finished = updatedImages.filter(im => im.status === 'completed' || im.status === 'error').length;
             return {
               ...prev,
@@ -156,7 +156,7 @@ export default function BananaBlitzPage() {
           console.error("Image generation failed:", err);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' } as GeneratedImage : item),
+            images: prev.images.map(item => item.id === img.id ? { ...item, status: 'error' as const } as GeneratedImage : item),
             error: `Image generation failed: ${err.message}`
           }));
         }
@@ -253,7 +253,7 @@ export default function BananaBlitzPage() {
       await Promise.all(newSlides.map(async (slide, i) => {
         setState(prev => ({
           ...prev,
-          images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' } as GeneratedImage : item)
+          images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'generating' as const } as GeneratedImage : item)
         }));
 
         try {
@@ -261,13 +261,13 @@ export default function BananaBlitzPage() {
           const url = await bananaBlitzService.generateImage(slide.prompt, coverImage.aspectRatio, state.referenceImage);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' } as GeneratedImage : item)
+            images: prev.images.map(item => item.id === slide.id ? { ...item, url, status: 'completed' as const } as GeneratedImage : item)
           }));
         } catch (err: any) {
           console.error("Carousel slide generation failed:", err);
           setState(prev => ({
             ...prev,
-            images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' } as GeneratedImage : item)
+            images: prev.images.map(item => item.id === slide.id ? { ...item, status: 'error' as const } as GeneratedImage : item)
           }));
         }
       }));
