@@ -1,11 +1,11 @@
-import { Type, Modality } from "@google/genai";
+import { Type } from "@google/genai";
 import { geminiGenerateContent } from "@/lib/gemini-http";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
-  TEXT: 'gemini-1.5-flash',
-  COMPLEX: 'gemini-1.5-flash',
-  IMAGE: 'gemini-1.5-flash'
+  TEXT: 'gemini-2.0-flash-exp',
+  COMPLEX: 'gemini-2.0-flash-exp',
+  IMAGE: 'gemini-2.0-flash-exp'
 };
 
 /**

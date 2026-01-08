@@ -11,17 +11,35 @@ export async function POST(req: Request) {
     const ai = createGeminiClient();
     const response = await ai.models.generateContent({ model, contents, config });
 
-    // Safely get text if available
+    // Explicitly serialize candidates to ensure parts are included
+    const candidates = response.candidates?.map(c => ({
+      content: {
+        parts: c.content?.parts?.map(p => {
+          const part: any = {};
+          if (p.text) part.text = p.text;
+          if (p.inlineData) part.inlineData = p.inlineData;
+          if (p.fileData) part.fileData = p.fileData;
+          if (p.functionCall) part.functionCall = p.functionCall;
+          if (p.functionResponse) part.functionCall = p.functionResponse;
+          return part;
+        }),
+        role: c.content?.role
+      },
+      finishReason: c.finishReason,
+      index: c.index,
+      safetyRatings: c.safetyRatings,
+      groundingMetadata: c.groundingMetadata
+    }));
+
+    // Safely get text
     let text = "";
     try {
       text = response.text || "";
-    } catch (e) {
-      // response.text might throw if there's no text part (e.g. audio only)
-    }
+    } catch (e) {}
 
     return Response.json({
       text,
-      candidates: response.candidates,
+      candidates,
       usageMetadata: response.usageMetadata,
       modelVersion: response.modelVersion
     });

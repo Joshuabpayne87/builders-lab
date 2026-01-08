@@ -1,5 +1,5 @@
 // CRM AI Automation Service using Gemini
-import { createGeminiClient } from "@/lib/gemini";
+import { geminiGenerateContent } from "@/lib/gemini-http";
 import type {
   Contact,
   Activity,
@@ -11,9 +11,8 @@ import type {
 } from "../types";
 
 const callGeminiJson = async (prompt: string, temperature: number) => {
-  const ai = createGeminiClient();
-  const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+  const response = await geminiGenerateContent({
+    model: "gemini-2.0-flash-exp",
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       temperature,

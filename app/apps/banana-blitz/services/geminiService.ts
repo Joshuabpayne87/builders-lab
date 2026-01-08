@@ -1,4 +1,4 @@
-import { Type, Modality } from "@google/genai";
+import { Type } from "@google/genai";
 import { geminiGenerateContent } from "@/lib/gemini-http";
 import { Category, PromptSet, VisualVibe, AspectRatio, VoiceTone, GroundingSource } from "../types";
 
@@ -102,7 +102,7 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: parts, // Standard format
       config: {
         systemInstruction,
@@ -172,7 +172,7 @@ class BananaBlitzService {
       });
     }
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-2.0-flash-exp',
       contents: contents,
       config: {
         responseModalities: ["image"],
@@ -191,7 +191,7 @@ class BananaBlitzService {
     const vibeDesc = this.getVibeDescription(vibe);
 
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash-exp',
       contents: [
         { inlineData: { data: base64, mimeType } },
         { text: `Based on the provided COVER and this POST: "${postText}", create an elite 7-slide educational carousel strategy.
