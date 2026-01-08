@@ -62,6 +62,30 @@ export class SessionService {
   }
 
   /**
+   * Lists recent sessions across all apps
+   */
+  static async listAll(
+    limit: number = 10
+  ): Promise<Session[]> {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("Unauthorized");
+
+    const { data, error } = await supabase
+      .from("bl_app_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  /**
    * Lists sessions for a specific app with pagination
    */
   static async list(

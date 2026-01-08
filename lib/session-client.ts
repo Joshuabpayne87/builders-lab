@@ -57,6 +57,30 @@ export async function listSessions(
 }
 
 /**
+ * Lists recent sessions across ALL apps
+ */
+export async function listAllSessions(
+  limit: number = 10
+): Promise<Session[]> {
+  const response = await fetch("/api/sessions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "listAll",
+      limit,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch recent sessions");
+  }
+
+  const { sessions } = await response.json();
+  return sessions;
+}
+
+/**
  * Gets a single session by ID
  */
 export async function getSession(id: string): Promise<Session | null> {

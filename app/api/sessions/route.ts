@@ -51,6 +51,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ sessions });
       }
 
+      case "listAll": {
+        const sessions = await SessionService.listAll(
+          params.limit || 10
+        );
+        return NextResponse.json({ sessions });
+      }
+
       case "get": {
         if (!params.id) {
           return NextResponse.json(

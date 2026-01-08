@@ -27,6 +27,10 @@ import { CalendarWidget } from "./CalendarWidget";
 import { Suspense } from "react";
 import { ExitIntentModal } from "../components/ExitIntentModal";
 
+import { RecentWorkflows } from "./RecentWorkflows";
+import { QuickDrafts } from "./QuickDrafts";
+import { Scratchpad } from "./Scratchpad";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -301,29 +305,17 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick Stats / Action Center */}
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { label: "Apps Used", value: "5", icon: LayoutGrid },
-            { label: "Content Created", value: "24", icon: Activity },
-            { label: "Time Saved", value: "12h", icon: TrendingUp },
-          ].map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={i}
-                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-all"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{stat.label}</p>
-                  <Icon className="w-4 h-4 text-slate-600" strokeWidth={1.5} />
-                </div>
-                <p className="text-3xl font-semibold text-white">
-                  {stat.value}
-                </p>
-              </div>
-            );
-          })}
+            <div className="h-40">
+              <RecentWorkflows />
+            </div>
+            <div className="h-40">
+              <QuickDrafts />
+            </div>
+            <div className="h-40">
+              <Scratchpad />
+            </div>
           </div>
         </div>
       </div>

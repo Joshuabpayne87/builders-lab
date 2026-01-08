@@ -1,0 +1,76 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { StickyNote, Plus, Check } from "lucide-react";
+import { createTask } from "@/lib/calendar-client";
+
+export function Scratchpad() {
+  const [note, setNote] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("dashboard_scratchpad");
+    if (saved) setNote(saved);
+  }, []);
+
+  // Auto-save to localStorage
+  useEffect(() => {
+    localStorage.setItem("dashboard_scratchpad", note);
+  }, [note]);
+
+  const handleConvertToTask = async () => {
+    if (!note.trim()) return;
+    setIsSaving(true);
+    try {
+      // Split first line as title, rest as description
+      const lines = note.split('\n');
+      const title = lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '');
+      const description = note;
+
+      await createTask({
+        title,
+        description,
+        due_date: new Date().toISOString(), // Due today by default
+        status: 'draft'
+      });
+
+      setNote(""); // Clear note
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to create task");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <StickyNote className="w-4 h-4 text-slate-400" />
+          <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Scratchpad</h3>
+        </div>
+        <button 
+          onClick={handleConvertToTask}
+          disabled={!note.trim() || isSaving}
+          className="text-[10px] bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white px-2 py-1 rounded transition-colors flex items-center gap-1"
+          title="Convert to Task"
+        >
+          {justSaved ? <Check className="w-3 h-3 text-green-400" /> : <Plus className="w-3 h-3" />}
+          {justSaved ? "Saved" : "Add Task"}
+        </button>
+      </div>
+
+      <textarea
+        className="flex-1 bg-black/20 border border-white/5 rounded-lg p-3 text-xs text-slate-300 resize-none focus:outline-none focus:border-white/10 placeholder:text-slate-600"
+        placeholder="Quick idea? Jot it down here..."
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+      />
+    </div>
+  );
+}
