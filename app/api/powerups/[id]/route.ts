@@ -7,10 +7,11 @@ import { PowerupService, UpdatePowerupParams } from "@/lib/powerup-service";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const powerup = await PowerupService.get(params.id);
+    const { id } = await params;
+    const powerup = await PowerupService.get(id);
 
     if (!powerup) {
       return NextResponse.json(
@@ -40,13 +41,14 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body: UpdatePowerupParams = await request.json();
 
     // Update powerup
-    const powerup = await PowerupService.update(params.id, body);
+    const powerup = await PowerupService.update(id, body);
 
     return NextResponse.json({
       success: true,
@@ -92,13 +94,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const hard = searchParams.get('hard') === 'true';
 
-    await PowerupService.delete(params.id, hard);
+    await PowerupService.delete(id, hard);
 
     return NextResponse.json({
       success: true,
