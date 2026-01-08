@@ -3,6 +3,7 @@
 import { createGeminiClient } from "@/lib/gemini";
 import { KnowledgeService } from "@/lib/knowledge-service";
 import { createClient } from "@/lib/supabase/server";
+import { CalendarService } from "@/lib/calendar-service";
 
 export async function chatWithAgent(message: string, history: { role: string; content: string }[]) {
   try {
@@ -23,20 +24,30 @@ export async function chatWithAgent(message: string, history: { role: string; co
           .map((r: any) => `- [${r.source_app}]: ${r.content}`)
           .join("\n")}`;
       }
+
+      // Add Calendar context
+      const upcoming = await CalendarService.getUpcoming(24 * 7); // Next 7 days
+      const incomplete = await CalendarService.getIncomplete();
+      
+      if (upcoming.length > 0 || incomplete.length > 0) {
+        context += `\n\nUSER CALENDAR TASKS:
+${incomplete.map(t => `- [OVERDUE] ${t.title} (${t.platform || 'any'})`).join('\n')}
+${upcoming.map(t => `- [DUE ${new Date(t.due_date).toLocaleDateString()}] ${t.title} (${t.platform || 'any'})`).join('\n')}`;
+      }
     } catch (e) {
-      console.warn("Failed to retrieve knowledge context:", e);
-      // Continue without context if search fails (e.g., if table doesn't exist yet)
+      console.warn("Failed to retrieve knowledge/calendar context:", e);
     }
 
     // 2. Construct System Prompt
     const systemPrompt = `You are the central AI Agent for "The Builder's Lab".
 The user you are speaking to is named ${userName}. Use their name occasionally to be friendly and professional.
 
-You have access to the user's "Knowledge Base" which contains data from all their apps (Banana Blitz, Unravel, Serendipity, etc.).
+You have access to the user's "Knowledge Base" (past creations) and their "Content Calendar" (upcoming tasks).
 
 Your goal is to be a helpful, context-aware assistant.
-ALWAYS reference the user's specific data if it appears in the "RELEVANT USER DATA" section.
+ALWAYS reference the user's specific data if it appears in the "RELEVANT USER DATA" or "USER CALENDAR TASKS" sections.
 If the user asks about something you found in the knowledge base, explicitely mention where it came from (e.g., "I found that in your Unravel article...").
+If the user mentions creating content, check if it matches any upcoming calendar tasks and suggest linking it.
 
 ${context}
 

@@ -26,8 +26,13 @@ import Link from 'next/link';
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
 import type { Session } from '@/lib/session-service';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
+import { Calendar } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function UnravelPage() {
+function UnravelContent() {
+  const searchParams = useSearchParams();
   // State
   const [mode, setMode] = useState<UnravelMode>(UnravelMode.URL);
   const [format, setFormat] = useState<OutputFormat>(OutputFormat.BLOG);
@@ -42,6 +47,19 @@ export default function UnravelPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false); // Track if current result is saved
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setInputValue(title);
+      setMode(UnravelMode.TEXT);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadSessions() {
@@ -238,6 +256,7 @@ export default function UnravelPage() {
 
       setSavedItems([newItem, ...savedItems]);
       setIsSaved(true);
+      setCurrentSessionId(saved.session.id);
     } catch (err) {
       console.error('Failed to save article:', err);
       setErrorMsg('Failed to save article');
@@ -501,6 +520,16 @@ export default function UnravelPage() {
                     {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                     <span className="ml-2 hidden sm:inline">{isSaved ? 'SAVED' : 'SAVE'}</span>
                  </Button>
+                 {isSaved && currentSessionId && (
+                   <Button 
+                      variant="secondary" 
+                      onClick={() => setShowScheduleModal(true)} 
+                      className="py-2 px-4 text-sm bg-vintageRed text-white border-black hover:bg-red-700"
+                   >
+                      <Calendar className="w-4 h-4" />
+                      <span className="ml-2 hidden sm:inline">SCHEDULE</span>
+                   </Button>
+                 )}
                  <Button variant="secondary" onClick={handleCopy} className="py-2 px-4 text-sm">
                    {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                    <span className="ml-2 hidden sm:inline">{copied ? 'COPIED' : 'COPY'}</span>
@@ -556,9 +585,34 @@ export default function UnravelPage() {
       />
       <main className="relative z-10">
         {renderHero()}
-        {renderResult()}
-      </main>
-    </div>
-    </>
-  );
-}
+                {renderResult()}
+              </main>
+            </div>
+            {showScheduleModal && currentSessionId && result && (
+              <ScheduleContentModal
+                isOpen={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                sessionData={{
+                  id: currentSessionId,
+                  title: result.title,
+                  appName: 'unravel',
+                  contentType: format === OutputFormat.BLOG ? 'blog_post' : 'social_post',
+                }}
+                    />
+                  )}
+                  </>
+                );
+              }
+              
+              export default function UnravelPage() {
+                return (
+                  <Suspense fallback={
+                    <div className="min-h-screen bg-[#f4ecd8] flex items-center justify-center">
+                      <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full"></div>
+                    </div>
+                  }>
+                    <UnravelContent />
+                  </Suspense>
+                );
+              }
+              

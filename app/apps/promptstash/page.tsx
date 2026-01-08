@@ -11,6 +11,10 @@ import { Play, Sparkles, ArrowRight, CornerDownLeft, FileDown, History, Clock, T
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
 import type { Session } from '@/lib/session-service';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
+import { Calendar } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 interface SavedPrompt {
   id: string;
@@ -32,13 +36,26 @@ const INITIAL_STATE: PromptState = {
   isExtracting: false,
 };
 
-export default function PromptStashPage() {
+function PromptStashContent() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<AppStep>(AppStep.DRAFT);
   const [state, setState] = useState<PromptState>(INITIAL_STATE);
   const [history, setHistory] = useState<SavedPrompt[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  React.useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setState(prev => ({ ...prev, originalPrompt: title }));
+    }
+  }, [searchParams]);
 
   React.useEffect(() => {
     async function loadSessions() {
@@ -93,6 +110,7 @@ export default function PromptStashPage() {
         timestamp: new Date(result.session.created_at).getTime()
       };
       setHistory([newItem, ...history]);
+      setCurrentSessionId(result.session.id);
     } catch (err) {
       console.error('Failed to save prompt:', err);
       setError('Failed to save prompt to history');
@@ -383,6 +401,14 @@ export default function PromptStashPage() {
                  Refined Prompt
                </h2>
                <div className="flex items-center gap-3">
+                 {currentSessionId && (
+                   <button
+                     onClick={() => setShowScheduleModal(true)}
+                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shadow-lg shadow-blue-900/20"
+                   >
+                     <Calendar size={16} /> Schedule Post
+                   </button>
+                 )}
                  <button
                     onClick={() => downloadText(state.refinedPrompt, 'refined-prompt.txt')}
                     className="flex items-center gap-2 bg-ide-panel border border-ide-border hover:bg-white/5 text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
@@ -437,8 +463,34 @@ export default function PromptStashPage() {
             variableResult={state.variableData}
             onRestart={handleRestart}
           />
-        )}
-      </Layout>
-    </>
-  );
-}
+                )}
+              </Layout>
+        
+              {showScheduleModal && currentSessionId && (
+                <ScheduleContentModal
+                  isOpen={showScheduleModal}
+                  onClose={() => setShowScheduleModal(false)}
+                  sessionData={{
+                    id: currentSessionId,
+                    title: state.originalPrompt.substring(0, 50),
+                    appName: 'promptstash',
+                    contentType: 'social_post',
+                  }}
+                        />
+                      )}
+                    </>
+                  );
+                }
+                
+                export default function PromptStashPage() {
+                  return (
+                    <Suspense fallback={
+                      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+                        <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                      </div>
+                    }>
+                      <PromptStashContent />
+                    </Suspense>
+                  );
+                }
+                

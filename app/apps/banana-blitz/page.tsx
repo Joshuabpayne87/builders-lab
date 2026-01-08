@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { ArrowLeft, Trash2, Calendar } from 'lucide-react';
 import { Category, VisualVibe, AspectRatio, VoiceTone, MusicStyle, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
 import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
 import type { Session as SupabaseSession } from '@/lib/session-service';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
 
 const ImageCard = dynamic(() => import('./components/ImageCard'), {
   loading: () => <div className="w-full aspect-square bg-zinc-900/20 rounded-3xl animate-pulse" />,
@@ -76,12 +78,25 @@ async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: 
   return buffer;
 }
 
-export default function BananaBlitzPage() {
+function BananaBlitzContent() {
+  const searchParams = useSearchParams();
   const [state, setState] = useState<AppState>(INITIAL_STATE);
   const [blitzStatus, setBlitzStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map());
+  
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setState(prev => ({ ...prev, postText: title }));
+    }
+  }, [searchParams]);
 
   // Load campaigns from Supabase on mount
   useEffect(() => {
@@ -259,6 +274,7 @@ export default function BananaBlitzPage() {
 
         // Update ID map with new Supabase ID
         setSessionIdMap(prev => new Map(prev).set(campaignId, saved.session.id));
+        setCurrentSessionId(saved.session.id);
       } catch (saveErr) {
         console.error('Failed to save campaign to Supabase:', saveErr);
         // Don't block the user if save fails
@@ -586,6 +602,14 @@ export default function BananaBlitzPage() {
                 >
                    {state.isGeneratingPodcast ? <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full"></div> : '🎙️ JOE & JANE PODCAST'}
                 </button>
+                {currentSessionId && (
+                  <button
+                    onClick={() => setShowScheduleModal(true)}
+                    className="bg-blue-600 text-white text-[10px] font-black py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all hover:bg-blue-500 shadow-lg border border-blue-500/50"
+                  >
+                    <Calendar className="w-3 h-3" /> SCHEDULE THIS
+                  </button>
+                )}
               </div>
             </div>
 
@@ -668,6 +692,31 @@ export default function BananaBlitzPage() {
           })}
         </div>
       </div>
+
+      {showScheduleModal && currentSessionId && (
+        <ScheduleContentModal
+          isOpen={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          sessionData={{
+            id: currentSessionId,
+            title: state.postText.substring(0, 50),
+            appName: 'banana-blitz',
+            contentType: 'carousel', // Default for campaign
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+export default function BananaBlitzPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-yellow-400 border-t-transparent rounded-full"></div>
+      </div>
+    }>
+      <BananaBlitzContent />
+    </Suspense>
   );
 }

@@ -8,7 +8,7 @@ const STORAGE_KEY = 'insight_lens_library';
 // Session ID map: localId -> supabaseId
 let sessionIdMap = new Map<string, string>();
 
-export const saveToLibrary = async (result: TransformationResult, inputTitle: string): Promise<LibraryItem | null> => {
+export const saveToLibrary = async (result: TransformationResult, inputTitle: string): Promise<{ item: LibraryItem; supabaseId: string } | null> => {
   try {
     const localId = crypto.randomUUID();
     const timestamp = Date.now();
@@ -41,7 +41,7 @@ export const saveToLibrary = async (result: TransformationResult, inputTitle: st
     // Update ID map
     sessionIdMap.set(localId, saved.session.id);
 
-    return newItem;
+    return { item: newItem, supabaseId: saved.session.id };
   } catch (error) {
     console.error("Failed to save to library:", error);
     alert("Failed to save transformation. Please try again.");

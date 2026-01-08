@@ -30,14 +30,31 @@ import './index.css';
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import { saveSession, listSessions, deleteSession, updateSession } from '@/lib/session-client';
 import type { Session as SupabaseSession } from '@/lib/session-service';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
+import { Calendar } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function ComponentStudioPage() {
+function ComponentStudioContent() {
+  const searchParams = useSearchParams();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionIndex, setCurrentSessionIndex] = useState<number>(-1);
   const [showHistory, setShowHistory] = useState(false);
   const [focusedArtifactIndex, setFocusedArtifactIndex] = useState<number | null>(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map()); // Map local ID to Supabase ID
+  
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSupabaseId, setCurrentSupabaseId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setInputValue(title);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadSessions() {
@@ -536,6 +553,7 @@ export default function ComponentStudioPage() {
 
                 // Update ID map with new Supabase ID
                 setSessionIdMap(prev => new Map(prev).set(sessionId, saved.session.id));
+                setCurrentSupabaseId(saved.session.id);
             }
         } catch (err) {
             console.error('Failed to save component session:', err);
@@ -712,6 +730,11 @@ export default function ComponentStudioPage() {
                     {currentSession?.prompt}
                  </div>
                  <div className="action-buttons">
+                    {currentSupabaseId && (
+                      <button onClick={() => setShowScheduleModal(true)} style={{ background: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 0.4)', color: '#60a5fa' }}>
+                        <Calendar size={18} /> Schedule
+                      </button>
+                    )}
                     <button onClick={() => setFocusedArtifactIndex(null)}>
                         <GridIcon /> Grid View
                     </button>
@@ -781,7 +804,12 @@ export default function ComponentStudioPage() {
                   sessions.map((sess, idx) => (
                     <div
                       key={sess.id}
-                      onClick={() => { setCurrentSessionIndex(idx); setShowHistory(false); setFocusedArtifactIndex(null); }}
+                      onClick={() => { 
+                        setCurrentSessionIndex(idx); 
+                        setShowHistory(false); 
+                        setFocusedArtifactIndex(null); 
+                        setCurrentSupabaseId(sessionIdMap.get(sess.id) || null);
+                      }}
                       className="group relative bg-white/5 border border-white/5 hover:border-white/20 rounded-3xl p-6 transition-all cursor-pointer"
                     >
                       <div className="flex justify-between items-start mb-4">
@@ -804,6 +832,31 @@ export default function ComponentStudioPage() {
             </div>
           </div>
         )}
+
+        {showScheduleModal && currentSupabaseId && (
+          <ScheduleContentModal
+            isOpen={showScheduleModal}
+            onClose={() => setShowScheduleModal(false)}
+            sessionData={{
+              id: currentSupabaseId,
+              title: currentSession?.prompt.substring(0, 50) || "UI Component",
+              appName: 'component-studio',
+              contentType: 'other',
+            }}
+          />
+        )}
     </div>
+  );
+}
+
+export default function ComponentStudioPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full"></div>
+      </div>
+    }>
+      <ComponentStudioContent />
+    </Suspense>
   );
 }

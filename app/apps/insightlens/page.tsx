@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { InputMode, LensType, ProcessingStatus, TransformationResult, LibraryItem } from './types';
 import { transformContent } from './services/geminiService';
 import { saveToLibrary } from './services/storage';
@@ -10,10 +10,15 @@ import Library from './components/Library';
 import WorkflowBuilder from './components/WorkflowBuilder';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
+import { Calendar } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 type ViewState = 'HOME' | 'LIBRARY' | 'WORKFLOW';
 
-export default function InsightLensPage() {
+function InsightLensContent() {
+  const searchParams = useSearchParams();
   // State
   const [view, setView] = useState<ViewState>('HOME');
   const [inputMode, setInputMode] = useState<InputMode>(InputMode.TEXT);
@@ -23,6 +28,19 @@ export default function InsightLensPage() {
   const [status, setStatus] = useState<ProcessingStatus>('IDLE');
   const [result, setResult] = useState<TransformationResult | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setTextContent(title);
+      setInputMode(InputMode.TEXT);
+    }
+  }, [searchParams]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -174,9 +192,10 @@ export default function InsightLensPage() {
     else if (textContent) title = textContent.split('\n')[0] || "Text Content";
 
     try {
-      const savedItem = await saveToLibrary(result, title);
-      if (savedItem) {
+      const saved = await saveToLibrary(result, title);
+      if (saved) {
         setIsSaved(true);
+        setCurrentSessionId(saved.supabaseId);
       }
     } catch (error) {
       console.error("Failed to save to library:", error);
@@ -236,6 +255,15 @@ export default function InsightLensPage() {
              >
                 {isSaved ? 'ENAGRAM SAVED' : 'SAVE TO MEMORY'}
              </button>
+             {isSaved && currentSessionId && (
+               <button 
+                  onClick={() => setShowScheduleModal(true)}
+                  className="px-6 py-2.5 text-sm font-bold bg-pink-600 hover:bg-pink-500 text-white rounded-full transition-all flex items-center gap-2 shadow-lg shadow-pink-500/20 border border-pink-400/50"
+               >
+                  <Calendar className="w-4 h-4" />
+                  SCHEDULE
+               </button>
+             )}
           </div>
         </div>
 
@@ -540,10 +568,35 @@ export default function InsightLensPage() {
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-xs text-indigo-400/60 tech-mono">
           <p>NEURAL_INTERFACE_V2.0 // ONLINE</p>
           <p>POWERED_BY_GEMINI</p>
-        </div>
-      </footer>
-      
-    </div>
-    </>
-  );
-}
+                </div>
+              </footer>
+              
+              {showScheduleModal && currentSessionId && (
+                <ScheduleContentModal
+                  isOpen={showScheduleModal}
+                  onClose={() => setShowScheduleModal(false)}
+                  sessionData={{
+                    id: currentSessionId,
+                    title: textContent.substring(0, 50) || "Insight Transformation",
+                    appName: 'insightlens',
+                    contentType: selectedLens === 'PODCAST' ? 'podcast' : selectedLens === 'VISUAL' ? 'image' : 'other',
+                  }}
+                />
+                    )}
+                  </div>
+                  </>
+                );
+              }
+              
+              export default function InsightLensPage() {
+                return (
+                  <Suspense fallback={
+                    <div className="min-h-screen bg-[#030014] flex items-center justify-center">
+                      <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+                    </div>
+                  }>
+                    <InsightLensContent />
+                  </Suspense>
+                );
+              }
+              

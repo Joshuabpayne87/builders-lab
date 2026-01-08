@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ContentFormat, FileData } from '@/lib/serendipity-types';
 import { CONTENT_FRAMEWORKS } from '@/lib/serendipity-constants';
 import { generateCustomContent, generatePostImage } from '../services/geminiService';
@@ -12,11 +12,28 @@ import {
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import { saveSession } from '@/lib/session-client';
+import ScheduleContentModal from '@/components/ScheduleContentModal';
+import { Calendar } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 export default function WorkflowGenerator() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<'topic' | 'source' | null>(null);
   const [activeFormat, setActiveFormat] = useState<ContentFormat>('linkedin');
   const [isSaved, setIsSaved] = useState(false);
+  
+  // Scheduling Modal State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [currentSupabaseId, setCurrentSupabaseId] = useState<string | null>(null);
+
+  // Pre-fill from query params
+  useEffect(() => {
+    const title = searchParams.get('title');
+    if (title) {
+      setTopic(title);
+      setMode('topic');
+    }
+  }, [searchParams]);
 
   const [selectedFrameworkId, setSelectedFrameworkId] = useState<string>('how-to');
   const [topic, setTopic] = useState("");
@@ -42,7 +59,7 @@ export default function WorkflowGenerator() {
     try {
       const workflowTitle = topic || (fileData?.name) || 'Untitled Workflow';
 
-      await saveSession({
+      const saved = await saveSession({
         appName: 'serendipity',
         sessionType: 'workflow',
         title: workflowTitle.substring(0, 100),
@@ -65,6 +82,7 @@ export default function WorkflowGenerator() {
       });
 
       setIsSaved(true);
+      setCurrentSupabaseId(saved.session.id);
     } catch (error) {
       console.error("Failed to save to library:", error);
       alert("Failed to save workflow. Please try again.");
@@ -479,6 +497,15 @@ export default function WorkflowGenerator() {
                     <span className="font-bold text-slate-200 text-xs uppercase tracking-widest">Output Terminal</span>
                  </div>
                  <div className="flex gap-2">
+                    {generatedContent && isSaved && currentSupabaseId && (
+                        <button 
+                            onClick={() => setShowScheduleModal(true)} 
+                            className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center transition-all uppercase tracking-wider bg-violet-600 hover:bg-violet-500 text-white border border-violet-500/50 shadow-lg shadow-violet-500/20"
+                        >
+                            <Calendar className="w-3 h-3 mr-2" />
+                            Schedule
+                        </button>
+                    )}
                     {generatedContent && (
                         <button 
                             onClick={handleSaveToLibrary} 
@@ -582,6 +609,19 @@ export default function WorkflowGenerator() {
            )}
         </div>
       </div>
+
+      {showScheduleModal && currentSupabaseId && (
+        <ScheduleContentModal
+          isOpen={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          sessionData={{
+            id: currentSupabaseId,
+            title: (topic || fileData?.name || "Workflow").substring(0, 50),
+            appName: 'serendipity',
+            contentType: activeFormat === 'blog' ? 'blog_post' : activeFormat === 'script' ? 'video' : 'social_post',
+          }}
+        />
+      )}
     </div>
   );
 }

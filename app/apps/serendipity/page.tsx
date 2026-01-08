@@ -19,6 +19,7 @@ import CanvasStudio from "./components/CanvasStudio";
 import HookLibrary from "./components/HookLibrary";
 import ScriptView from "./components/ScriptView";
 import Library from "./components/Library";
+import { Suspense } from "react";
 
 export default function SerendipityPage() {
   const [activeTab, setActiveTab] = useState("workflows");
@@ -42,7 +43,11 @@ export default function SerendipityPage() {
   const renderContent = () => {
     switch (activeTab) {
       case "workflows":
-        return <WorkflowGenerator />;
+        return (
+          <Suspense fallback={<div className="p-8 text-center text-slate-500">Loading Engine...</div>}>
+            <WorkflowGenerator />
+          </Suspense>
+        );
       case "research":
         return <MarketResearch />;
       case "hooks":
