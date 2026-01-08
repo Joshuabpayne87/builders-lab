@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Powerup API Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #e2e8f0;
+    }
+    h1 { color: #fff; }
+    .test-section {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 5px;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .log {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid #667eea;
+      padding-left: 10px;
+    }
+    .powerup-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+    }
+    .powerup-card h4 {
+      margin: 0 0 8px 0;
+      color: #a78bfa;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-skill { background: #3b82f6; }
+    .badge-persona { background: #8b5cf6; }
+    .badge-knowledge { background: #ec4899; }
+  </style>
+</head>
+<body>
+  <h1>🧪 AI Powerup API Test Console</h1>
+  <p>Test the powerup API with your current logged-in session</p>
+
+  <div class="test-section">
+    <h2>📦 Step 1: Create Sample Powerups</h2>
+    <button onclick="createAllPowerups()">Create All 3 Powerups</button>
+    <button onclick="clearLog()">Clear Log</button>
+    <div id="create-log" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>📋 Step 2: List Powerups</h2>
+    <button onclick="listPowerups()">List All Powerups</button>
+    <button onclick="listPowerups('SKILL')">List Skills Only</button>
+    <button onclick="listPowerups('PERSONA')">List Personas Only</button>
+    <div id="list-results"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>💼 Step 3: Test Loadouts</h2>
+    <button onclick="testLoadouts()">Create & Test Loadout</button>
+    <div id="loadout-log" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>⚡ Step 4: Test Session Override</h2>
+    <button onclick="testSession()">Test Session Override</button>
+    <div id="session-log" class="log"></div>
+  </div>
+
+  <script>
+    let createdPowerups = [];
+
+    const samplePowerups = {
+      skill: {
+        powerup_type: 'SKILL',
+        name: 'SEO Optimization Expert',
+        description: 'Advanced SEO strategies for content optimization and ranking',
+        icon: '🔍',
+        category: 'marketing',
+        content: {
+          instructions: `You are an SEO expert with deep knowledge of search engine algorithms, keyword research, and content optimization strategies. When helping with SEO:
+
+1. Analyze content for keyword density and relevance
+2. Suggest meta descriptions and title tags
+3. Recommend internal/external linking strategies
+4. Optimize for featured snippets and rich results
+5. Consider user intent and search behavior
+6. Focus on E-A-T (Expertise, Authoritativeness, Trustworthiness)`,
+          examples: [
+            'Optimize this blog post for the keyword "AI productivity tools"',
+            'Create a meta description for an article about remote work',
+            'Suggest internal linking opportunities for our content cluster on marketing automation'
+          ],
+          use_cases: [
+            'Blog post optimization',
+            'Product page SEO',
+            'Content cluster strategy',
+            'Technical SEO audit'
+          ]
+        },
+        tags: ['seo', 'marketing', 'content', 'optimization']
+      },
+
+      persona: {
+        powerup_type: 'PERSONA',
+        name: 'Professional Marketing Consultant',
+        description: 'Experienced B2B marketing strategist with agency background',
+        icon: '🎯',
+        category: 'marketing',
+        content: {
+          role: 'Senior Marketing Consultant',
+          tone: 'Professional yet approachable. Uses clear, actionable language.',
+          expertise: [
+            'B2B Marketing Strategy',
+            'Content Marketing',
+            'Lead Generation',
+            'Marketing Automation',
+            'Analytics & Reporting'
+          ],
+          system_prompt: `You are a seasoned marketing consultant with 10+ years of experience helping B2B companies grow.`
+        },
+        tags: ['persona', 'marketing', 'consultant', 'b2b']
+      },
+
+      knowledge: {
+        powerup_type: 'KNOWLEDGE',
+        name: 'Company Brand Guidelines',
+        description: 'Official brand voice, tone, and messaging guidelines',
+        icon: '📘',
+        category: 'copywriting',
+        content: {
+          file_url: '',
+          file_type: 'txt',
+          file_size: 1500,
+          processed_text: `BRAND VOICE GUIDELINES - The Builder's Lab
+
+Brand Personality: Innovative, Empowering, Professional with a Human Touch
+
+Voice Attributes:
+- Innovative: We're at the cutting edge of AI-powered productivity
+- Empowering: We help creators and builders achieve more
+- Accessible: Complex tech made simple and approachable
+
+Key Messages:
+1. "Build more, stress less"
+2. "Your AI-powered creative partner"
+3. "From idea to execution in minutes"`,
+          chunks: [{text: 'BRAND VOICE GUIDELINES...', index: 0}]
+        },
+        tags: ['brand', 'guidelines', 'copywriting']
+      }
+    };
+
+    function log(message, type = 'info', targetId = 'create-log') {
+      const logDiv = document.getElementById(targetId);
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '📝';
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+
+      entry.innerHTML = `<span class="${className}">${icon} ${message}</span>`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('create-log').innerHTML = '';
+      document.getElementById('list-results').innerHTML = '';
+      document.getElementById('loadout-log').innerHTML = '';
+      document.getElementById('session-log').innerHTML = '';
+    }
+
+    async function createPowerup(powerupData) {
+      log(`Creating ${powerupData.powerup_type}: "${powerupData.name}"`);
+
+      try {
+        const response = await fetch('/api/powerups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(powerupData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          log(`Created successfully! ID: ${data.powerup.id.substring(0, 8)}...`, 'success');
+          return data.powerup;
+        } else {
+          log(`Failed: ${data.error}`, 'error');
+          return null;
+        }
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+        return null;
+      }
+    }
+
+    async function createAllPowerups() {
+      clearLog();
+      createdPowerups = [];
+
+      log('🚀 Starting powerup creation...');
+
+      const skill = await createPowerup(samplePowerups.skill);
+      if (skill) createdPowerups.push(skill);
+
+      const persona = await createPowerup(samplePowerups.persona);
+      if (persona) createdPowerups.push(persona);
+
+      const knowledge = await createPowerup(samplePowerups.knowledge);
+      if (knowledge) createdPowerups.push(knowledge);
+
+      if (createdPowerups.length === 3) {
+        log(`✨ All ${createdPowerups.length} powerups created successfully!`, 'success');
+      } else {
+        log(`⚠️ Only ${createdPowerups.length}/3 powerups created`, 'error');
+      }
+    }
+
+    async function listPowerups(type = null) {
+      const resultsDiv = document.getElementById('list-results');
+      resultsDiv.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const url = type ? `/api/powerups?type=${type}` : '/api/powerups';
+        const response = await fetch(url, { credentials: 'include' });
+        const data = await response.json();
+
+        if (response.ok) {
+          resultsDiv.innerHTML = `<h3>Found ${data.count} powerup(s)</h3>`;
+
+          data.powerups.forEach(p => {
+            const badgeClass = `badge badge-${p.powerup_type.toLowerCase()}`;
+            const card = document.createElement('div');
+            card.className = 'powerup-card';
+            card.innerHTML = `
+              <h4>${p.icon || '⚡'} ${p.name}</h4>
+              <span class="${badgeClass}">${p.powerup_type}</span>
+              <span class="badge" style="background: #475569">${p.category || 'uncategorized'}</span>
+              <p style="margin: 8px 0; font-size: 13px; color: #94a3b8">${p.description || 'No description'}</p>
+              <p style="font-size: 11px; color: #64748b; margin: 0">ID: ${p.id}</p>
+            `;
+            resultsDiv.appendChild(card);
+          });
+        } else {
+          resultsDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      }
+    }
+
+    async function testLoadouts() {
+      const logDiv = document.getElementById('loadout-log');
+      logDiv.innerHTML = '';
+
+      log('💼 Creating default loadout...', 'info', 'loadout-log');
+
+      try {
+        // Create loadout
+        const createRes = await fetch('/api/powerups/loadouts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'create',
+            name: 'Test Loadout',
+            is_default: true
+          })
+        });
+
+        const createData = await createRes.json();
+
+        if (!createRes.ok) {
+          log(`Failed to create loadout: ${createData.error}`, 'error', 'loadout-log');
+          return;
+        }
+
+        const loadout = createData.loadout;
+        log(`Loadout created! ID: ${loadout.id.substring(0, 8)}...`, 'success', 'loadout-log');
+
+        // If we have created powerups, equip them
+        if (createdPowerups.length > 0) {
+          log('🔧 Equipping powerups to slots...', 'info', 'loadout-log');
+
+          const slots = ['marketing', 'copywriter', 'brain'];
+          for (let i = 0; i < Math.min(createdPowerups.length, slots.length); i++) {
+            const equipRes = await fetch('/api/powerups/loadouts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                action: 'equip',
+                loadout_id: loadout.id,
+                powerup_id: createdPowerups[i].id,
+                slot: slots[i]
+              })
+            });
+
+            const equipData = await equipRes.json();
+            if (equipRes.ok) {
+              log(`Equipped ${createdPowerups[i].name} to ${slots[i]} slot`, 'success', 'loadout-log');
+            } else {
+              log(`Failed to equip: ${equipData.error}`, 'error', 'loadout-log');
+            }
+          }
+        }
+
+        log('✨ Loadout test complete!', 'success', 'loadout-log');
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error', 'loadout-log');
+      }
+    }
+
+    async function testSession() {
+      const logDiv = document.getElementById('session-log');
+      logDiv.innerHTML = '';
+
+      const sessionId = crypto.randomUUID();
+      log(`⚡ Creating session override with ID: ${sessionId.substring(0, 8)}...`, 'info', 'session-log');
+
+      try {
+        const powerupIds = createdPowerups.length > 0
+          ? [createdPowerups[0].id]
+          : [];
+
+        const response = await fetch('/api/powerups/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            action: 'set',
+            session_id: sessionId,
+            equipped_powerups: powerupIds,
+            slot_config: powerupIds.length > 0 ? { marketing: powerupIds[0] } : {}
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          log('Session override created successfully!', 'success', 'session-log');
+          log(`Expires at: ${new Date(data.override.expires_at).toLocaleString()}`, 'info', 'session-log');
+          log(`Equipped powerups: ${data.override.equipped_powerups.length}`, 'info', 'session-log');
+        } else {
+          log(`Failed: ${data.error}`, 'error', 'session-log');
+        }
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error', 'session-log');
+      }
+    }
+
+    // Auto-list powerups on page load
+    window.addEventListener('load', () => {
+      log('🌐 Test console loaded. Make sure you are logged in as admin!');
+      log('Click "Create All 3 Powerups" to begin testing.');
+    });
+  </script>
+</body>
+</html>
