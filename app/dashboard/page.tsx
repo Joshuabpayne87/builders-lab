@@ -23,6 +23,7 @@ import {
   Code,
 } from "lucide-react";
 import { NotionWidget } from "./NotionWidget";
+import { CalendarWidget } from "./CalendarWidget";
 import { Suspense } from "react";
 import { ExitIntentModal } from "../components/ExitIntentModal";
 
@@ -121,6 +122,12 @@ export default async function DashboardPage() {
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
               >
                 Apps
+              </Link>
+              <Link
+                href="/calendar"
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
+              >
+                Calendar
               </Link>
               <Link
                 href="/apps/crm"
@@ -266,34 +273,8 @@ export default async function DashboardPage() {
             </Suspense>
           </div>
 
-          {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-500" strokeWidth={1.5} />
-                Recent Activity
-              </h2>
-            </div>
-            <div className="space-y-2">
-              {[
-                { app: "Unravel", action: "Converted thread to article", time: "2h ago" },
-                { app: "PromptStash", action: "Analyzed prompt quality", time: "5h ago" },
-                { app: "InsightLens", action: "Generated mind map", time: "1d ago" },
-              ].map((activity, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/10"
-                >
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white font-medium truncate">{activity.app}</p>
-                    <p className="text-xs text-slate-500 truncate">{activity.action}</p>
-                  </div>
-                  <span className="text-xs text-slate-600 shrink-0">{activity.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Calendar Widget */}
+          <CalendarWidget />
         </div>
 
         {/* AI Assistant & Quick Stats */}
