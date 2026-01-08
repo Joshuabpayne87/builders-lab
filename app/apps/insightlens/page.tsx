@@ -11,9 +11,12 @@ import WorkflowBuilder from './components/WorkflowBuilder';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import ScheduleContentModal from '@/components/ScheduleContentModal';
-import { Calendar } from 'lucide-react';
+import { Calendar, Database, CheckCircle2, Loader2, Download } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { uploadBase64Image } from '@/lib/supabase/storage';
+import { saveSession } from '@/lib/session-client';
+import { toast } from 'sonner';
 
 type ViewState = 'HOME' | 'LIBRARY' | 'WORKFLOW';
 
@@ -26,10 +29,15 @@ function InsightLensContent() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedLens, setSelectedLens] = useState<LensType | null>(null);
   const [status, setStatus] = useState<ProcessingStatus>('IDLE');
-  const [result, setResult] = useState<TransformationResult | null>(null);
-  const [isSaved, setIsSaved] = useState(false);
+    const [result, setResult] = useState<TransformationResult | null>(null);
+    const [isSaved, setIsSaved] = useState(false);
+    
+    // Image saving state
+    const [savingImages, setSavingImages] = useState<Record<number, boolean>>({});
+    const [savedImages, setSavedImages] = useState<Record<number, boolean>>({});
   
-  // Scheduling Modal State
+    // Scheduling Modal State
+  
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
@@ -141,6 +149,8 @@ function InsightLensContent() {
     setStatus('ANALYZING');
     setResult(null);
     setIsSaved(false);
+    setSavingImages({});
+    setSavedImages({});
 
     try {
       let input: string | File = textContent;
@@ -168,6 +178,56 @@ function InsightLensContent() {
       console.error(error);
       setStatus('ERROR');
     }
+  };
+
+  const handleSaveImage = async (imgBase64: string, index: number) => {
+    if (savingImages[index] || savedImages[index]) return;
+
+    setSavingImages(prev => ({ ...prev, [index]: true }));
+    try {
+      // 1. Upload to permanent storage
+      const uploadResult = await uploadBase64Image({
+        base64: imgBase64, 
+        fileName: `insightlens-visual-${index}.png`
+      });
+
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.error || "Upload failed");
+      }
+
+      // 2. Save session to database
+      await saveSession({
+        appName: 'insightlens',
+        sessionType: 'saved_image',
+        title: `Visual Insight ${index + 1}`,
+        data: {
+          url: uploadResult.url,
+          lens: selectedLens,
+          originalInput: textContent.substring(0, 200)
+        },
+        metadata: {
+          source: 'user_save',
+          lens: selectedLens
+        }
+      });
+
+      setSavedImages(prev => ({ ...prev, [index]: true }));
+      toast.success("Visual saved to library");
+    } catch (err: any) {
+      console.error("Failed to save visual:", err);
+      toast.error("Failed to save visual");
+    } finally {
+      setSavingImages(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  const handleDownloadImage = (imgBase64: string, index: number) => {
+    const link = document.createElement('a');
+    link.href = `data:image/png;base64,${imgBase64}`;
+    link.download = `insightlens-visual-${index}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleReset = () => {
@@ -274,15 +334,47 @@ function InsightLensContent() {
 
           {/* VISUAL IMAGE RENDER */}
           {result.type === LensType.VISUAL && result.images && result.images.length > 0 && (
-            <div className="mb-8 flex flex-col items-center gap-8">
+            <div className="mb-8 flex flex-col items-center gap-12">
               {result.images.map((imgBase64, index) => (
                 <div key={index} className="relative group w-full max-w-3xl">
                   <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 rounded-2xl blur opacity-40 group-hover:opacity-100 transition duration-1000"></div>
-                  <img 
-                    src={`data:image/png;base64,${imgBase64}`}
-                    alt="Generated Visualization"
-                    className="relative rounded-xl shadow-2xl w-full border border-white/10 bg-slate-900"
-                  />
+                  <div className="relative">
+                    <img 
+                      src={`data:image/png;base64,${imgBase64}`}
+                      alt="Generated Visualization"
+                      className="rounded-xl shadow-2xl w-full border border-white/10 bg-slate-900"
+                    />
+                    
+                    {/* Hover Actions */}
+                    <div className="absolute bottom-4 right-4 flex gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                      <button
+                        onClick={() => handleSaveImage(imgBase64, index)}
+                        disabled={savingImages[index] || savedImages[index]}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-xl ${
+                          savedImages[index] 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-white text-black hover:bg-slate-200'
+                        }`}
+                      >
+                        {savingImages[index] ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : savedImages[index] ? (
+                          <CheckCircle2 className="w-3 h-3" />
+                        ) : (
+                          <Database className="w-3 h-3" />
+                        )}
+                        {savingImages[index] ? 'SAVING...' : savedImages[index] ? 'SAVED TO MEMORY' : 'SAVE TO MEMORY'}
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDownloadImage(imgBase64, index)}
+                        className="p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white rounded-lg border border-white/10 transition-all shadow-xl"
+                        title="Download PNG"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

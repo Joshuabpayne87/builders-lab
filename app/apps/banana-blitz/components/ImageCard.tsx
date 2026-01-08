@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GeneratedImage, Category } from '../types';
+import { uploadBase64Image } from '@/lib/supabase/storage';
+import { saveSession } from '@/lib/session-client';
+import { toast } from 'sonner';
+import { Database, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ImageCardProps {
   image: GeneratedImage;
@@ -8,6 +12,9 @@ interface ImageCardProps {
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({ image, onExpandCarousel, isExpanding }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
   const isCarouselCover = image.category === Category.CAROUSEL_COVER;
   const isPortrait = image.aspectRatio === '9:16';
 
@@ -20,6 +27,49 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onExpandCarousel, isExpand
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleSaveToMemory = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!image.url || isSaving || isSaved) return;
+
+    setIsSaving(true);
+    try {
+      // 1. Upload to permanent storage
+      const result = await uploadBase64Image({
+        base64: image.url, 
+        fileName: `blitz-${image.category.toLowerCase()}.png`
+      });
+
+      if (!result.success || !result.url) {
+        throw new Error(result.error || "Upload failed");
+      }
+
+      // 2. Save session to database
+      await saveSession({
+        appName: 'banana-blitz',
+        sessionType: 'saved_image',
+        title: image.category,
+        data: {
+          url: result.url,
+          originalPrompt: image.prompt,
+          category: image.category,
+          aspectRatio: image.aspectRatio
+        },
+        metadata: {
+          source: 'user_save',
+          category: image.category
+        }
+      });
+
+      setIsSaved(true);
+      toast.success("Image saved to library");
+    } catch (err: any) {
+      console.error("Failed to save image:", err);
+      toast.error("Failed to save to library");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -54,13 +104,31 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onExpandCarousel, isExpand
                   {isExpanding ? <div className="w-3 h-3 border-2 border-black border-t-transparent animate-spin rounded-full"></div> : '✨ EXPAND STORY'}
                 </button>
               )}
-              <button
-                onClick={handleDownload}
-                className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold py-2.5 rounded-xl transition-colors border border-white/10 flex items-center justify-center gap-2"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                DOWNLOAD PNG
-              </button>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveToMemory}
+                  disabled={isSaving || isSaved}
+                  className={`flex-1 ${isSaved ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-white/10 hover:bg-white/20 text-white border-white/10'} backdrop-blur-md text-[10px] font-bold py-2.5 rounded-xl transition-colors border flex items-center justify-center gap-2`}
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : isSaved ? (
+                    <CheckCircle2 className="w-3 h-3" />
+                  ) : (
+                    <Database className="w-3 h-3" />
+                  )}
+                  {isSaving ? 'SAVING...' : isSaved ? 'SAVED' : 'SAVE TO MEMORY'}
+                </button>
+
+                <button
+                  onClick={handleDownload}
+                  className="px-4 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-[10px] font-bold py-2.5 rounded-xl transition-colors border border-white/10 flex items-center justify-center"
+                  title="Download PNG"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </button>
+              </div>
             </div>
           </div>
         </>

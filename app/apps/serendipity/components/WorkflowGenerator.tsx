@@ -6,15 +6,16 @@ import { CONTENT_FRAMEWORKS } from '@/lib/serendipity-constants';
 import { generateCustomContent, generatePostImage } from '../services/geminiService';
 import {
   Wand2, Loader2, Copy, FileText, Link as LinkIcon, Upload, X,
-  Image as ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles,
-  Bookmark, BookmarkCheck
+  ImageIcon, Download, Lightbulb, MessageSquare, Target, Zap, Layout, Sparkles,
+  Bookmark, BookmarkCheck, Calendar, Database, CheckCircle2
 } from 'lucide-react';
 
 import { saveToKnowledgeBase } from '@/lib/knowledge-client';
 import { saveSession } from '@/lib/session-client';
 import ScheduleContentModal from '@/components/ScheduleContentModal';
-import { Calendar } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { uploadBase64Image } from '@/lib/supabase/storage';
+import { toast } from 'sonner';
 
 export default function WorkflowGenerator() {
   const searchParams = useSearchParams();
@@ -22,6 +23,10 @@ export default function WorkflowGenerator() {
   const [activeFormat, setActiveFormat] = useState<ContentFormat>('linkedin');
   const [isSaved, setIsSaved] = useState(false);
   
+  // Image saving state
+  const [isSavingImage, setIsSavingImage] = useState(false);
+  const [isImageSaved, setIsImageSaved] = useState(false);
+
   // Scheduling Modal State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [currentSupabaseId, setCurrentSupabaseId] = useState<string | null>(null);
@@ -165,6 +170,8 @@ export default function WorkflowGenerator() {
     setGeneratedImage(null);
     setShowImagePrompt(false);
     setIsSaved(false);
+    setIsImageSaved(false);
+    setIsSavingImage(false);
 
     try {
       const result = await generateCustomContent({
@@ -213,6 +220,47 @@ export default function WorkflowGenerator() {
       alert("Failed to generate image.");
     } finally {
       setGeneratingImage(false);
+    }
+  };
+
+  const handleSaveImage = async () => {
+    if (!generatedImage || isSavingImage || isImageSaved) return;
+
+    setIsSavingImage(true);
+    try {
+      // 1. Upload to permanent storage
+      const uploadResult = await uploadBase64Image({
+        base64: generatedImage, 
+        fileName: `serendipity-visual.png`
+      });
+
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.error || "Upload failed");
+      }
+
+      // 2. Save session to database
+      await saveSession({
+        appName: 'serendipity',
+        sessionType: 'saved_image',
+        title: `Visual Synthesis: ${topic || 'Workflow'}`,
+        data: {
+          url: uploadResult.url,
+          originalTopic: topic,
+          format: activeFormat
+        },
+        metadata: {
+          source: 'user_save',
+          format: activeFormat
+        }
+      });
+
+      setIsImageSaved(true);
+      toast.success("Image saved to library");
+    } catch (err: any) {
+      console.error("Failed to save image:", err);
+      toast.error("Failed to save image");
+    } finally {
+      setIsSavingImage(false);
     }
   };
 
@@ -554,12 +602,33 @@ export default function WorkflowGenerator() {
                     {generatedImage ? (
                        <div className="relative group rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
                           <img src={generatedImage} alt="Generated visual" className="w-full h-auto" />
-                          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center space-x-4">
-                             <a href={generatedImage} download="post-visual.png" className="flex items-center px-5 py-2.5 bg-white text-black rounded-xl font-bold text-xs uppercase tracking-wider hover:scale-105 transition-transform">
-                                <Download className="w-4 h-4 mr-2" /> Download
-                             </a>
-                             <button onClick={handleGenerateImage} className="flex items-center px-5 py-2.5 glass-panel text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-colors">
-                                <Wand2 className="w-4 h-4 mr-2" /> Regenerate
+                          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-6 space-y-4">
+                             <div className="flex space-x-4">
+                               <a href={generatedImage} download="post-visual.png" className="flex items-center px-5 py-2.5 bg-white text-black rounded-xl font-bold text-xs uppercase tracking-wider hover:scale-105 transition-transform">
+                                  <Download className="w-4 h-4 mr-2" /> Download
+                               </a>
+                               <button onClick={handleGenerateImage} className="flex items-center px-5 py-2.5 glass-panel text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-colors">
+                                  <Wand2 className="w-4 h-4 mr-2" /> Regenerate
+                               </button>
+                             </div>
+                             
+                             <button 
+                                onClick={handleSaveImage}
+                                disabled={isSavingImage || isImageSaved}
+                                className={`w-full max-w-[240px] flex items-center justify-center px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                                  isImageSaved 
+                                    ? 'bg-emerald-500 text-white' 
+                                    : 'bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-500/20'
+                                }`}
+                             >
+                                {isSavingImage ? (
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : isImageSaved ? (
+                                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                                ) : (
+                                  <Database className="w-4 h-4 mr-2" />
+                                )}
+                                {isSavingImage ? 'Saving...' : isImageSaved ? 'Saved to Memory' : 'Save to Memory'}
                              </button>
                           </div>
                        </div>

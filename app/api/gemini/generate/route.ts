@@ -11,8 +11,16 @@ export async function POST(req: Request) {
     const ai = createGeminiClient();
     const response = await ai.models.generateContent({ model, contents, config });
 
+    // Safely get text if available
+    let text = "";
+    try {
+      text = response.text || "";
+    } catch (e) {
+      // response.text might throw if there's no text part (e.g. audio only)
+    }
+
     return Response.json({
-      text: response.text,
+      text,
       candidates: response.candidates,
       usageMetadata: response.usageMetadata,
       modelVersion: response.modelVersion
