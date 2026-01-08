@@ -16,14 +16,19 @@ import {
   Upload,
   Loader2,
   Trash2,
+  Database,
 } from "lucide-react";
 import Link from "next/link";
 import StorageManager from "./components/StorageManager";
+import UserLibrary from "./components/UserLibrary";
+
+type SettingsTab = "profile" | "library";
 
 export default function SettingsPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -190,8 +195,34 @@ export default function SettingsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-          <p className="text-slate-400">Manage your account information and preferences</p>
+          <h1 className="text-3xl font-bold mb-2">Account Settings</h1>
+          <p className="text-slate-400">Manage your profile, preferences, and saved assets</p>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 mb-8">
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "profile" 
+                ? "bg-white text-black shadow-lg" 
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <User className="w-4 h-4" />
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab("library")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "library" 
+                ? "bg-white text-black shadow-lg" 
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            User Library
+          </button>
         </div>
 
         {/* Success/Error Messages */}
@@ -209,151 +240,164 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Profile Picture */}
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Camera className="w-5 h-5" />
-            Profile Picture
-          </h2>
-
-          <div className="flex items-center gap-6">
-            {/* Avatar Display */}
-            <div className="relative">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full object-cover border-2 border-white/10"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center border-2 border-white/10">
-                  <User className="w-12 h-12 text-white" />
-                </div>
-              )}
-
-              {uploadingAvatar && (
-                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-white" />
-                </div>
-              )}
-            </div>
-
-            {/* Upload Button */}
-            <div>
-              <label
-                htmlFor="avatar-upload"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg cursor-pointer transition-all disabled:opacity-50"
-              >
-                <Upload className="w-4 h-4" />
-                {uploadingAvatar ? "Uploading..." : "Change Photo"}
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handleAvatarUpload}
-                disabled={uploadingAvatar}
-                className="hidden"
-              />
-              <p className="text-xs text-slate-500 mt-2">JPG, PNG, or WebP. Max 2MB.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Profile Information */}
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Profile Information
-          </h2>
-
-          <div className="space-y-4">
-            {/* Email (Read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                <input
-                  type="email"
-                  value={userEmail}
-                  disabled
-                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-slate-400 cursor-not-allowed"
-                />
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
-            </div>
-
-            {/* Full Name */}
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Data Management */}
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-200">
-            <Trash2 className="w-5 h-5 text-slate-400" />
-            Storage Manager
-          </h2>
-          
-          <div className="space-y-6">
-            <StorageManager />
-
-            <div className="pt-6 border-t border-white/10">
-              <p className="text-sm text-slate-400 mb-3">
-                Nuclear Option: Clear all locally stored data across all apps.
-              </p>
-              <button
-                onClick={handleClearData}
-                disabled={clearingData}
-                className="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
-              >
-                {clearingData ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Clearing System...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Clear All App Data
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Save Button */}
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {saving ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="w-5 h-5" />
-              Save Changes
-            </>
-          )}
-        </button>
+        {activeTab === "profile" ? (
+          <>
+                    {activeTab === "profile" ? (
+                      <>
+                        {/* Profile Picture */}
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
+                          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Camera className="w-5 h-5" />
+                            Profile Picture
+                          </h2>
+            
+                          <div className="flex items-center gap-6">
+                            {/* Avatar Display */}
+                            <div className="relative">
+                              {avatarUrl ? (
+                                <img
+                                  src={avatarUrl}
+                                  alt="Profile"
+                                  className="w-24 h-24 rounded-full object-cover border-2 border-white/10"
+                                />
+                              ) : (
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center border-2 border-white/10">
+                                  <User className="w-12 h-12 text-white" />
+                                </div>
+                              )}
+            
+                              {uploadingAvatar && (
+                                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                                  <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                </div>
+                              )}
+                            </div>
+            
+                            {/* Upload Button */}
+                            <div>
+                              <label
+                                htmlFor="avatar-upload"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg cursor-pointer transition-all disabled:opacity-50"
+                              >
+                                <Upload className="w-4 h-4" />
+                                {uploadingAvatar ? "Uploading..." : "Change Photo"}
+                              </label>
+                              <input
+                                id="avatar-upload"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={handleAvatarUpload}
+                                disabled={uploadingAvatar}
+                                className="hidden"
+                              />
+                              <p className="text-xs text-slate-500 mt-2">JPG, PNG, or WebP. Max 2MB.</p>
+                            </div>
+                          </div>
+                        </div>
+            
+                        {/* Profile Information */}
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
+                          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <User className="w-5 h-5" />
+                            Profile Information
+                          </h2>
+            
+                          <div className="space-y-4">
+                            {/* Email (Read-only) */}
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Email
+                              </label>
+                              <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                                <input
+                                  type="email"
+                                  value={userEmail}
+                                  disabled
+                                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-slate-400 cursor-not-allowed"
+                                />
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
+                            </div>
+            
+                            {/* Full Name */}
+                            <div>
+                              <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Full Name
+                              </label>
+                              <input
+                                type="text"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                placeholder="Enter your full name"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20"
+                              />
+                            </div>
+                          </div>
+                        </div>
+            
+                        {/* Data Management */}
+                        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
+                          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-slate-200">
+                            <Trash2 className="w-5 h-5 text-slate-400" />
+                            Storage Manager
+                          </h2>
+                          
+                          <div className="space-y-6">
+                            <StorageManager />
+            
+                            <div className="pt-6 border-t border-white/10">
+                              <p className="text-sm text-slate-400 mb-3">
+                                Nuclear Option: Clear all locally stored data across all apps.
+                              </p>
+                              <button
+                                onClick={handleClearData}
+                                disabled={clearingData}
+                                className="w-full px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2"
+                              >
+                                {clearingData ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Clearing System...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="w-4 h-4" />
+                                    Clear All App Data
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+            
+                        {/* Save Button */}
+                        <button
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-5 h-5" />
+                              Save Changes
+                            </>
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <UserLibrary />
+                    )}
+            
+          </>
+        ) : (
+          <UserLibrary />
+        )}
       </div>
     </div>
   );

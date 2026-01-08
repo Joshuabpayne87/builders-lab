@@ -102,7 +102,7 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: parts, // Standard format
       config: {
         systemInstruction,
@@ -172,7 +172,7 @@ class BananaBlitzService {
       });
     }
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.5-flash-image',
+      model: 'gemini-2.0-flash',
       contents: contents,
       config: {
         responseModalities: ["image"],
@@ -230,12 +230,26 @@ class BananaBlitzService {
     return JSON.parse(response.text || "[]");
   }
 
-  async generatePodcastAudio(postText: string): Promise<string> {
-    const prompt = `Create a high-energy podcast dialogue between Joe and Jane discussing this topic: "${postText}".
-    Joe is the curious host, Jane is the deep expert. Make it insightful and conversational.
-    Format the output as a literal script like:
-    Joe: [content]
-    Jane: [content]`;
+  async generatePodcastAudio(postText: string, hostStyle: 'solo' | 'dual' = 'dual'): Promise<string> {
+    const prompt = hostStyle === 'dual' 
+      ? `Create a high-energy podcast dialogue between Joe and Jane discussing this topic: "${postText}".
+         Joe is the curious host, Jane is the deep expert. Make it insightful and conversational.
+         Format the output as a literal script like:
+         Joe: [content]
+         Jane: [content]`
+      : `Create an insightful solo podcast deep-dive by Joe discussing this topic: "${postText}".
+         Joe is an expert sharing his thoughts in a professional yet engaging monologue.
+         Format the output as a literal script like:
+         Joe: [content]`;
+
+    const speakerVoiceConfigs = hostStyle === 'dual'
+      ? [
+          { speaker: 'Joe', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
+          { speaker: 'Jane', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } }
+        ]
+      : [
+          { speaker: 'Joe', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } }
+        ];
 
     const response = await this.retryOperation(() => geminiGenerateContent({
       model: "gemini-2.0-flash-exp",
@@ -244,10 +258,7 @@ class BananaBlitzService {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
           multiSpeakerVoiceConfig: {
-            speakerVoiceConfigs: [
-              { speaker: 'Joe', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } },
-              { speaker: 'Jane', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } }
-            ]
+            speakerVoiceConfigs
           }
         }
       }

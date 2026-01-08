@@ -70,7 +70,14 @@ export function RecentWorkflows() {
         ) : (
           sessions.map((session) => {
             const Icon = APP_ICONS[session.app_name] || Sparkles;
-            const href = `/apps/${session.app_name}?title=${encodeURIComponent(session.title)}`; // Simple resume via title pre-fill for now
+            
+            // Handle different session types for better linking/display
+            let href = `/apps/${session.app_name}?title=${encodeURIComponent(session.title)}`;
+            let typeLabel = session.session_type.replace('_', ' ');
+            
+            if (session.session_type === 'saved_image' || session.session_type === 'podcast') {
+              href = '/settings'; // Link to library in settings
+            }
             
             // Format time ago
             const date = new Date(session.created_at);
@@ -92,7 +99,7 @@ export function RecentWorkflows() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-white truncate">{session.title}</p>
-                    <p className="text-[10px] text-slate-500">{APP_LABELS[session.app_name]} • {timeAgo}</p>
+                    <p className="text-[10px] text-slate-500 capitalize">{typeLabel} • {timeAgo}</p>
                   </div>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">

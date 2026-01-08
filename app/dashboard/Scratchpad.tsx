@@ -1,30 +1,57 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { StickyNote, Plus, Check } from "lucide-react";
+import { StickyNote, Plus, Check, Save, Loader2 } from "lucide-react";
 import { createTask } from "@/lib/calendar-client";
+import { saveSession } from "@/lib/session-client";
+import { toast } from "sonner";
 
 export function Scratchpad() {
   const [note, setNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount (for draft)
   useEffect(() => {
-    const saved = localStorage.getItem("dashboard_scratchpad");
+    const saved = localStorage.getItem("dashboard_scratchpad_draft");
     if (saved) setNote(saved);
   }, []);
 
-  // Auto-save to localStorage
+  // Sync draft to localStorage
   useEffect(() => {
-    localStorage.setItem("dashboard_scratchpad", note);
+    localStorage.setItem("dashboard_scratchpad_draft", note);
   }, [note]);
 
-  const handleConvertToTask = async () => {
-    if (!note.trim()) return;
+  const handleSaveNote = async () => {
+    if (!note.trim() || isSaving) return;
     setIsSaving(true);
     try {
-      // Split first line as title, rest as description
+      const firstLine = note.split('\n')[0];
+      const title = firstLine.substring(0, 50) || "Quick Note";
+
+      await saveSession({
+        appName: 'scratchpad' as any,
+        sessionType: 'note',
+        title: title,
+        data: { content: note },
+        metadata: { length: note.length }
+      });
+
+      toast.success("Note saved to library");
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (e) {
+      toast.error("Failed to save note");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleConvertToTask = async () => {
+    if (!note.trim() || isCreatingTask) return;
+    setIsCreatingTask(true);
+    try {
       const lines = note.split('\n');
       const title = lines[0].substring(0, 50) + (lines[0].length > 50 ? '...' : '');
       const description = note;
@@ -32,18 +59,17 @@ export function Scratchpad() {
       await createTask({
         title,
         description,
-        due_date: new Date().toISOString(), // Due today by default
+        due_date: new Date().toISOString(),
         status: 'draft'
       });
 
-      setNote(""); // Clear note
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2000);
+      toast.success("Task created from note");
+      setNote(""); 
+      localStorage.removeItem("dashboard_scratchpad_draft");
     } catch (e) {
-      console.error(e);
-      alert("Failed to create task");
+      toast.error("Failed to create task");
     } finally {
-      setIsSaving(false);
+      setIsCreatingTask(false);
     }
   };
 
@@ -54,15 +80,26 @@ export function Scratchpad() {
           <StickyNote className="w-4 h-4 text-slate-400" />
           <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Scratchpad</h3>
         </div>
-        <button 
-          onClick={handleConvertToTask}
-          disabled={!note.trim() || isSaving}
-          className="text-[10px] bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white px-2 py-1 rounded transition-colors flex items-center gap-1"
-          title="Convert to Task"
-        >
-          {justSaved ? <Check className="w-3 h-3 text-green-400" /> : <Plus className="w-3 h-3" />}
-          {justSaved ? "Saved" : "Add Task"}
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleSaveNote}
+            disabled={!note.trim() || isSaving}
+            className="text-[10px] bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white px-2 py-1 rounded transition-colors flex items-center gap-1"
+            title="Save to Library"
+          >
+            {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : justSaved ? <Check className="w-3 h-3 text-green-400" /> : <Save className="w-3 h-3" />}
+            {justSaved ? "Saved" : "Save"}
+          </button>
+          <button 
+            onClick={handleConvertToTask}
+            disabled={!note.trim() || isCreatingTask}
+            className="text-[10px] bg-blue-600/20 hover:bg-blue-600/40 disabled:opacity-50 text-blue-400 px-2 py-1 rounded transition-colors flex items-center gap-1"
+            title="Convert to Task"
+          >
+            {isCreatingTask ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+            Task
+          </button>
+        </div>
       </div>
 
       <textarea

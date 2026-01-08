@@ -12,7 +12,7 @@ import type {
 
 const callGeminiJson = async (prompt: string, temperature: number) => {
   const response = await geminiGenerateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-1.5-flash",
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       temperature,
@@ -20,9 +20,28 @@ const callGeminiJson = async (prompt: string, temperature: number) => {
     }
   });
 
-  const text = response.text;
+  let text = response.text;
+  if (!text) {
+    // Fallback: try to find text in candidates if response.text is empty
+    const firstCandidate = response.candidates?.[0];
+    const parts = firstCandidate?.content?.parts;
+    if (parts && parts.length > 0) {
+      text = parts[0].text || "";
+    }
+  }
+
   if (!text) throw new Error("Empty response from AI");
-  return JSON.parse(text);
+
+  // Robust JSON parsing: remove markdown blocks if present
+  const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || text.match(/```([\s\S]*?)```/);
+  const cleanJson = jsonMatch ? jsonMatch[1] : text;
+
+  try {
+    return JSON.parse(cleanJson.trim());
+  } catch (e) {
+    console.error("JSON parse error. Raw text:", text);
+    throw new Error("Invalid JSON response from AI");
+  }
 };
 
 /**

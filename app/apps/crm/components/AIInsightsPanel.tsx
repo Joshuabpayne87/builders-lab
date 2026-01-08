@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Mail, TrendingUp, Lightbulb, Loader2 } from "lucide-react";
 import type { Contact, Activity, Deal, AIContactSummary, AINextAction, AIEmailDraft } from "../types";
+import { toast } from "sonner";
 
 interface AIInsightsPanelProps {
   contact: Contact;
@@ -31,6 +32,10 @@ export function AIInsightsPanel({
   const [nextActions, setNextActions] = useState<AINextAction[]>([]);
   const [emailDraft, setEmailDraft] = useState<AIEmailDraft | null>(null);
   const [emailPurpose, setEmailPurpose] = useState("");
+  
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [actionsError, setActionsError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const handleGenerateSummary = async () => {
     if (!onGenerateSummary) return;
@@ -39,8 +44,9 @@ export function AIInsightsPanel({
     try {
       const result = await onGenerateSummary();
       setSummary(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate summary:", error);
+      toast.error(error.message || "Failed to generate summary");
     } finally {
       setIsLoadingSummary(false);
     }
@@ -53,8 +59,9 @@ export function AIInsightsPanel({
     try {
       const result = await onGenerateActions();
       setNextActions(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate actions:", error);
+      toast.error(error.message || "Failed to suggest actions");
     } finally {
       setIsLoadingActions(false);
     }
@@ -64,12 +71,15 @@ export function AIInsightsPanel({
     if (!onDraftEmail || !emailPurpose) return;
 
     setIsLoadingEmail(true);
+    setEmailError(null);
     try {
       const result = await onDraftEmail(emailPurpose);
       setEmailDraft(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to draft email:", error);
-    } finally {
+      toast.error("Failed to draft email");
+    }
+    finally {
       setIsLoadingEmail(false);
     }
   };
