@@ -127,7 +127,7 @@ export function FilterBar({ filters, onChange, availableTags = [] }: FilterBarPr
               <select
                 value={filters.contactType}
                 onChange={(e) => handleContactTypeChange(e.target.value as ContactType | "ALL")}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
               >
                 <option value="ALL">All Types</option>
                 {CONTACT_TYPES.map((type) => (
@@ -144,7 +144,7 @@ export function FilterBar({ filters, onChange, availableTags = [] }: FilterBarPr
               <select
                 value={filters.status}
                 onChange={(e) => handleStatusChange(e.target.value as ContactStatus | "ALL")}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
               >
                 <option value="ALL">All Statuses</option>
                 {CONTACT_STATUSES.map((status) => (
@@ -161,7 +161,7 @@ export function FilterBar({ filters, onChange, availableTags = [] }: FilterBarPr
               <select
                 value={filters.sortBy}
                 onChange={(e) => handleSortChange(e.target.value as FilterState["sortBy"])}
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
               >
                 <option value="created_at">Date Created</option>
                 <option value="name">Name</option>
@@ -177,7 +177,7 @@ export function FilterBar({ filters, onChange, availableTags = [] }: FilterBarPr
                 onChange={(e) =>
                   onChange({ ...filters, sortOrder: e.target.value as "asc" | "desc" })
                 }
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/20"
               >
                 <option value="desc">Descending</option>
                 <option value="asc">Ascending</option>

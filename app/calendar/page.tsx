@@ -605,7 +605,7 @@ export default function CalendarPage() {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as TaskStatus })}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                  className="w-full px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
                 >
                   {Object.entries(STATUS_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -622,7 +622,7 @@ export default function CalendarPage() {
                 <select
                   value={formData.platform}
                   onChange={(e) => setFormData({ ...formData, platform: e.target.value as ContentPlatform })}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                  className="w-full px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
                 >
                   <option value="">Select platform...</option>
                   {PLATFORMS.map((platform) => (
@@ -640,7 +640,7 @@ export default function CalendarPage() {
                 <select
                   value={formData.content_type}
                   onChange={(e) => setFormData({ ...formData, content_type: e.target.value as ContentType })}
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                  className="w-full px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
                 >
                   <option value="">Select type...</option>
                   {CONTENT_TYPES.map((type) => (

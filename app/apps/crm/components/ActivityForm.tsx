@@ -131,7 +131,7 @@ export function ActivityForm({
                   value={formData.activity_type}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
                 >
                   {ACTIVITY_TYPES.map((type) => (
                     <option key={type.value} value={type.value} className="bg-[#0A0A0A]">
@@ -175,7 +175,7 @@ export function ActivityForm({
                   name="due_date"
                   value={formData.due_date ? formData.due_date.slice(0, 16) : ""}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
                 />
               </div>
 

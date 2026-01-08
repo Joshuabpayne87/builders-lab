@@ -164,7 +164,7 @@ export function ContactForm({ isOpen, onClose, contact, onSuccess }: ContactForm
                   value={formData.contact_type}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
                 >
                   {CONTACT_TYPES.map((type) => (
                     <option key={type.value} value={type.value} className="bg-[#0A0A0A]">
@@ -183,7 +183,7 @@ export function ContactForm({ isOpen, onClose, contact, onSuccess }: ContactForm
                   value={formData.status}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
                 >
                   {CONTACT_STATUSES.map((status) => (
                     <option key={status.value} value={status.value} className="bg-[#0A0A0A]">

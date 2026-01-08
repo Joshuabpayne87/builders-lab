@@ -115,7 +115,7 @@ export function DealForm({
                   onChange={handleChange}
                   required
                   disabled={!!defaultContactId}
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20 disabled:opacity-50"
+                  className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20 disabled:opacity-50"
                 >
                   <option value="" className="bg-[#0A0A0A]">Select a contact</option>
                   {contacts.map((contact) => (
@@ -174,7 +174,7 @@ export function DealForm({
                     name="currency"
                     value={formData.currency}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                    className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
                   >
                     <option value="USD" className="bg-[#0A0A0A]">USD ($)</option>
                     <option value="EUR" className="bg-[#0A0A0A]">EUR (€)</option>
@@ -213,13 +213,12 @@ export function DealForm({
                 <label className="block text-xs text-slate-400 mb-2">
                   Stage <span className="text-red-400">*</span>
                 </label>
-                <select
-                  name="stage"
-                  value={formData.stage}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
-                >
+                  <select
+                    name="stage"
+                    value={formData.stage}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 bg-[#0a0a0a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+                  >
                   {DEAL_STAGES.map((stage) => (
                     <option key={stage.value} value={stage.value} className="bg-[#0A0A0A]">
                       {stage.label}
