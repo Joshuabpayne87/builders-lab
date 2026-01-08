@@ -24,13 +24,6 @@ const LENSES: LensConfig[] = [
     color: "from-purple-600 to-pink-500"
   },
   {
-    id: LensType.PODCAST,
-    title: "Auditory Cortex",
-    description: "Generate dialogue.",
-    icon: "🎧",
-    color: "from-emerald-500 to-teal-400"
-  },
-  {
     id: LensType.OUTLINE,
     title: "Logic Structure",
     description: "Hierarchical breakdown.",

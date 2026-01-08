@@ -8,8 +8,6 @@ export enum Category {
   CAROUSEL_SLIDE = 'Carousel Slide'
 }
 
-export type MusicStyle = 'None' | 'Midnight' | 'Peak' | 'Corporate' | 'Ambient';
-
 export type VisualVibe =
   | 'Cyberpunk'
   | 'Minimalist'
@@ -71,20 +69,15 @@ export interface Campaign {
   captions: { platform: string; text: string }[];
   vibe: VisualVibe;
   sources: GroundingSource[];
-  audioUrl?: string;
-  producedVideoUrl?: string;
-  producedReelUrl?: string;
 }
 
 export interface AppState {
   isGenerating: boolean;
   isExpanding: boolean;
-  isGeneratingPodcast: boolean;
   postText: string;
   selectedVibe: VisualVibe;
   selectedRatio: AspectRatio;
   selectedTone: VoiceTone;
-  selectedMusic: MusicStyle;
   referenceImage: string | null;
   images: GeneratedImage[];
   captions: { platform: string; text: string }[];
@@ -92,5 +85,4 @@ export interface AppState {
   history: Campaign[];
   error: string | null;
   progress: number;
-  currentAudioUrl: string | null;
 }

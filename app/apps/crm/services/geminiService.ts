@@ -1,5 +1,5 @@
 // CRM AI Automation Service using Gemini
-import { geminiGenerateContent } from "@/lib/gemini-http";
+import { createGeminiClient } from "@/lib/gemini";
 import type {
   Contact,
   Activity,
@@ -11,8 +11,9 @@ import type {
 } from "../types";
 
 const callGeminiJson = async (prompt: string, temperature: number) => {
-  const response = await geminiGenerateContent({
-    model: "gemini-1.5-flash",
+  const ai = createGeminiClient();
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
     contents: [{ role: "user", parts: [{ text: prompt }] }],
     config: {
       temperature,
@@ -20,16 +21,7 @@ const callGeminiJson = async (prompt: string, temperature: number) => {
     }
   });
 
-  let text = response.text;
-  if (!text) {
-    // Fallback: try to find text in candidates if response.text is empty
-    const firstCandidate = response.candidates?.[0];
-    const parts = firstCandidate?.content?.parts;
-    if (parts && parts.length > 0) {
-      text = parts[0].text || "";
-    }
-  }
-
+  const text = response.text;
   if (!text) throw new Error("Empty response from AI");
 
   // Robust JSON parsing: remove markdown blocks if present

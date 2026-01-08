@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { 
   Image as ImageIcon, 
-  Mic, 
   Trash2, 
   ExternalLink, 
   Download, 
@@ -30,10 +29,9 @@ export default function UserLibrary() {
       setLoading(true);
       // Fetch more items for the library
       const data = await listAllSessions(100);
-      // Include saved images, podcasts, transformations, articles, and notes
+      // Include saved images, transformations, articles, and notes
       const libraryItems = data.filter(s => 
         s.session_type === 'saved_image' || 
-        s.session_type === 'podcast' ||
         s.session_type === 'transformation' ||
         s.session_type === 'article' ||
         s.session_type === 'note'
@@ -66,7 +64,6 @@ export default function UserLibrary() {
   const filteredItems = items.filter(item => {
     const matchesFilter = filter === "all" || 
       (filter === "images" && item.session_type === "saved_image") ||
-      (filter === "audio" && item.session_type === "podcast") ||
       (filter === "notes" && item.session_type === "note") ||
       (filter === "text" && (item.session_type === "article" || item.session_type === "transformation"));
     
@@ -105,7 +102,6 @@ export default function UserLibrary() {
             {[
               { id: 'all', label: 'All' },
               { id: 'images', label: 'Images' },
-              { id: 'audio', label: 'Audio' },
               { id: 'notes', label: 'Notes' },
               { id: 'text', label: 'Text' }
             ].map(tab => (
@@ -161,7 +157,7 @@ export default function UserLibrary() {
                   <img src={item.data.url} alt={item.title} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-600">
-                    {item.session_type === 'podcast' ? <Mic className="w-8 h-8" /> : item.session_type === 'note' ? <StickyNote className="w-8 h-8 text-amber-500/50" /> : <ImageIcon className="w-8 h-8" />}
+                    {item.session_type === 'note' ? <StickyNote className="w-8 h-8 text-amber-500/50" /> : <ImageIcon className="w-8 h-8" />}
                   </div>
                 )}
                 

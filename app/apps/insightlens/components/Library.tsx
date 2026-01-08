@@ -12,7 +12,6 @@ interface LibraryProps {
 const CATEGORY_LABELS: Record<string, string> = {
   [LensType.SUMMARY]: "Data Compressions",
   [LensType.MINDMAP]: "Neural Networks",
-  [LensType.PODCAST]: "Auditory Logs",
   [LensType.OUTLINE]: "Logic Structures",
   [LensType.SCRIPT]: "Narrative Sequences",
   [LensType.VISUAL]: "Visual Constructs"
@@ -126,7 +125,7 @@ const Library: React.FC<LibraryProps> = ({ onLoadItem, onBack }) => {
             <div className="flex items-center gap-4 mb-6">
                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
                <h3 className="text-xl font-bold text-cyan-300 tech-mono uppercase tracking-widest flex items-center gap-2">
-                 {category === LensType.PODCAST ? '🎧' : category === LensType.VISUAL ? '👁️' : '💠'}
+                 {category === LensType.VISUAL ? '👁️' : '💠'}
                  {CATEGORY_LABELS[category]}
                </h3>
                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>

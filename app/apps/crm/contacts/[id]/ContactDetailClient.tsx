@@ -59,16 +59,19 @@ export function ContactDetailClient({ contact, activities, deals }: ContactDetai
   // AI automation handlers
   const handleGenerateSummary = async () => {
     const result = await generateContactSummaryAction(contact.id);
+    if (!result.success) throw new Error(result.error || "Failed to generate summary");
     return result.summary || null;
   };
 
   const handleGenerateActions = async () => {
     const result = await suggestNextActionsAction(contact.id);
+    if (!result.success) throw new Error(result.error || "Failed to suggest actions");
     return result.actions || [];
   };
 
   const handleDraftEmail = async (purpose: string) => {
     const result = await draftEmailAction(contact.id, purpose);
+    if (!result.success) throw new Error(result.error || "Failed to draft email");
     return result.draft || null;
   };
 

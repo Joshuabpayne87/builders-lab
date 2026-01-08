@@ -66,12 +66,6 @@ const TechIcons: Record<string, React.FC<{ className?: string }>> = {
       <line x1="12" y1="12" x2="15.8" y2="15.8" />
     </svg>
   ),
-  [LensType.PODCAST]: ({ className }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
-      <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
-    </svg>
-  ),
   [LensType.SCRIPT]: ({ className }) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
       <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
@@ -147,7 +141,6 @@ const MODULES = [
   { type: 'PROCESSOR', subType: LensType.SUMMARY, label: 'Summarizer', description: 'Key points & brief' },
   { type: 'PROCESSOR', subType: LensType.OUTLINE, label: 'Structure Engine', description: 'Hierarchical breakdown' },
   { type: 'PROCESSOR', subType: LensType.MINDMAP, label: 'Neural Mapper', description: 'Visualize connections' },
-  { type: 'PROCESSOR', subType: LensType.PODCAST, label: 'Audio Synth', description: 'Generate dialogue' },
   { type: 'PROCESSOR', subType: LensType.SCRIPT, label: 'Script Writer', description: 'Video production' },
   { type: 'PROCESSOR', subType: LensType.VISUAL, label: 'Visualizer', description: 'Generate imagery' },
   { type: 'PROCESSOR', subType: LensType.TRANSLATE, label: 'Translator', description: 'Multi-language' },
@@ -329,7 +322,6 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
 
              // Merge outputs into a single "Dashboard" result structure
              // We preserve specific types if they exist in the parents to trigger the correct UI renderers
-             const aggregatedAudio = allParentOutputs.find(o => o.audioData)?.audioData;
              const aggregatedMindmap = allParentOutputs.find(o => o.mindMapData)?.mindMapData;
              const aggregatedImages = allParentOutputs.flatMap(o => o.images || []);
              
@@ -347,7 +339,6 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                  type: LensType.SUMMARY, // Base type, but we fill all slots
                  text: aggregatedText,
                  images: aggregatedImages,
-                 audioData: aggregatedAudio,
                  mindMapData: aggregatedMindmap
              };
              
@@ -858,18 +849,6 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {selectedNode.output?.audioData && (
-                                    <div className="p-4 bg-black/40 rounded-xl border border-white/10">
-                                         <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
-                                                <span className="text-[10px] text-pink-400 font-mono">AUDIO_STREAM_ACTIVE</span>
-                                            </div>
-                                         </div>
-                                        <audio controls className="w-full h-8" src={`data:audio/wav;base64,${selectedNode.output.audioData}`} />
-                                    </div>
-                                )}
-
                                 {selectedNode.output?.images && selectedNode.output.images.length > 0 && (
                                      <div className="grid grid-cols-1 gap-4">
                                         {selectedNode.output.images.map((img, i) => (

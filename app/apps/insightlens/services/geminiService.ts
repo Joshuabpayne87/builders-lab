@@ -3,10 +3,9 @@ import { geminiGenerateContent } from "@/lib/gemini-http";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
-  TEXT: 'gemini-2.0-flash',
-  COMPLEX: 'gemini-2.0-flash',
-  AUDIO: 'gemini-2.0-flash-exp',
-  IMAGE: 'gemini-2.5-flash-image'
+  TEXT: 'gemini-1.5-flash',
+  COMPLEX: 'gemini-1.5-flash',
+  IMAGE: 'gemini-1.5-flash'
 };
 
 /**
@@ -126,8 +125,6 @@ export const transformContent = async (
 
   try {
     switch (lens) {
-      case LensType.PODCAST:
-        return await retry(() => generatePodcast(userContent, customInstruction));
       case LensType.MINDMAP:
         return await retry(() => generateMindMap(userContent, customInstruction));
       case LensType.VISUAL:
@@ -271,94 +268,5 @@ const generateVisuals = async (content: any, customInstruction?: string): Promis
     type: LensType.VISUAL,
     text: `**Visual Prompt Used:**\n${visualDescription}`,
     images: images
-  };
-};
-
-const generatePodcast = async (content: any, customInstruction?: string): Promise<TransformationResult> => {
-  // Step 1: Script Generation
-  let scriptPrompt = `
-    You are an expert audio producer creating a "Deep Dive" podcast.
-    Convert the provided content into a dynamic, engaging script between two speakers: Alex and Sam.
-    
-    1. Alex (Host): Energetic, curious, sets the stage.
-    2. Sam (Expert): Calm, authoritative, provides depth.
-
-    Guidelines:
-    - Start with a hook.
-    - Use natural conversational fillers.
-    - Focus on the "Why" and "How".
-    - Target 2-3 minutes.
-    - The speakers MUST refer to each other by name (Alex and Sam) during the conversation to sound natural.
-    - STRICTLY use the speaker names "Alex" and "Sam" for the dialogue labels.
-    - Output format:
-      Alex: [Dialogue]
-      Sam: [Dialogue]
-  `;
-
-  if (customInstruction) {
-    scriptPrompt += `\n\nTone/Style Instructions: ${customInstruction}`;
-  }
-
-  let parts;
-  if (content.parts) {
-    parts = [...content.parts, { text: scriptPrompt }];
-  } else {
-    parts = [{ text: scriptPrompt }, { text: `\n\nContent:\n${content}` }];
-  }
-
-  const scriptResponse = await geminiGenerateContent({
-    model: MODELS.COMPLEX,
-    contents: parts,
-  });
-
-  const script = scriptResponse.text;
-  if (!script) throw new Error("Failed to generate podcast script.");
-
-  // Step 2: Audio Generation
-  const ttsPrompt = `
-    Generate a high-quality multi-speaker podcast based on this script. 
-    
-    Speakers:
-    - Alex
-    - Sam
-
-    Script:
-    ${script}
-  `;
-
-  const audioResponse = await geminiGenerateContent({
-    model: MODELS.AUDIO,
-    contents: [{ text: ttsPrompt }],
-    config: {
-      responseModalities: [Modality.AUDIO], 
-      speechConfig: {
-        multiSpeakerVoiceConfig: {
-          speakerVoiceConfigs: [
-            {
-              speaker: "Alex",
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } 
-            },
-            {
-              speaker: "Sam",
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } 
-            }
-          ]
-        }
-      }
-    }
-  });
-
-  const pcmData = audioResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-  if (!pcmData) {
-    throw new Error("No audio generated. Ensure the script matches the speaker config.");
-  }
-
-  const wavData = addWavHeader(pcmData);
-
-  return {
-    type: LensType.PODCAST,
-    audioData: wavData,
-    text: script
   };
 };

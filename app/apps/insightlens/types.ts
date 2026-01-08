@@ -1,11 +1,10 @@
 
 export enum LensType {
   SUMMARY = 'SUMMARY',
-  MINDMAP = 'MINDMAP',
-  PODCAST = 'PODCAST',
   OUTLINE = 'OUTLINE',
-  SCRIPT = 'SCRIPT',
+  MINDMAP = 'MINDMAP',
   VISUAL = 'VISUAL',
+  SCRIPT = 'SCRIPT',
   TRANSLATE = 'TRANSLATE',
   QUIZ = 'QUIZ',
   ELI5 = 'ELI5',
@@ -28,7 +27,6 @@ export interface MindMapNode {
 export interface TransformationResult {
   type: LensType;
   text?: string;
-  audioData?: string; // Base64 audio
   mindMapData?: MindMapNode;
   images?: string[]; // Base64 images
 }

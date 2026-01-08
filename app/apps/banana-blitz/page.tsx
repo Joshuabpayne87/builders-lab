@@ -5,7 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Trash2, Calendar, Database, Loader2, CheckCircle2 } from 'lucide-react';
-import { Category, VisualVibe, AspectRatio, VoiceTone, MusicStyle, AppState, GeneratedImage, Campaign } from './types';
+import { Category, VisualVibe, AspectRatio, VoiceTone, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
 import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
 import type { Session as SupabaseSession } from '@/lib/session-service';
@@ -29,23 +29,13 @@ const TONES: VoiceTone[] = [
   'Sarcastic', 'Empathetic', 'Minimalist', 'Mysterious', 'Direct', 'Aggressive'
 ];
 
-const MUSIC_STYLES: { id: MusicStyle; url: string; label: string }[] = [
-  { id: 'None', url: '', label: '🚫 NONE' },
-  { id: 'Midnight', url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808f3030c.mp3', label: '🌙 MIDNIGHT' },
-  { id: 'Peak', url: 'https://cdn.pixabay.com/audio/2023/06/15/audio_51a31940a4.mp3', label: '🔥 PEAK' },
-  { id: 'Corporate', url: 'https://cdn.pixabay.com/audio/2022/01/21/audio_31743c589f.mp3', label: '💼 SLEEK' },
-  { id: 'Ambient', url: 'https://cdn.pixabay.com/audio/2024/02/08/audio_145d31590b.mp3', label: '✨ AMBIENT' }
-];
-
 const INITIAL_STATE: AppState = {
   isGenerating: false,
   isExpanding: false,
-  isGeneratingPodcast: false,
   postText: '',
   selectedVibe: 'Corporate Sleek',
   selectedRatio: '1:1',
   selectedTone: 'Professional',
-  selectedMusic: 'Midnight',
   referenceImage: null,
   images: [],
   captions: [],
@@ -53,31 +43,7 @@ const INITIAL_STATE: AppState = {
   history: [],
   error: null,
   progress: 0,
-  currentAudioUrl: null
 };
-
-function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
-
-async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-}
 
 function BananaBlitzContent() {
   const searchParams = useSearchParams();
@@ -87,11 +53,6 @@ function BananaBlitzContent() {
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map());
   
-  // Podcast State
-  const [podcastHost, setPodcastHost] = useState<'solo' | 'dual'>('dual');
-  const [isSavingPodcast, setIsSavingPodcast] = useState(false);
-  const [isPodcastSaved, setIsPodcastSaved] = useState(false);
-
   // Scheduling Modal State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -103,52 +64,6 @@ function BananaBlitzContent() {
       setState(prev => ({ ...prev, postText: title }));
     }
   }, [searchParams]);
-
-  const handleSavePodcast = async () => {
-    if (!state.currentAudioUrl || isSavingPodcast || isPodcastSaved) return;
-
-    setIsSavingPodcast(true);
-    try {
-      // 1. Get the blob from the object URL
-      const response = await fetch(state.currentAudioUrl);
-      const blob = await response.blob();
-      
-      // 2. Upload to storage
-      const { uploadFile } = await import('@/lib/supabase/storage');
-      const uploadResult = await uploadFile({
-        file: new File([blob], `podcast-${Date.now()}.wav`, { type: 'audio/wav' }),
-        bucket: 'user-documents', // Using user-documents for audio
-      });
-
-      if (!uploadResult.success || !uploadResult.url) {
-        throw new Error(uploadResult.error || "Upload failed");
-      }
-
-      // 3. Save session
-      await saveSession({
-        appName: 'banana-blitz',
-        sessionType: 'podcast',
-        title: `Podcast: ${state.postText.substring(0, 50)}`,
-        data: {
-          audioUrl: uploadResult.url,
-          topic: state.postText,
-          hostStyle: podcastHost
-        },
-        metadata: {
-          source: 'user_save',
-          hostStyle: podcastHost
-        }
-      });
-
-      setIsPodcastSaved(true);
-      toast.success("Podcast saved to library");
-    } catch (err: any) {
-      console.error("Failed to save podcast:", err);
-      toast.error("Failed to save podcast");
-    } finally {
-      setIsSavingPodcast(false);
-    }
-  };
 
   // Load campaigns from Supabase on mount
   useEffect(() => {
@@ -340,87 +255,6 @@ function BananaBlitzContent() {
     }
   };
 
-  const handleGeneratePodcast = async () => {
-    if (!state.postText || state.isGeneratingPodcast) return;
-    setState(prev => ({ ...prev, isGeneratingPodcast: true, error: null, currentAudioUrl: null }));
-    setIsPodcastSaved(false);
-    setIsSavingPodcast(false);
-    try {
-      const base64Audio = await bananaBlitzService.generatePodcastAudio(state.postText, podcastHost);
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      const audioBuffer = await decodeAudioData(decode(base64Audio), audioCtx, 24000, 1);
-
-      // MIXING ENGINE
-      const offlineCtx = new OfflineAudioContext(1, audioBuffer.length, 24000);
-      
-      // Podcast track
-      const podcastSource = offlineCtx.createBufferSource();
-      podcastSource.buffer = audioBuffer;
-      podcastSource.connect(offlineCtx.destination);
-
-      // Music track (optional)
-      const musicTrack = MUSIC_STYLES.find(m => m.id === state.selectedMusic);
-      if (musicTrack && musicTrack.url) {
-        try {
-          const musicResp = await fetch(musicTrack.url);
-          const musicArrayBuffer = await musicResp.arrayBuffer();
-          const musicBuffer = await audioCtx.decodeAudioData(musicArrayBuffer);
-          
-          const musicSource = offlineCtx.createBufferSource();
-          musicSource.buffer = musicBuffer;
-          musicSource.loop = true;
-          
-          const musicGain = offlineCtx.createGain();
-          musicGain.gain.value = 0.1; // 10% volume for background
-          
-          musicSource.connect(musicGain);
-          musicGain.connect(offlineCtx.destination);
-          musicSource.start(0);
-        } catch (musicErr) {
-          console.warn("Failed to load background music, continuing with vocal only", musicErr);
-        }
-      }
-
-      podcastSource.start(0);
-      const renderedBuffer = await offlineCtx.startRendering();
-
-      const encodeWAV = (samples: Float32Array, sampleRate: number) => {
-        const buffer = new ArrayBuffer(44 + samples.length * 2);
-        const view = new DataView(buffer);
-        const writeString = (v: DataView, o: number, s: string) => {
-          for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i));
-        };
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 32 + samples.length * 2, true);
-        writeString(view, 8, 'WAVE');
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, sampleRate * 2, true);
-        view.setUint16(32, 2, true);
-        view.setUint16(34, 16, true);
-        writeString(view, 36, 'data');
-        view.setUint32(40, samples.length * 2, true);
-        for (let i = 0; i < samples.length; i++) {
-          const s = Math.max(-1, Math.min(1, samples[i]));
-          view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        }
-        return buffer;
-      };
-
-      const wav = encodeWAV(renderedBuffer.getChannelData(0), 24000);
-      const blob = new Blob([wav], { type: 'audio/wav' });
-      setState(prev => ({ ...prev, currentAudioUrl: URL.createObjectURL(blob) }));
-    } catch (e: any) {
-      console.error("Podcast generation failed:", e);
-      setState(prev => ({ ...prev, error: `Podcast studio is unavailable: ${e.message}` }));
-    } finally {
-      setState(prev => ({ ...prev, isGeneratingPodcast: false }));
-    }
-  };
-
   const handleExpandCarousel = async (coverImage: GeneratedImage) => {
     if (!coverImage.url || state.isExpanding) return;
     setState(prev => ({ ...prev, isExpanding: true, error: null }));
@@ -463,8 +297,6 @@ function BananaBlitzContent() {
   const carouselGroups = state.images.filter(i => i.category === Category.CAROUSEL_COVER).map(cover => ({
     cover, slides: state.images.filter(s => s.parentId === cover.id).sort((a, b) => (a.order || 0) - (b.order || 0))
   }));
-
-  const activeMusicTrack = MUSIC_STYLES.find(m => m.id === state.selectedMusic);
 
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8 flex font-sans selection:bg-yellow-400/30">
@@ -654,49 +486,14 @@ function BananaBlitzContent() {
           </div>
         </section>
 
-        {/* Content Suite - Captions & Podcast */}
+        {/* Content Suite - Captions */}
         {state.captions.length > 0 && (
           <div className="mb-12 space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h2 className="text-xl font-black italic">PRO SUITE</h2>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Mastering (Music):</span>
-                  <div className="flex gap-1">
-                    {MUSIC_STYLES.map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => setState(prev => ({ ...prev, selectedMusic: m.id }))}
-                        className={`px-2 py-1 rounded text-[8px] font-black transition-all ${state.selectedMusic === m.id ? 'bg-yellow-400 text-black' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'}`}
-                      >
-                        {m.id.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Podcast Host:</span>
-                  <div className="flex gap-1">
-                    {(['solo', 'dual'] as const).map(h => (
-                      <button
-                        key={h}
-                        onClick={() => setPodcastHost(h)}
-                        className={`px-2 py-1 rounded text-[8px] font-black transition-all ${podcastHost === h ? 'bg-yellow-400 text-black' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'}`}
-                      >
-                        {h.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
               <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={handleGeneratePodcast}
-                  disabled={state.isGeneratingPodcast}
-                  className="bg-zinc-800 text-white text-[10px] font-black py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all hover:bg-zinc-700 shadow-lg border border-zinc-700"
-                >
-                   {state.isGeneratingPodcast ? <div className="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full"></div> : `🎙️ ${podcastHost === 'solo' ? 'JOE SOLO' : 'JOE & JANE'} PODCAST`}
-                </button>
                 {currentSessionId && (
                   <button
                     onClick={() => setShowScheduleModal(true)}
@@ -707,48 +504,6 @@ function BananaBlitzContent() {
                 )}
               </div>
             </div>
-
-            {/* Podcast Studio */}
-            {(state.currentAudioUrl || state.isGeneratingPodcast) && (
-              <div className="p-8 bg-zinc-900/50 border border-zinc-800 rounded-3xl shadow-2xl flex flex-col relative overflow-hidden">
-                 <div className="absolute top-0 right-0 p-4 flex gap-1 items-end h-12">
-                    {[1,2,3,4,5,6].map(i => <div key={i} className={`w-1 bg-yellow-400/30 rounded-full studio-bar`} style={{ animationDelay: `${i * 0.1}s` }}></div>)}
-                 </div>
-                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-6">Podcast Review</p>
-                 {state.isGeneratingPodcast ? (
-                    <div className="flex-1 bg-black border border-zinc-800 rounded-2xl flex flex-col items-center justify-center text-center p-12 min-h-[150px]">
-                       <div className="w-10 h-10 bg-yellow-400/10 rounded-full flex items-center justify-center animate-radar text-xl mb-4">🎙️</div>
-                       <p className="text-[10px] font-black uppercase text-white animate-pulse">Recording multi-speaker session...</p>
-                    </div>
-                 ) : (
-                   <div className="bg-black/80 p-6 rounded-2xl border border-zinc-800/50 flex flex-col md:flex-row items-center gap-6">
-                      <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-black font-black text-xl shadow-lg shadow-yellow-400/20 flex-shrink-0">🎙️</div>
-                      <div className="flex-1 w-full">
-                         <h4 className="text-sm font-black uppercase tracking-tight mb-2">The Blitz Report</h4>
-                         <audio src={state.currentAudioUrl!} controls className="w-full filter invert brightness-125 h-10" />
-                      </div>
-                      <button
-                        onClick={handleSavePodcast}
-                        disabled={isSavingPodcast || isPodcastSaved}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg ${
-                          isPodcastSaved 
-                            ? 'bg-green-500 text-white' 
-                            : 'bg-yellow-400 text-black hover:bg-yellow-300'
-                        }`}
-                      >
-                        {isSavingPodcast ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : isPodcastSaved ? (
-                          <CheckCircle2 className="w-3 h-3" />
-                        ) : (
-                          <Database className="w-3 h-3" />
-                        )}
-                        {isSavingPodcast ? 'SAVING...' : isPodcastSaved ? 'SAVED' : 'SAVE TO MEMORY'}
-                      </button>
-                   </div>
-                 )}
-              </div>
-            )}
 
             {/* Platform Captions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

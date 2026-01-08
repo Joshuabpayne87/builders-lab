@@ -284,7 +284,7 @@ function InsightLensContent() {
           <div className="flex items-center gap-4 z-10">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center shadow-lg shadow-indigo-500/40">
               <span className="text-2xl">
-                 {selectedLens === 'PODCAST' ? '🎧' : selectedLens === 'MINDMAP' ? '🧠' : selectedLens === 'VISUAL' ? '👁️' : '📄'}
+                 {selectedLens === 'MINDMAP' ? '🧠' : selectedLens === 'VISUAL' ? '👁️' : '📄'}
               </span>
             </div>
             <div>
@@ -384,49 +384,7 @@ function InsightLensContent() {
             <MindMap data={result.mindMapData} />
           )}
 
-          {result.type === LensType.PODCAST && result.audioData && (
-            <div className="flex flex-col items-center justify-center p-8 space-y-12">
-              <div className="relative group">
-                <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full blur-xl opacity-50 group-hover:opacity-80 transition duration-1000 animate-pulse-slow"></div>
-                <div className="relative w-48 h-48 rounded-full bg-slate-950 flex items-center justify-center shadow-2xl border border-white/10 z-10">
-                   <div className="absolute inset-0 rounded-full border border-indigo-500/30 border-dashed animate-spin-slow"></div>
-                   <span className="text-7xl drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">🎙️</span>
-                </div>
-              </div>
-              
-              <div className="text-center space-y-2 z-10">
-                 <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 to-cyan-200 tracking-tight">Synaptic Audio Stream</h3>
-                 <p className="text-indigo-400 tech-mono text-xs tracking-widest uppercase">Hosts: Alex & Sam // 24kHz</p>
-              </div>
-              
-              <audio controls className="w-full max-w-xl h-14 rounded-full shadow-[0_0_20px_rgba(99,102,241,0.3)] opacity-90 hover:opacity-100 transition-opacity" autoPlay>
-                <source src={`data:audio/wav;base64,${result.audioData}`} type="audio/wav" />
-                Your browser does not support the audio element.
-              </audio>
-
-              {result.text && (
-                 <div className="w-full mt-10 text-left bg-black/40 rounded-xl border border-white/10 overflow-hidden relative">
-                    <div className="px-6 py-3 bg-white/5 flex items-center justify-between border-b border-white/5">
-                        <div className="flex items-center gap-2">
-                           <span className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
-                           <h4 className="text-indigo-200 font-bold text-xs tech-mono uppercase tracking-widest">Transcript Log</h4>
-                        </div>
-                    </div>
-                    <div className="p-8 max-h-96 overflow-y-auto custom-scrollbar relative z-10">
-                        <div className="space-y-6 text-slate-300 leading-relaxed">
-                           {result.text.split('\n').map((line, i) => (
-                             <div key={i} className={`p-4 rounded-lg border ${line.startsWith('Alex') ? 'bg-indigo-900/20 border-indigo-500/30 ml-4' : 'bg-slate-900/40 border-slate-700/30 mr-4'}`}>
-                               <p className="text-sm">{line}</p>
-                             </div>
-                           ))}
-                        </div>
-                    </div>
-                 </div>
-              )}
-            </div>
-          )}
-
-          {(result.text && result.type !== LensType.MINDMAP && result.type !== LensType.PODCAST) && (
+          {(result.text && result.type !== LensType.MINDMAP) && (
             <div className="prose prose-invert max-w-none prose-headings:text-cyan-300 prose-a:text-pink-400 prose-strong:text-indigo-300">
                 <div className="whitespace-pre-wrap leading-relaxed text-slate-200 text-lg">
                   {result.text}
@@ -664,16 +622,17 @@ function InsightLensContent() {
               </footer>
               
               {showScheduleModal && currentSessionId && (
-                <ScheduleContentModal
-                  isOpen={showScheduleModal}
-                  onClose={() => setShowScheduleModal(false)}
-                  sessionData={{
-                    id: currentSessionId,
-                    title: textContent.substring(0, 50) || "Insight Transformation",
-                    appName: 'insightlens',
-                    contentType: selectedLens === 'PODCAST' ? 'podcast' : selectedLens === 'VISUAL' ? 'image' : 'other',
-                  }}
-                />
+                        <ScheduleContentModal
+                          isOpen={showScheduleModal}
+                          onClose={() => setShowScheduleModal(false)}
+                          sessionData={{
+                            id: currentSessionId,
+                            title: textContent.substring(0, 50) || "Insight Transformation",
+                            appName: 'insightlens',
+                            contentType: selectedLens === 'VISUAL' ? 'image' : 'other',
+                          }}
+                        />
+                
                     )}
                   </div>
                   </>
