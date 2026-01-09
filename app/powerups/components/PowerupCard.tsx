@@ -68,28 +68,29 @@ export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
       }}
       whileHover={{ scale: 1.02 }}
     >
-      <motion.div
+      <div
         draggable
-        drag={false}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        className={`
-          relative cursor-move p-4 rounded-xl
-          bg-gradient-to-br from-black/40 via-black/20 to-black/40
-          backdrop-blur-xl border border-white/10
-          transition-all duration-300
-          hover:border-white/30
-          ${isEquipped ? 'ring-2 ring-white/40' : ''}
-          overflow-hidden
-          group-hover:shadow-2xl
-          ${getGlowColor(powerup.powerup_type)}
-        `}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
       >
+        <motion.div
+          className={`
+            relative cursor-move p-4 rounded-xl
+            bg-gradient-to-br from-black/40 via-black/20 to-black/40
+            backdrop-blur-xl border border-white/10
+            transition-all duration-300
+            hover:border-white/30
+            ${isEquipped ? 'ring-2 ring-white/40' : ''}
+            overflow-hidden
+            group-hover:shadow-2xl
+            ${getGlowColor(powerup.powerup_type)}
+          `}
+          style={{
+            rotateX,
+            rotateY,
+            transformStyle: "preserve-3d",
+          }}
+        >
         {/* Animated gradient border on hover */}
         <motion.div
           className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10`}
@@ -197,6 +198,7 @@ export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
         {/* Glow effect for powerup type */}
         <div className={`absolute inset-0 -z-10 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 bg-gradient-to-br ${getBorderColor(powerup.powerup_type)}`} />
       </motion.div>
+      </div>
 
       {/* Hover Tooltip */}
       <motion.div
