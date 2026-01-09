@@ -63,13 +63,13 @@ export default function PowerupSidebar({
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto">
               {(["ALL", "SKILL", "PERSONA", "KNOWLEDGE"] as (PowerupType | "ALL")[]).map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
                   className={`
-                    flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors
+                    px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap
                     ${filterType === type
                       ? type === "SKILL"
                         ? "bg-blue-600 text-white"
