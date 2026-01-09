@@ -9,7 +9,22 @@ export async function POST(req: Request) {
     }
 
     const ai = createGeminiClient();
-    const response = await ai.models.generateContent({ model, contents, config });
+
+    // Normalize contents format to ensure proper structure
+    const normalizedContents = Array.isArray(contents)
+      ? contents.map(c => {
+          if (typeof c === 'object' && c.parts) {
+            return { parts: c.parts };
+          }
+          return c;
+        })
+      : contents;
+
+    const response = await ai.models.generateContent({
+      model,
+      contents: normalizedContents,
+      config
+    });
 
     // Explicitly serialize candidates to ensure parts are included
     const candidates = response.candidates?.map(c => ({

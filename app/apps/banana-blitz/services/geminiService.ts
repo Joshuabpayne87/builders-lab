@@ -162,27 +162,41 @@ class BananaBlitzService {
   }
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
-    const contents: any[] = [{ text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k.` }];
-    if (refImage) {
-      contents.push({
-        inlineData: {
-          data: refImage.split(',')[1],
-          mimeType: refImage.split(';')[0].split(':')[1]
-        }
-      });
+    // TEMPORARY WORKAROUND: Generate placeholder images until Imagen 3 API is properly integrated
+    // The responseModalities: ["image"] API has been deprecated in Gemini 2.0+
+    // TODO: Integrate proper Imagen 3 API or alternative image generation service
+
+    console.warn('Image generation temporarily disabled - API migration needed');
+
+    // Create a placeholder image with canvas
+    const canvas = this.createPlaceholderImage(prompt, ratio);
+    return canvas;
+  }
+
+  private createPlaceholderImage(prompt: string, ratio: AspectRatio): string {
+    // Create a simple placeholder indicating image generation is being updated
+    const width = ratio === '9:16' ? 1080 : 1080;
+    const height = ratio === '9:16' ? 1920 : 1080;
+
+    // Return a data URL for a placeholder
+    // In a real implementation, this would call an external image generation API
+    const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#1a1a1a"/>
+      <text x="50%" y="50%" text-anchor="middle" fill="#666" font-size="24" font-family="Arial">
+        Image Generation Updating
+      </text>
+      <text x="50%" y="55%" text-anchor="middle" fill="#444" font-size="16" font-family="Arial">
+        ${prompt.substring(0, 50)}...
+      </text>
+    </svg>`;
+
+    // Use btoa for browser compatibility (works in both browser and Node.js with polyfill)
+    if (typeof btoa !== 'undefined') {
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
+    } else {
+      // Fallback for Node.js environment
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
     }
-    const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: contents,
-      config: {
-        responseModalities: ["image"],
-        imageConfig: { aspectRatio: ratio }
-      }
-    }));
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
-    }
-    throw new Error("Image engine failed to render.");
   }
 
   async generateCarouselStrategy(coverImageUrl: string, postText: string, vibe: VisualVibe): Promise<string[]> {
