@@ -9,36 +9,7 @@ export async function POST(req: Request) {
     }
 
     const ai = createGeminiClient();
-
-    // Handle Imagen 3 models differently
-    const isImagenModel = model.includes('imagen');
-
-    // Normalize contents format to ensure proper structure
-    let normalizedContents;
-    if (isImagenModel) {
-      // Imagen expects a simple prompt format
-      normalizedContents = typeof contents === 'string'
-        ? [{ parts: [{ text: contents }] }]
-        : Array.isArray(contents) && typeof contents[0] === 'object' && contents[0].text
-        ? [{ parts: [{ text: contents[0].text }] }]
-        : contents;
-    } else {
-      // Regular Gemini models
-      normalizedContents = Array.isArray(contents)
-        ? contents.map(c => {
-            if (typeof c === 'object' && c.parts) {
-              return { parts: c.parts };
-            }
-            return c;
-          })
-        : contents;
-    }
-
-    const response = await ai.models.generateContent({
-      model,
-      contents: normalizedContents,
-      config
-    });
+    const response = await ai.models.generateContent({ model, contents, config });
 
     // Explicitly serialize candidates to ensure parts are included
     const candidates = response.candidates?.map(c => ({
@@ -73,19 +44,8 @@ export async function POST(req: Request) {
       modelVersion: response.modelVersion
     });
   } catch (error: any) {
-    console.error("Gemini API Error:", {
-      message: error?.message,
-      status: error?.status,
-      model: error?.model,
-      details: error?.details || error
-    });
-
+    console.error("Gemini API Error:", error);
     const message = error?.message || "Gemini request failed.";
-    const errorDetails = error?.details?.[0]?.reason || error?.status || "";
-
-    return Response.json({
-      error: `${message}${errorDetails ? ` (${errorDetails})` : ""}`,
-      model: error?.model
-    }, { status: error?.status || 500 });
+    return Response.json({ error: message }, { status: 500 });
   }
 }
