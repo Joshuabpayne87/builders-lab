@@ -28,7 +28,7 @@ import { Suspense } from "react";
 import { ExitIntentModal } from "../components/ExitIntentModal";
 
 import { RecentWorkflows } from "./RecentWorkflows";
-import { QuickDrafts } from "./QuickDrafts";
+import { BrainCard } from "./BrainCard";
 import { Scratchpad } from "./Scratchpad";
 
 export default async function DashboardPage() {
@@ -126,6 +126,13 @@ export default async function DashboardPage() {
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
               >
                 Apps
+              </Link>
+              <Link
+                href="/powerups"
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Powerups
               </Link>
               <Link
                 href="/calendar"
@@ -311,7 +318,7 @@ export default async function DashboardPage() {
               <RecentWorkflows />
             </div>
             <div className="h-40">
-              <QuickDrafts />
+              <BrainCard />
             </div>
             <div className="h-40">
               <Scratchpad />

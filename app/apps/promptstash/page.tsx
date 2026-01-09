@@ -15,7 +15,6 @@ import ScheduleContentModal from '@/components/ScheduleContentModal';
 import { Calendar } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-import { MacbookScroll } from '@/components/ui/macbook-scroll';
 
 interface SavedPrompt {
   id: string;
@@ -484,69 +483,6 @@ function PromptStashContent() {
                 }
                 
                 export default function PromptStashPage() {
-                  const [showIntro, setShowIntro] = useState(true);
-                  const [skipIntro, setSkipIntro] = useState(false);
-
-                  // Check if user has seen intro before (sessionStorage)
-                  React.useEffect(() => {
-                    const hasSeenIntro = sessionStorage.getItem('promptstash_intro_seen');
-                    if (hasSeenIntro === 'true') {
-                      setShowIntro(false);
-                    }
-                  }, []);
-
-                  const handleScrollComplete = () => {
-                    sessionStorage.setItem('promptstash_intro_seen', 'true');
-                    setShowIntro(false);
-                  };
-
-                  const handleSkipIntro = () => {
-                    sessionStorage.setItem('promptstash_intro_seen', 'true');
-                    setSkipIntro(true);
-                    setTimeout(() => setShowIntro(false), 500); // Delay for fade animation
-                  };
-
-                  if (showIntro) {
-                    return (
-                      <div className="relative min-h-screen bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-[#0f172a]">
-                        {/* Skip Button */}
-                        <button
-                          onClick={handleSkipIntro}
-                          className="fixed top-6 right-6 z-50 px-6 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-lg text-white font-semibold transition-all shadow-xl hover:scale-105"
-                        >
-                          Skip Intro →
-                        </button>
-
-                        <div className={`transition-opacity duration-500 ${skipIntro ? 'opacity-0' : 'opacity-100'}`}>
-                          <MacbookScroll
-                            title={
-                              <span className="text-white">
-                                Prompt Stash
-                                <br />
-                                <span className="text-purple-400 text-2xl">Professional Prompt Engineering</span>
-                              </span>
-                            }
-                            badge={
-                              <span className="px-4 py-1 bg-purple-600/20 border border-purple-500/30 rounded-full text-purple-300 text-sm font-semibold">
-                                AI-Powered Optimization
-                              </span>
-                            }
-                            showGradient={false}
-                            onScrollComplete={handleScrollComplete}
-                          >
-                            <Suspense fallback={
-                              <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-                                <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-                              </div>
-                            }>
-                              <PromptStashContent />
-                            </Suspense>
-                          </MacbookScroll>
-                        </div>
-                      </div>
-                    );
-                  }
-
                   return (
                     <Suspense fallback={
                       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">

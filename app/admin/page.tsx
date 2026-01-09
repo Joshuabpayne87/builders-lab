@@ -13,7 +13,8 @@ import {
   LogOut,
   Shield,
   Briefcase,
-  LayoutGrid
+  LayoutGrid,
+  Zap
 } from "lucide-react";
 import UsersList from "./components/UsersList";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
@@ -111,7 +112,14 @@ export default function AdminPage() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Quick Actions */}
-        <div className="mb-6">
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link
+            href="/admin/powerups"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all"
+          >
+            <Zap className="w-5 h-5" />
+            Manage AI Powerups
+          </Link>
           <Link
             href="/admin/reorder-images"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg font-medium transition-all"
