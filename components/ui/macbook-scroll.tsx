@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
 
 export const MacbookScroll = ({
   src,
@@ -156,12 +157,14 @@ export const Lid = ({
         className="h-96 w-[32rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
       >
         <div className="absolute inset-0 bg-[#272729] rounded-lg" />
-        <img
-          src={src}
-          alt="macbook"
-          fill
-          className="object-cover absolute rounded-lg inset-0 h-full w-full"
-        />
+        {src && (
+          <Image
+            src={src}
+            alt="macbook"
+            fill
+            className="object-cover rounded-lg"
+          />
+        )}
       </motion.div>
     </div>
   );
