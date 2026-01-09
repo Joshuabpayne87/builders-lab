@@ -49,3 +49,7 @@ next-env.d.ts
 # Temp repos
 temp_repos/
 # Clear Next cache Fri, Jan  2, 2026 11:13:16 PM
+
+# Plandex
+plandex/
+.plandex-v2/
