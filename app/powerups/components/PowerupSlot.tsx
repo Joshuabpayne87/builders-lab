@@ -205,10 +205,9 @@ export default function PowerupSlot({
                 <motion.button
                   onClick={onUnequip}
                   className="absolute -top-2 -right-2 p-1.5 bg-red-600/90 hover:bg-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border-2 border-white/20 z-20"
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ rotate: 0 }}
-                  whileHover={{ rotate: 90 }}
                 >
                   <X className="w-3 h-3 text-white" />
                 </motion.button>
