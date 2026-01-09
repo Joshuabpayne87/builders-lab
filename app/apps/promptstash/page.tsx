@@ -531,10 +531,17 @@ function PromptStashContent() {
                                 AI-Powered Optimization
                               </span>
                             }
-                            src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop"
                             showGradient={false}
                             onScrollComplete={handleScrollComplete}
-                          />
+                          >
+                            <Suspense fallback={
+                              <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+                                <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+                              </div>
+                            }>
+                              <PromptStashContent />
+                            </Suspense>
+                          </MacbookScroll>
                         </div>
                       </div>
                     );

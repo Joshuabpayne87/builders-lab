@@ -10,12 +10,14 @@ export const MacbookScroll = ({
   badge,
   showGradient,
   onScrollComplete,
+  children,
 }: {
   src?: string;
   title?: string | React.ReactNode;
   badge?: React.ReactNode;
   showGradient?: boolean;
   onScrollComplete?: () => void;
+  children?: React.ReactNode;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -82,7 +84,9 @@ export const MacbookScroll = ({
         scaleY={scaleY}
         rotate={rotate}
         translate={translate}
-      />
+      >
+        {children}
+      </Lid>
       {/* Base area */}
       <div className="h-[22rem] w-[32rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
         {/* above keyboard bar */}
@@ -117,12 +121,14 @@ export const Lid = ({
   rotate,
   translate,
   src,
+  children,
 }: {
   scaleX: any;
   scaleY: any;
   rotate: any;
   translate: any;
   src?: string;
+  children?: React.ReactNode;
 }) => {
   return (
     <div className="relative [perspective:800px]">
@@ -156,15 +162,21 @@ export const Lid = ({
         }}
         className="h-96 w-[32rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
       >
-        <div className="absolute inset-0 bg-[#272729] rounded-lg" />
-        {src && (
+        <div className="absolute inset-0 bg-[#272729] rounded-lg overflow-hidden" />
+        {children ? (
+          <div className="absolute inset-2 rounded-lg overflow-hidden">
+            <div className="w-full h-full origin-top-left" style={{ transform: 'scale(0.28)', transformOrigin: 'top left', width: '357%', height: '357%' }}>
+              {children}
+            </div>
+          </div>
+        ) : src ? (
           <Image
             src={src}
             alt="macbook"
             fill
             className="object-cover rounded-lg"
           />
-        )}
+        ) : null}
       </motion.div>
     </div>
   );
