@@ -70,6 +70,7 @@ export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
     >
       <motion.div
         draggable
+        drag={false}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         className={`
