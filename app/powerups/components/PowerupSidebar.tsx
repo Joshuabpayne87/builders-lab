@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Powerup, PowerupType } from "@/lib/powerup-service";
 import PowerupCard from "./PowerupCard";
+import SkillUploader from "./SkillUploader";
 
 interface PowerupSidebarProps {
   powerups: Powerup[];
@@ -11,6 +12,7 @@ interface PowerupSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   equippedPowerups: string[];
+  onRefresh: () => void;
 }
 
 export default function PowerupSidebar({
@@ -18,7 +20,8 @@ export default function PowerupSidebar({
   loading,
   isOpen,
   onToggle,
-  equippedPowerups
+  equippedPowerups,
+  onRefresh
 }: PowerupSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<PowerupType | "ALL">("ALL");
@@ -87,6 +90,9 @@ export default function PowerupSidebar({
               ))}
             </div>
           </div>
+
+          {/* Skill Uploader */}
+          <SkillUploader onUploadComplete={onRefresh} />
 
           {/* Powerup List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">

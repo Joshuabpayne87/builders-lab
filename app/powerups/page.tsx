@@ -164,6 +164,7 @@ export default function PowerupsPage() {
             isOpen={sidebarOpen}
             onToggle={() => setSidebarOpen(!sidebarOpen)}
             equippedPowerups={equippedPowerups}
+            onRefresh={loadPowerups}
           />
 
           {/* Brain Canvas */}
