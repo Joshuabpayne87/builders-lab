@@ -170,7 +170,7 @@ export class SessionOverrideService {
       // Regular slots (single powerup)
       // If slot was occupied, remove old powerup from equipped list if not used elsewhere
       const oldPowerupId = slotConfig[slot];
-      if (oldPowerupId) {
+      if (oldPowerupId && typeof oldPowerupId === 'string') {
         const stillUsed = Object.entries(slotConfig).some(([key, val]) => {
           if (key === slot) return false;
           if (key === 'brain') return (val as string[]).includes(oldPowerupId);
@@ -226,7 +226,7 @@ export class SessionOverrideService {
     } else {
       // Clear regular slot
       const oldPowerupId = slotConfig[slot];
-      if (oldPowerupId) {
+      if (oldPowerupId && typeof oldPowerupId === 'string') {
         delete slotConfig[slot];
 
         // Remove from equipped if not used elsewhere
