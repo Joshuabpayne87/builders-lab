@@ -162,40 +162,36 @@ class BananaBlitzService {
   }
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
-    // TEMPORARY WORKAROUND: Generate placeholder images until Imagen 3 API is properly integrated
-    // The responseModalities: ["image"] API has been deprecated in Gemini 2.0+
-    // TODO: Integrate proper Imagen 3 API or alternative image generation service
+    // Use Imagen 3 for image generation
+    const enhancedPrompt = `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k resolution, marketing quality, vibrant colors, eye-catching design.`;
 
-    console.warn('Image generation temporarily disabled - API migration needed');
+    try {
+      // Call Imagen 3 through our API
+      const response = await this.retryOperation(() => geminiGenerateContent({
+        model: 'imagen-3.0-generate-001',
+        contents: [{ text: enhancedPrompt }],
+        config: {
+          generationConfig: {
+            aspectRatio: ratio === '9:16' ? '9:16' : '1:1',
+            numberOfImages: 1,
+            ...(refImage ? { mode: 'edit' } : {})
+          }
+        }
+      }));
 
-    // Create a placeholder image with canvas
-    const canvas = this.createPlaceholderImage(prompt, ratio);
-    return canvas;
-  }
+      // Extract the base64 image from response
+      if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData?.data) {
+            return `data:image/png;base64,${part.inlineData.data}`;
+          }
+        }
+      }
 
-  private createPlaceholderImage(prompt: string, ratio: AspectRatio): string {
-    // Create a simple placeholder indicating image generation is being updated
-    const width = ratio === '9:16' ? 1080 : 1080;
-    const height = ratio === '9:16' ? 1920 : 1080;
-
-    // Return a data URL for a placeholder
-    // In a real implementation, this would call an external image generation API
-    const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#1a1a1a"/>
-      <text x="50%" y="50%" text-anchor="middle" fill="#666" font-size="24" font-family="Arial">
-        Image Generation Updating
-      </text>
-      <text x="50%" y="55%" text-anchor="middle" fill="#444" font-size="16" font-family="Arial">
-        ${prompt.substring(0, 50)}...
-      </text>
-    </svg>`;
-
-    // Use btoa for browser compatibility (works in both browser and Node.js with polyfill)
-    if (typeof btoa !== 'undefined') {
-      return `data:image/svg+xml;base64,${btoa(svg)}`;
-    } else {
-      // Fallback for Node.js environment
-      return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+      throw new Error("No image data in response");
+    } catch (error: any) {
+      console.error("Imagen 3 generation failed:", error);
+      throw new Error(`Image generation failed: ${error.message}`);
     }
   }
 
