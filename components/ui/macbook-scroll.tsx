@@ -48,10 +48,16 @@ export const MacbookScroll = ({
   const textTransform = useTransform(scrollYProgress, [0, 0.3], [0, 100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
-  // Check if scrolled past the MacBook
+  // Fullscreen expansion transforms
+  const screenScale = useTransform(scrollYProgress, [0.3, 0.8], [1, 3.5]);
+  const contentScale = useTransform(scrollYProgress, [0.3, 0.8], [0.28, 1]);
+  const keyboardOpacity = useTransform(scrollYProgress, [0.3, 0.5], [1, 0]);
+  const baseOpacity = useTransform(scrollYProgress, [0.3, 0.5], [1, 0]);
+
+  // Check if scrolled to fullscreen
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (value) => {
-      if (value > 0.95 && onScrollComplete) {
+      if (value > 0.85 && onScrollComplete) {
         onScrollComplete();
       }
     });
@@ -84,11 +90,16 @@ export const MacbookScroll = ({
         scaleY={scaleY}
         rotate={rotate}
         translate={translate}
+        screenScale={screenScale}
+        contentScale={contentScale}
       >
         {children}
       </Lid>
       {/* Base area */}
-      <div className="h-[22rem] w-[32rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
+      <motion.div
+        style={{ opacity: baseOpacity }}
+        className="h-[22rem] w-[32rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10"
+      >
         {/* above keyboard bar */}
         <div className="h-10 w-full relative">
           <div className="absolute inset-x-0 mx-auto w-[80%] h-4 bg-[#050505]" />
@@ -110,7 +121,7 @@ export const MacbookScroll = ({
           <div className="absolute inset-x-0 bottom-0 mx-auto z-50 w-full h-40 bg-gradient-to-t from-white dark:from-black" />
         )}
         {badge && <div className="absolute bottom-10 left-10">{badge}</div>}
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -122,6 +133,8 @@ export const Lid = ({
   translate,
   src,
   children,
+  screenScale,
+  contentScale,
 }: {
   scaleX: any;
   scaleY: any;
@@ -129,6 +142,8 @@ export const Lid = ({
   translate: any;
   src?: string;
   children?: React.ReactNode;
+  screenScale: any;
+  contentScale: any;
 }) => {
   return (
     <div className="relative [perspective:800px]">
@@ -157,6 +172,7 @@ export const Lid = ({
           scaleY: scaleY,
           rotateX: rotate,
           translateY: translate,
+          scale: screenScale,
           transformStyle: "preserve-3d",
           transformOrigin: "top center",
         }}
@@ -164,11 +180,19 @@ export const Lid = ({
       >
         <div className="absolute inset-0 bg-[#272729] rounded-lg overflow-hidden" />
         {children ? (
-          <div className="absolute inset-2 rounded-lg overflow-hidden">
-            <div className="w-full h-full origin-top-left" style={{ transform: 'scale(0.28)', transformOrigin: 'top left', width: '357%', height: '357%' }}>
+          <motion.div className="absolute inset-2 rounded-lg overflow-hidden">
+            <motion.div
+              className="w-full h-full origin-top-left"
+              style={{
+                scale: contentScale,
+                transformOrigin: 'top left',
+                width: '357%',
+                height: '357%'
+              }}
+            >
               {children}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         ) : src ? (
           <Image
             src={src}
