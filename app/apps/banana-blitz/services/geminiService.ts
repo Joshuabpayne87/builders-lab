@@ -178,7 +178,7 @@ class BananaBlitzService {
 
     try {
       const response = await this.retryOperation(() => geminiGenerateContent({
-        model: 'gemini-2.0-flash-thinking-exp-01-21',
+        model: 'gemini-2.0-flash-exp',
         contents: contents,
         config: {
           responseModalities: ["image"],
