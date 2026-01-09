@@ -162,35 +162,40 @@ class BananaBlitzService {
   }
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
-    // Use Imagen 3 for image generation
-    const enhancedPrompt = `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k resolution, marketing quality, vibrant colors, eye-catching design.`;
+    // Use Gemini 2.0 Flash Thinking with image generation capability
+    const contents: any[] = [{
+      text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k resolution, marketing quality, vibrant colors, eye-catching design.`
+    }];
+
+    if (refImage) {
+      contents.push({
+        inlineData: {
+          data: refImage.split(',')[1],
+          mimeType: refImage.split(';')[0].split(':')[1]
+        }
+      });
+    }
 
     try {
-      // Call Imagen 3 through our API
       const response = await this.retryOperation(() => geminiGenerateContent({
-        model: 'imagen-3.0-generate-001',
-        contents: [{ text: enhancedPrompt }],
+        model: 'gemini-2.0-flash-thinking-exp-01-21',
+        contents: contents,
         config: {
-          generationConfig: {
-            aspectRatio: ratio === '9:16' ? '9:16' : '1:1',
-            numberOfImages: 1,
-            ...(refImage ? { mode: 'edit' } : {})
-          }
+          responseModalities: ["image"],
+          imageConfig: { aspectRatio: ratio }
         }
       }));
 
       // Extract the base64 image from response
-      if (response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData?.data) {
-            return `data:image/png;base64,${part.inlineData.data}`;
-          }
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+          return `data:image/png;base64,${part.inlineData.data}`;
         }
       }
 
       throw new Error("No image data in response");
     } catch (error: any) {
-      console.error("Imagen 3 generation failed:", error);
+      console.error("Image generation failed:", error);
       throw new Error(`Image generation failed: ${error.message}`);
     }
   }
