@@ -2,14 +2,19 @@
 
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Powerup } from "@/lib/powerup-service";
-import { GripVertical, Check, Sparkles } from "lucide-react";
+import { GripVertical, Check, Sparkles, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { deletePowerup } from "@/lib/powerup-client";
 
 interface PowerupCardProps {
   powerup: Powerup;
   isEquipped: boolean;
+  currentUserId?: string;
+  onDelete?: () => void;
 }
 
-export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
+export default function PowerupCard({ powerup, isEquipped, currentUserId, onDelete }: PowerupCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useTransform(y, [-50, 50], [8, -8]);
@@ -50,6 +55,29 @@ export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
     const target = e.currentTarget as HTMLElement;
     target.classList.remove("opacity-50");
   };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!confirm(`Delete "${powerup.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deletePowerup(powerup.id, false); // Soft delete
+      onDelete?.();
+    } catch (error: any) {
+      console.error("Failed to delete powerup:", error);
+      alert("Failed to delete: " + error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Check if user owns this powerup
+  const isUserOwned = currentUserId && powerup.created_by === currentUserId;
 
   return (
     <motion.div
@@ -116,6 +144,29 @@ export default function PowerupCard({ powerup, isEquipped }: PowerupCardProps) {
         >
           <GripVertical className="w-4 h-4 text-slate-400" />
         </motion.div>
+
+        {/* Delete Button (only for user-owned powerups) */}
+        {isUserOwned && (
+          <motion.button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+            initial={{ scale: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-red-500 rounded-full blur-md"></div>
+              <div className="relative bg-red-600 hover:bg-red-700 rounded-full p-1.5 border-2 border-red-400 transition-colors">
+                {isDeleting ? (
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <Trash2 className="w-3 h-3 text-white" />
+                )}
+              </div>
+            </div>
+          </motion.button>
+        )}
 
         {/* Equipped Indicator */}
         {isEquipped && (

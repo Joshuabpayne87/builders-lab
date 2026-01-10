@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Powerup, PowerupType } from "@/lib/powerup-service";
 import PowerupCard from "./PowerupCard";
 import SkillUploader from "./SkillUploader";
+import { createClient } from "@/lib/supabase/client";
 
 interface PowerupSidebarProps {
   powerups: Powerup[];
@@ -23,6 +24,16 @@ export default function PowerupSidebar({
   equippedPowerups,
   onRefresh
 }: PowerupSidebarProps) {
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id);
+    };
+    getUser();
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<PowerupType | "ALL">("ALL");
 
@@ -118,6 +129,8 @@ export default function PowerupSidebar({
                           key={powerup.id}
                           powerup={powerup}
                           isEquipped={equippedPowerups.includes(powerup.id)}
+                          currentUserId={currentUserId}
+                          onDelete={onRefresh}
                         />
                       ))}
                     </div>
@@ -136,6 +149,8 @@ export default function PowerupSidebar({
                           key={powerup.id}
                           powerup={powerup}
                           isEquipped={equippedPowerups.includes(powerup.id)}
+                          currentUserId={currentUserId}
+                          onDelete={onRefresh}
                         />
                       ))}
                     </div>
@@ -154,6 +169,8 @@ export default function PowerupSidebar({
                           key={powerup.id}
                           powerup={powerup}
                           isEquipped={equippedPowerups.includes(powerup.id)}
+                          currentUserId={currentUserId}
+                          onDelete={onRefresh}
                         />
                       ))}
                     </div>
