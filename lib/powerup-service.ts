@@ -89,7 +89,8 @@ export interface PowerupFilters {
  */
 export class PowerupService {
   /**
-   * Creates a new powerup (admin only)
+   * Creates a new powerup
+   * Users can create their own powerups, admins can create global powerups
    * Automatically generates embedding from description + content
    */
   static async create(params: CreatePowerupParams): Promise<Powerup> {
@@ -97,10 +98,6 @@ export class PowerupService {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) throw new Error("Unauthorized");
-
-    // Check if user is admin
-    const isAdmin = user.user_metadata?.role === 'admin';
-    if (!isAdmin) throw new Error("Forbidden: Admin access required");
 
     // Generate embedding for semantic search
     // Combine name, description, and relevant content for embedding
@@ -143,10 +140,11 @@ export class PowerupService {
 
   /**
    * Lists powerups with optional filtering
-   * Returns active powerups by default (accessible to all users)
+   * Returns active global powerups + user's own powerups (active or inactive)
    */
   static async list(filters?: PowerupFilters, limit = 100, offset = 0): Promise<Powerup[]> {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     let query = supabase
       .from('bl_ai_powerups')
@@ -163,12 +161,12 @@ export class PowerupService {
       query = query.eq('category', filters.category);
     }
 
+    // User visibility: global active powerups OR user's own powerups
+    // RLS handles this automatically, but we can optimize the query
     if (filters?.is_active !== undefined) {
       query = query.eq('is_active', filters.is_active);
-    } else {
-      // Default to active only
-      query = query.eq('is_active', true);
     }
+    // Note: RLS policy automatically filters to show active global OR user's own
 
     if (filters?.tags && filters.tags.length > 0) {
       query = query.overlaps('tags', filters.tags);
@@ -224,7 +222,8 @@ export class PowerupService {
   }
 
   /**
-   * Updates a powerup (admin only)
+   * Updates a powerup
+   * Users can update their own powerups, admins can update any powerup
    * Regenerates embedding if content or description changes
    */
   static async update(id: string, params: UpdatePowerupParams): Promise<Powerup> {
@@ -232,10 +231,6 @@ export class PowerupService {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) throw new Error("Unauthorized");
-
-    // Check if user is admin
-    const isAdmin = user.user_metadata?.role === 'admin';
-    if (!isAdmin) throw new Error("Forbidden: Admin access required");
 
     // Get existing powerup
     const existing = await this.get(id);
@@ -279,7 +274,8 @@ export class PowerupService {
   }
 
   /**
-   * Deletes a powerup (admin only)
+   * Deletes a powerup
+   * Users can delete their own powerups, admins can delete any powerup
    * Soft delete by setting is_active = false
    */
   static async delete(id: string, hard = false): Promise<void> {
@@ -287,10 +283,6 @@ export class PowerupService {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) throw new Error("Unauthorized");
-
-    // Check if user is admin
-    const isAdmin = user.user_metadata?.role === 'admin';
-    if (!isAdmin) throw new Error("Forbidden: Admin access required");
 
     if (hard) {
       // Hard delete from database
@@ -313,15 +305,17 @@ export class PowerupService {
 
   /**
    * Searches powerups using semantic search
+   * Searches global active powerups + user's own powerups
    */
   static async search(query: string, filters?: PowerupFilters, limit = 10, threshold = 0.5): Promise<Powerup[]> {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     // Generate query embedding
     const queryEmbedding = await generateEmbedding(query);
 
     // Build filter conditions
-    let filterConditions = 'is_active = true';
+    let filterConditions = 'true'; // Changed from 'is_active = true' to let RPC handle user scoping
 
     if (filters?.type) {
       filterConditions += ` AND powerup_type = '${filters.type}'`;
@@ -331,19 +325,23 @@ export class PowerupService {
       filterConditions += ` AND category = '${filters.category}'`;
     }
 
-    // Call RPC function for vector similarity search
-    // Note: This requires a custom RPC function similar to match_knowledge
+    if (filters?.is_active !== undefined) {
+      filterConditions += ` AND is_active = ${filters.is_active}`;
+    }
+
+    // Call RPC function for vector similarity search with user scoping
     const { data, error } = await supabase.rpc('match_powerups', {
       query_embedding: queryEmbedding,
       match_threshold: threshold,
       match_count: limit,
-      filter_conditions: filterConditions
+      filter_conditions: filterConditions,
+      user_id_filter: user?.id || null
     });
 
     if (error) {
       // If RPC function doesn't exist yet, fall back to regular list
-      console.warn('match_powerups RPC not found, using fallback search');
-      return this.list({ ...filters, search: query, is_active: true }, limit);
+      console.warn('match_powerups RPC not found, using fallback search:', error);
+      return this.list({ ...filters, search: query }, limit);
     }
 
     return (data || []) as Powerup[];
