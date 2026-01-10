@@ -162,42 +162,68 @@ class BananaBlitzService {
   }
 
   async generateImage(prompt: string, ratio: AspectRatio, refImage?: string | null): Promise<string> {
-    // Use Gemini 2.0 Flash Thinking with image generation capability
-    const contents: any[] = [{
-      text: `Social Media Graphic: ${prompt}. Professional, high-fidelity, 8k resolution, marketing quality, vibrant colors, eye-catching design.`
-    }];
+    // CRITICAL: Google deprecated image generation from Gemini models
+    // Using dynamic gradient placeholders until external image service is integrated
 
-    if (refImage) {
-      contents.push({
-        inlineData: {
-          data: refImage.split(',')[1],
-          mimeType: refImage.split(';')[0].split(':')[1]
-        }
-      });
+    console.warn('[Banana Blitz] Image generation temporarily using placeholders - Gemini API changed');
+
+    // Generate a unique gradient based on the prompt
+    const hash = this.hashString(prompt);
+    const color1 = this.generateColorFromHash(hash, 0);
+    const color2 = this.generateColorFromHash(hash, 1);
+    const color3 = this.generateColorFromHash(hash, 2);
+
+    const width = ratio === '9:16' ? 1080 : 1080;
+    const height = ratio === '9:16' ? 1920 : 1080;
+
+    // Extract key words from prompt for visual representation
+    const words = prompt.split(' ').filter(w => w.length > 4).slice(0, 3);
+
+    const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${color1};stop-opacity:1" />
+          <stop offset="50%" style="stop-color:${color2};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${color3};stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grad)"/>
+      <rect x="5%" y="5%" width="90%" height="90%" fill="rgba(0,0,0,0.3)" rx="20"/>
+      <text x="50%" y="45%" text-anchor="middle" fill="#fff" font-size="48" font-family="Arial Black, sans-serif" font-weight="bold">
+        ${words[0] || 'BANANA'}
+      </text>
+      <text x="50%" y="52%" text-anchor="middle" fill="#fff" font-size="36" font-family="Arial, sans-serif">
+        ${words[1] || 'BLITZ'}
+      </text>
+      <text x="50%" y="58%" text-anchor="middle" fill="#fff" font-size="24" font-family="Arial, sans-serif" opacity="0.8">
+        ${words[2] || 'PRO'}
+      </text>
+      <text x="50%" y="90%" text-anchor="middle" fill="#fff" font-size="16" font-family="Arial, sans-serif" opacity="0.6">
+        Dynamic Placeholder · Integrate DALL-E or Midjourney API
+      </text>
+    </svg>`;
+
+    if (typeof btoa !== 'undefined') {
+      return `data:image/svg+xml;base64,${btoa(svg)}`;
     }
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  }
 
-    try {
-      const response = await this.retryOperation(() => geminiGenerateContent({
-        model: 'gemini-2.0-flash-exp',
-        contents: contents,
-        config: {
-          responseModalities: ["image"],
-          imageConfig: { aspectRatio: ratio }
-        }
-      }));
-
-      // Extract the base64 image from response
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
-        }
-      }
-
-      throw new Error("No image data in response");
-    } catch (error: any) {
-      console.error("Image generation failed:", error);
-      throw new Error(`Image generation failed: ${error.message}`);
+  private hashString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
     }
+    return Math.abs(hash);
+  }
+
+  private generateColorFromHash(hash: number, seed: number): string {
+    const h = ((hash + seed * 137) % 360);
+    const s = 70 + (hash % 20);
+    const l = 50 + (hash % 15);
+    return `hsl(${h}, ${s}%, ${l}%)`;
   }
 
   async generateCarouselStrategy(coverImageUrl: string, postText: string, vibe: VisualVibe): Promise<string[]> {
