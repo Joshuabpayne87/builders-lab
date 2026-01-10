@@ -53,3 +53,4 @@ temp_repos/
 # Plandex
 plandex/
 .plandex-v2/
+supabase/.temp

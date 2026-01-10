@@ -9,6 +9,7 @@ import LoadoutControls from "./components/LoadoutControls";
 import { Powerup } from "@/lib/powerup-service";
 import { listPowerups } from "@/lib/powerup-client";
 import { SlotConfig } from "@/lib/loadout-service";
+import { getDefaultLoadout, updateLoadout, createLoadout } from "@/lib/loadout-client";
 
 export default function PowerupsPage() {
   const [powerups, setPowerups] = useState<Powerup[]>([]);
@@ -18,10 +19,13 @@ export default function PowerupsPage() {
   // Slot configuration state
   const [slotConfig, setSlotConfig] = useState<SlotConfig>({});
   const [equippedPowerups, setEquippedPowerups] = useState<string[]>([]);
+  const [loadoutId, setLoadoutId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // Load powerups on mount
+  // Load powerups and default loadout on mount
   useEffect(() => {
     loadPowerups();
+    loadDefaultLoadout();
   }, []);
 
   const loadPowerups = async () => {
@@ -34,6 +38,19 @@ export default function PowerupsPage() {
       alert("Failed to load powerups: " + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDefaultLoadout = async () => {
+    try {
+      const loadout = await getDefaultLoadout();
+      if (loadout) {
+        setLoadoutId(loadout.id);
+        setSlotConfig(loadout.slot_config || {});
+        setEquippedPowerups(loadout.equipped_powerups || []);
+      }
+    } catch (error: any) {
+      console.error("Failed to load default loadout:", error);
     }
   };
 
@@ -91,17 +108,57 @@ export default function PowerupsPage() {
     setEquippedPowerups(Array.from(allEquipped));
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm("Reset all equipped powerups? This will clear your current configuration.")) {
       setSlotConfig({});
       setEquippedPowerups([]);
+
+      // Save the empty state if we have a loadout ID
+      if (loadoutId) {
+        try {
+          await updateLoadout(loadoutId, {
+            slot_config: {},
+            equipped_powerups: []
+          });
+        } catch (error: any) {
+          console.error("Failed to save reset:", error);
+        }
+      }
     }
   };
 
   const handleSave = async () => {
-    // TODO: Save to default loadout
-    console.log("Saving loadout:", { slotConfig, equippedPowerups });
-    alert("Save functionality will be implemented soon!");
+    setSaving(true);
+    try {
+      if (loadoutId) {
+        // Update existing loadout
+        await updateLoadout(loadoutId, {
+          slot_config: slotConfig,
+          equipped_powerups: equippedPowerups
+        });
+      } else {
+        // Create new default loadout
+        const newLoadout = await createLoadout({
+          name: 'Default Loadout',
+          is_default: true,
+          slot_config: slotConfig,
+          equipped_powerups: equippedPowerups
+        });
+        setLoadoutId(newLoadout.id);
+      }
+
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+      successDiv.textContent = '✓ Loadout saved successfully!';
+      document.body.appendChild(successDiv);
+      setTimeout(() => successDiv.remove(), 3000);
+    } catch (error: any) {
+      console.error("Failed to save loadout:", error);
+      alert("Failed to save loadout: " + error.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -150,6 +207,7 @@ export default function PowerupsPage() {
                 onSave={handleSave}
                 onReset={handleReset}
                 hasChanges={Object.keys(slotConfig).length > 0}
+                saving={saving}
               />
             </div>
           </div>
