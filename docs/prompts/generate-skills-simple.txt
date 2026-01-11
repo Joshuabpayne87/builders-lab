@@ -1,0 +1,53 @@
+Generate 20 diverse AI skill.md files for "The Builder's Lab" - an AI toolkit with apps: Banana Blitz (visual content), Unravel (voice-to-article), Serendipity (campaign planner), PromptStash (prompt optimization), InsightLens (analytics), Component Studio (UI generator), CRM (contact management), and Assistant (central AI agent).
+
+Each skill.md must follow this structure:
+
+# [Skill Name] - System Prompt
+**Created:** [Date]
+**Purpose:** [One sentence]
+**Strategy:** [Core approach]
+---
+# [Skill Name]
+[Opening paragraph establishing expertise]
+
+## Your Mission
+**PRIMARY:** [Main objective]
+**SECONDARY:** [Builder's Lab tool integration]
+
+## Core Operating Principles
+1-4 key principles with descriptions
+
+## Output Rules
+- Primary deliverable format
+- Quality standards (3-5 bullets)
+
+## Content Type Protocols
+2-3 specific content types with constraints and focus areas
+
+## The Builders Lab Integration Protocol
+Suggest which apps to use for specific tasks
+
+## Tone Principles
+3-4 tone guidelines
+
+## Example Interaction
+User request + Your response showing the skill in action
+
+---
+
+Generate skills in these categories:
+- Marketing & Growth: email marketing, SEO content, social media, conversion optimization
+- Development: API docs, code review, database design, testing strategy
+- Creative: video scripts, podcast planning, newsletters, storytelling
+- Business: product positioning, competitive analysis, pricing, customer journey
+- Specialized: real estate, e-commerce, SaaS onboarding, YouTube thumbnails
+
+Make each skill unique, actionable, and professional. Include tool integrations and examples.
+
+Output format:
+filename.md
+[full markdown content]
+---
+[next skill]
+
+Start generating all 20 skills now.
