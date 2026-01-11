@@ -47,6 +47,19 @@ export async function getPowerup(id: string): Promise<Powerup> {
   return data.powerup;
 }
 
+export async function getManyPowerups(ids: string[]): Promise<Powerup[]> {
+  if (ids.length === 0) return [];
+
+  // Fetch multiple powerups
+  const promises = ids.map(id => getPowerup(id).catch(err => {
+    console.error(`Failed to fetch powerup ${id}:`, err);
+    return null;
+  }));
+
+  const results = await Promise.all(promises);
+  return results.filter((p): p is Powerup => p !== null);
+}
+
 export async function createPowerup(params: CreatePowerupParams): Promise<Powerup> {
   const res = await fetch('/api/powerups', {
     method: 'POST',

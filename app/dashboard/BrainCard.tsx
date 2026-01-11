@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Brain, Zap, ArrowRight, Sparkles } from "lucide-react";
+import { Brain, Zap, ArrowRight, Sparkles, FileText } from "lucide-react";
 import Link from "next/link";
 import { getDefaultLoadout } from "@/lib/loadout-client";
+import { getManyPowerups } from "@/lib/powerup-client";
 import type { Loadout } from "@/lib/loadout-service";
+import type { Powerup } from "@/lib/powerup-service";
 
 export function BrainCard() {
   const [loadout, setLoadout] = useState<Loadout | null>(null);
+  const [powerups, setPowerups] = useState<Powerup[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +18,12 @@ export function BrainCard() {
       try {
         const defaultLoadout = await getDefaultLoadout();
         setLoadout(defaultLoadout);
+
+        // Load equipped powerup details
+        if (defaultLoadout && defaultLoadout.equipped_powerups.length > 0) {
+          const powerupDetails = await getManyPowerups(defaultLoadout.equipped_powerups);
+          setPowerups(powerupDetails);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -90,12 +99,32 @@ export function BrainCard() {
                 </div>
               </div>
 
+              {/* Equipped Powerups List */}
+              {powerups.length > 0 && (
+                <div className="bg-black/20 rounded-lg p-2 border border-pink-500/10 max-h-32 overflow-y-auto scrollbar-thin">
+                  <div className="space-y-1">
+                    {powerups.map((powerup) => (
+                      <div
+                        key={powerup.id}
+                        className="flex items-center gap-2 bg-black/40 rounded-md px-2 py-1.5 hover:bg-black/60 transition-colors"
+                      >
+                        <span className="text-base flex-shrink-0">{powerup.icon || '⚡'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-white truncate">{powerup.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate capitalize">{powerup.powerup_type.toLowerCase()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Quick Action */}
               <Link
                 href="/powerups"
                 className="flex items-center justify-between p-3 bg-gradient-to-r from-pink-600/20 to-purple-600/20 rounded-lg border border-pink-500/30 hover:border-pink-500/50 transition-all group/btn"
               >
-                <span className="text-xs font-medium text-white">Full Brain Setup</span>
+                <span className="text-xs font-medium text-white">Manage Brain</span>
                 <ArrowRight className="w-3 h-3 text-pink-400 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
             </>
