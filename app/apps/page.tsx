@@ -34,12 +34,12 @@ export default async function AppsPage() {
     {
       name: "Funnels",
       tagline: "High-Converting Sales Architect",
-      description: "Design and build professional sales funnels using the BMaD method. From core offer strategy to live React-based landing pages that automatically capture leads into your CRM.",
+      description: "Design and build professional sales funnels. From core offer strategy to live React-based landing pages that automatically capture leads into your CRM.",
       icon: LayoutGrid,
       href: "/apps/funnels",
       image: "/app-cards/serendipity.png",
       features: [
-        "Strict BMaD workflow enforcement",
+        "Strict workflow enforcement",
         "AI-driven sales copy generation",
         "Live Sandbox preview engine",
         "Native CRM lead integration",

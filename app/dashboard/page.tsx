@@ -27,7 +27,7 @@ import { CalendarWidget } from "./CalendarWidget";
 import { Suspense } from "react";
 import { ExitIntentModal } from "../components/ExitIntentModal";
 
-import { RecentWorkflows } from "./RecentWorkflows";
+import { FunnelCard } from "./FunnelCard";
 import { BrainCard } from "./BrainCard";
 import { Scratchpad } from "./Scratchpad";
 
@@ -315,7 +315,7 @@ export default async function DashboardPage() {
           {/* Quick Stats / Action Center */}
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="h-40">
-              <RecentWorkflows />
+              <FunnelCard />
             </div>
             <div className="h-40">
               <BrainCard />
