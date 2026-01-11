@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       contents: history,
     });
 
-    const responseText = result.response.text();
+    const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     return NextResponse.json({ content: responseText });
   } catch (error) {
