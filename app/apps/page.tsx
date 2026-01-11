@@ -32,6 +32,21 @@ export default async function AppsPage() {
 
   const apps = [
     {
+      name: "Funnels",
+      tagline: "High-Converting Sales Architect",
+      description: "Design and build professional sales funnels using the BMaD method. From core offer strategy to live React-based landing pages that automatically capture leads into your CRM.",
+      icon: LayoutGrid,
+      href: "/apps/funnels",
+      image: "/app-cards/serendipity.png",
+      features: [
+        "Strict BMaD workflow enforcement",
+        "AI-driven sales copy generation",
+        "Live Sandbox preview engine",
+        "Native CRM lead integration",
+        "Multi-step funnel architecture",
+      ],
+    },
+    {
       name: "Banana Blitz",
       tagline: "Social Media Image Factory",
       description: "Create eye-catching social media graphics in seconds. Input your concept, get AI-enhanced prompts, and generate stunning images. Perfect for Instagram, Twitter, LinkedIn, and more.",
