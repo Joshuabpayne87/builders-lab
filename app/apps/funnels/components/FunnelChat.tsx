@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Paperclip } from 'lucide-react';
+import { useFunnel } from '../FunnelContext';
 
 interface Message {
   id: string;
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export default function FunnelChat() {
+  const { setStrategyDoc, setStage } = useFunnel();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -17,62 +19,74 @@ export default function FunnelChat() {
       content: "Welcome to Funnels. I'm your Sales Architect. Let's build a high-converting funnel. To start, tell me: **What is the core offer you want to sell?**"
     }
   ]);
-    const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-    const scrollToBottom = () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-  
-    useEffect(() => {
-      scrollToBottom();
-    }, [messages, isLoading]);
-  
-    const handleSend = async () => {
-      if (!input.trim() || isLoading) return;
-      
-      // Add User Message
-      const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input };
-      setMessages(prev => [...prev, userMsg]);
-      setInput('');
-      setIsLoading(true);
-  
-      try {
-        // Call the API
-        const response = await fetch('/api/funnels/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: [...messages, userMsg] }),
-        });
-  
-        if (!response.ok) throw new Error('Failed to fetch response');
-  
-        const data = await response.json();
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    // Add User Message
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      // Call the API
+      const response = await fetch('/api/funnels/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMsg] }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch response');
+
+      const data = await response.json();
+      let aiContent = data.content;
+
+      // Check for Strategy Updates
+      const strategyMatch = aiContent.match(/\[UPDATE_STRATEGY\]([\s\S]*?)\[\/UPDATE_STRATEGY\]/);
+      if (strategyMatch) {
+        const strategyText = strategyMatch[1].trim();
+        setStrategyDoc(strategyText);
+        setStage('STRATEGY'); // Advance stage
         
-        const aiMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.content
-        };
-  
-        setMessages(prev => [...prev, aiMsg]);
-      } catch (error) {
-        console.error('Chat error:', error);
-        // Fallback error message
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: "I'm having trouble connecting to the server. Please try again."
-        }]);
-      } finally {
-        setIsLoading(false);
+        // Remove the block from the chat display to keep it clean
+        aiContent = aiContent.replace(/\[UPDATE_STRATEGY\][\s\S]*?\[\/UPDATE_STRATEGY\]/, '').trim();
+        if (!aiContent) aiContent = "I've drafted the strategy document for you. Check the panel to the right.";
       }
-    };
-  
-    return (
-      <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800">
-        {/* Header */}
+      
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiContent
+      };
+
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Fallback error message
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm having trouble connecting to the server. Please try again."
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800">        {/* Header */}
         <div className="p-4 border-b border-slate-800 bg-slate-950/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-indigo-600/20 rounded-lg">

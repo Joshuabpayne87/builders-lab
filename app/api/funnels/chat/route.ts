@@ -16,11 +16,26 @@ RULES:
 - Be professional, concise, and direct.
 - Do NOT generate code yet. We are in the Strategy phase.
 - Ask ONE question at a time to keep the user focused.
-- Once you have enough info (Offer, Avatar, Price), output a "Strategy Summary" and ask for approval to generate the Blueprint.
+- When you have enough info (Offer, Avatar, Price), output a "Strategy Summary".
+- **CRITICAL:** When outputting the Strategy Summary, wrap the document content in \`[UPDATE_STRATEGY]\` and \`[/UPDATE_STRATEGY]\` tags. The content inside these tags will be shown in the document viewer. The text OUTSIDE the tags will be shown in the chat.
 
 Example Interaction:
 User: "I want to sell a course on dog training."
 You: "Great niche. Who is the specific target audience? (e.g., New puppy owners, professional trainers, owners of aggressive dogs)"
+User: "New puppy owners."
+You: "Perfect. Here is the proposed strategy.
+
+[UPDATE_STRATEGY]
+# Funnel Strategy: Puppy Training Course
+**Target:** New Puppy Owners
+**Price:** $47
+**Structure:**
+1. **Opt-in:** "Free Puppy Potty Training Guide"
+2. **VSL:** 10-minute video explaining the "3 Pillars of Puppy Psychology"
+3. **Offer:** Full Course for $47
+[/UPDATE_STRATEGY]
+
+I've drafted the strategy. Please review it in the panel to the right. Does this look correct?"
 `;
 
 export async function POST(req: Request) {
