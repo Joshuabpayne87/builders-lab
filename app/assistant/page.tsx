@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Send, Bot, User, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, Palette } from "lucide-react";
 import { chatWithAgent } from "./actions";
 import { toast } from "sonner";
 import { getUpcomingTasks, getIncompleteTasks } from "@/lib/calendar-client";
 import { useRouter } from "next/navigation";
 import { Calendar, AlertTriangle, ArrowRight } from "lucide-react";
+import { useAgentTheme } from "@/lib/hooks/useAgentTheme";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,6 +17,7 @@ interface Message {
 
 export default function AssistantPage() {
   const router = useRouter();
+  const { theme, loading: themeLoading } = useAgentTheme();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -115,29 +117,141 @@ export default function AssistantPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
-      {/* Background Effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_55%)]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0F10]"></div>
+  // Theme helper functions
+  const getAvatarClassName = () => {
+    switch (theme.layout.avatarStyle) {
+      case 'circular':
+        return 'rounded-full';
+      case 'square':
+        return 'rounded-lg';
+      case 'hexagon':
+        return 'rounded-lg rotate-45';
+      case 'none':
+        return 'hidden';
+      default:
+        return 'rounded-full';
+    }
+  };
+
+  const getSpacingValue = () => {
+    switch (theme.layout.spacing) {
+      case 'compact':
+        return 'space-y-2';
+      case 'comfortable':
+        return 'space-y-4';
+      case 'spacious':
+        return 'space-y-6';
+      default:
+        return 'space-y-4';
+    }
+  };
+
+  const getBubbleStyle = (isUser: boolean) => {
+    const baseStyle: React.CSSProperties = {
+      backgroundColor: isUser ? theme.colors.userMessage : theme.colors.aiMessage,
+      color: theme.colors.text,
+      boxShadow: theme.effects.shadows ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+      backdropFilter: theme.effects.glassEffect ? 'blur(10px)' : 'none',
+      transition: theme.effects.animations ? 'all 0.2s ease' : 'none'
+    };
+
+    switch (theme.layout.messageStyle) {
+      case 'bubbles':
+        return {
+          ...baseStyle,
+          borderRadius: '1.5rem',
+          padding: '0.75rem 1rem'
+        };
+      case 'cards':
+        return {
+          ...baseStyle,
+          borderRadius: '0.75rem',
+          padding: '1rem',
+          border: `1px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}40`
+        };
+      case 'minimal':
+        return {
+          ...baseStyle,
+          borderRadius: '0.5rem',
+          padding: '0.5rem 0.75rem',
+          backgroundColor: 'transparent',
+          border: `1px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}60`
+        };
+      case 'notion-style':
+        return {
+          ...baseStyle,
+          borderRadius: '0.375rem',
+          padding: '0.75rem',
+          backgroundColor: isUser ? theme.colors.userMessage + '10' : 'transparent',
+          borderLeft: `3px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}`
+        };
+      default:
+        return baseStyle;
+    }
+  };
+
+  if (themeLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.background }}>
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4" style={{ color: theme.colors.primary }} />
+          <p style={{ color: theme.colors.text }}>Loading your theme...</p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundColor: theme.colors.background,
+        color: theme.colors.text,
+        fontFamily: theme.typography.fontFamily,
+        fontSize: theme.typography.fontSize,
+        lineHeight: theme.typography.lineHeight
+      }}
+    >
+      {/* Background Effects */}
+      {theme.effects.gradients && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_55%)]"></div>
+        </div>
+      )}
 
       {/* Navigation */}
-      <nav className="relative z-10 border-b border-white/5 bg-black/50 backdrop-blur-xl">
+      <nav
+        className="relative z-10 border-b"
+        style={{
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.primary + '40',
+          backdropFilter: theme.effects.glassEffect ? 'blur(10px)' : 'none'
+        }}
+      >
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 transition-colors hover:opacity-80"
+            style={{ color: theme.colors.text }}
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm">Back to Dashboard</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-white/80" />
-            <h1 className="text-lg font-semibold tracking-tight">AI Agent</h1>
+            <Sparkles className="w-5 h-5" style={{ color: theme.colors.secondary }} />
+            <h1 className="text-lg font-semibold tracking-tight" style={{ color: theme.colors.text }}>AI Agent</h1>
           </div>
-          <div className="w-32" />
+          <Link
+            href="/customize-agent"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+            style={{
+              backgroundColor: theme.colors.background + '40',
+              color: theme.colors.text
+            }}
+          >
+            <Palette className="w-4 h-4" />
+            <span className="text-xs font-medium">Customize</span>
+          </Link>
         </div>
       </nav>
 
@@ -152,21 +266,36 @@ export default function AssistantPage() {
             </div>
             <div className="space-y-2">
               {incomplete.slice(0, 3).map(task => (
-                <div key={task.id} className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between p-3 rounded-xl border group hover:border-opacity-50 transition-all"
+                  style={{
+                    backgroundColor: theme.colors.background + '40',
+                    borderColor: theme.colors.primary + '20'
+                  }}
+                >
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white">{task.title}</span>
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">{task.platform} // {task.content_type?.replace('_', ' ')}</span>
+                    <span className="text-sm font-medium" style={{ color: theme.colors.text }}>{task.title}</span>
+                    <span className="text-[10px] opacity-60 uppercase tracking-widest" style={{ color: theme.colors.text }}>{task.platform} // {task.content_type?.replace('_', ' ')}</span>
                   </div>
                   <button
                     onClick={() => handleCreateContent(task)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold hover:opacity-80 transition-all"
+                    style={{
+                      backgroundColor: theme.colors.primary,
+                      color: theme.colors.text
+                    }}
                   >
                     Create <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
               ))}
               {incomplete.length > 3 && (
-                <Link href="/calendar" className="block text-center text-[10px] font-bold text-slate-500 hover:text-white transition-colors uppercase pt-1">
+                <Link
+                  href="/calendar"
+                  className="block text-center text-[10px] font-bold hover:opacity-80 transition-colors uppercase pt-1"
+                  style={{ color: theme.colors.text + '80' }}
+                >
                   View all {incomplete.length} overdue tasks
                 </Link>
               )}
@@ -175,42 +304,69 @@ export default function AssistantPage() {
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex gap-3 ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {message.role === "assistant" && (
-                <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-5 h-5 text-white/80" />
-                </div>
-              )}
+        <div className={`flex-1 overflow-y-auto mb-4 ${getSpacingValue()} scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent`}>
+          {messages.map((message, index) => {
+            const isUser = message.role === "user";
+            return (
               <div
-                className={`max-w-[70%] rounded-xl px-4 py-3 ${
-                  message.role === "user"
-                    ? "bg-white text-black"
-                    : "bg-black/30 border border-white/10 text-slate-200"
-                }`}
+                key={index}
+                className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
               >
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
-              </div>
-              {message.role === "user" && (
-                <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-white/80" />
+                {theme.layout.avatarStyle !== 'none' && (
+                  <div
+                    className={`w-9 h-9 flex-shrink-0 flex items-center justify-center ${getAvatarClassName()}`}
+                    style={{
+                      background: theme.effects.gradients && !isUser
+                        ? `linear-gradient(135deg, ${theme.colors.accent}, ${theme.colors.secondary})`
+                        : isUser ? theme.colors.userMessage : theme.colors.accent
+                    }}
+                  >
+                    {theme.layout.avatarStyle === 'hexagon' ? (
+                      <div className="-rotate-45">
+                        {isUser ? (
+                          <User className="w-5 h-5" style={{ color: theme.colors.text }} />
+                        ) : (
+                          <Bot className="w-5 h-5" style={{ color: theme.colors.text }} />
+                        )}
+                      </div>
+                    ) : (
+                      isUser ? (
+                        <User className="w-5 h-5" style={{ color: theme.colors.text }} />
+                      ) : (
+                        <Bot className="w-5 h-5" style={{ color: theme.colors.text }} />
+                      )
+                    )}
+                  </div>
+                )}
+                <div className="flex-1 max-w-[70%]">
+                  <div style={getBubbleStyle(isUser)}>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
           {loading && (
             <div className="flex gap-3 justify-start">
-              <div className="w-9 h-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-5 h-5 text-white/80" />
-              </div>
-              <div className="bg-black/30 border border-white/10 rounded-xl px-4 py-3">
-                <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+              {theme.layout.avatarStyle !== 'none' && (
+                <div
+                  className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${getAvatarClassName()}`}
+                  style={{
+                    background: theme.effects.gradients
+                      ? `linear-gradient(135deg, ${theme.colors.accent}, ${theme.colors.secondary})`
+                      : theme.colors.accent
+                  }}
+                >
+                  <Bot className="w-5 h-5" style={{ color: theme.colors.text }} />
+                </div>
+              )}
+              <div style={{
+                ...getBubbleStyle(false),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: theme.colors.text }} />
               </div>
             </div>
           )}
@@ -218,7 +374,14 @@ export default function AssistantPage() {
         </div>
 
         {/* Input */}
-        <div className="bg-black/30 border border-white/10 rounded-xl p-4 backdrop-blur-sm">
+        <div
+          className="rounded-xl p-4"
+          style={{
+            backgroundColor: theme.colors.aiMessage,
+            border: `1px solid ${theme.colors.primary}40`,
+            backdropFilter: theme.effects.glassEffect ? 'blur(10px)' : 'none'
+          }}
+        >
           <div className="flex gap-3">
             <input
               type="text"
@@ -226,13 +389,23 @@ export default function AssistantPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder="Ask me about anything you've built..."
-              className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
+              className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 transition-all"
+              style={{
+                backgroundColor: theme.colors.background,
+                color: theme.colors.text,
+                border: `1px solid ${theme.colors.primary}40`,
+              }}
               disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-lg font-semibold transition-all hover:opacity-80 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.text,
+                boxShadow: theme.effects.shadows ? '0 4px 6px rgba(0,0,0,0.1)' : 'none'
+              }}
             >
               <Send className="w-4 h-4" />
             </button>
