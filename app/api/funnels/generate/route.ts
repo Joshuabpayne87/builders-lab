@@ -55,7 +55,7 @@ form.addEventListener('submit', async (e) => {
   };
 
   try {
-    const response = await fetch('/api/funnels/submit', {
+    const response = await fetch(window.location.origin + '/api/funnels/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
