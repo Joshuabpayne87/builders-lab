@@ -134,22 +134,7 @@ export async function incrementSubmissionCount(funnelId: string): Promise<void> 
   });
 
   if (error) {
-    // Fallback: manual increment if RPC doesn't exist
-    const { data: funnel } = await supabase
-      .from("bl_funnels_projects")
-      .select("submission_count")
-      .eq("id", funnelId)
-      .single();
-
-    if (funnel) {
-      await supabase
-        .from("bl_funnels_projects")
-        .update({
-          submission_count: (funnel.submission_count || 0) + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", funnelId);
-    }
+    throw new Error(`Failed to increment submission count: ${error.message}`);
   }
 }
 
@@ -168,7 +153,11 @@ export async function isSlugAvailable(slug: string, excludeFunnelId?: string): P
     query = query.neq("id", excludeFunnelId);
   }
 
-  const { data } = await query.single();
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to check slug availability: ${error.message}`);
+  }
 
   return !data;
 }
