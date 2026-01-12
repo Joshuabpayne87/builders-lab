@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "temp_repos"
+    "temp_repos",
+    "plandex",
+    "scripts"
   ]
 }

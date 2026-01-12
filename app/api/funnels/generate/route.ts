@@ -102,125 +102,33 @@ FORM STRUCTURE:
 - Handle errors gracefully with inline error messages
 
 ANIMATION EXAMPLES:
-```css
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
-}
-```
+CSS animations to use:
+- fadeInUp: opacity 0 to 1, translateY 30px to 0
+- gradient: background-position animation for gradient effects
+- Use animation classes like animate-fadeInUp and animate-gradient
+- Smooth transitions with duration-300 or duration-500
 
 EXAMPLE RESPONSIVE BUTTON:
-```html
-<button class="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 min-h-[44px]">
-  <span class="relative z-10">Get Started</span>
-  <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-</button>
-```
+Use classes: w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 min-h-[44px]
 
 EXAMPLE RESPONSIVE CARD:
-```html
-<div class="group p-6 sm:p-8 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-gray-200/50 transform hover:-translate-y-2 transition-all duration-300">
-  <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-2xl sm:text-3xl mb-4">
-    ✨
-  </div>
-  <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">Feature Title</h3>
-  <p class="text-sm sm:text-base text-gray-600">Feature description with clear benefits.</p>
-</div>
-```
+Use classes: p-6 sm:p-8 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-gray-200/50 transform hover:-translate-y-2 transition-all duration-300
 
 EXAMPLE RESPONSIVE HERO:
-```html
-<section class="relative min-h-screen flex items-center justify-center px-4 py-16 sm:py-20 md:py-24 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-      <div class="flex-1 text-center lg:text-left">
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 mb-4 sm:mb-6">
-          Your Headline
-        </h1>
-        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 mb-6 sm:mb-8">
-          Your subheadline
-        </p>
-        <button class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl">
-          Get Started
-        </button>
-      </div>
-      <div class="flex-1 w-full">
-        <!-- Hero image or illustration -->
-      </div>
-    </div>
-  </div>
-</section>
-```
+Use classes: min-h-screen flex items-center px-4 py-16 sm:py-20 md:py-24 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50
+Headline: text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold
+Subheadline: text-lg sm:text-xl md:text-2xl text-gray-600
+Layout: flex-col lg:flex-row for stacking on mobile, side-by-side on desktop
 
-CRITICAL: Include this exact JavaScript for form submission (with enhanced UX):
-
-\`\`\`javascript
-const FUNNEL_ID = '__FUNNEL_ID__';
-const form = document.getElementById('optinForm');
-const submitBtn = form.querySelector('button[type="submit"]');
-const originalBtnText = submitBtn.innerHTML;
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-
-  const formData = new FormData(form);
-  const data = {
-    funnelId: FUNNEL_ID,
-    name: formData.get('name'),
-    email: formData.get('email'),
-    phone: formData.get('phone') || ''
-  };
-
-  try {
-    const response = await fetch(window.location.origin + '/api/funnels/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      form.innerHTML = '<div class="text-center p-8 sm:p-12 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 animate-fadeInUp"><div class="text-5xl sm:text-6xl mb-4">🎉</div><h3 class="text-2xl sm:text-3xl font-bold text-green-900 mb-3">Success!</h3><p class="text-base sm:text-lg text-green-700">Thank you for signing up. We\\'ll be in touch soon!</p></div>';
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
-  } catch (error) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm';
-    errorDiv.textContent = 'Something went wrong. Please try again.';
-    form.appendChild(errorDiv);
-
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-
-    setTimeout(() => errorDiv.remove(), 5000);
-  }
-});
-\`\`\`
+// Form submission handler with enhanced UX:
+// - Retrieves FUNNEL_ID from __FUNNEL_ID__ placeholder
+// - Targets form element with ID 'optinForm'
+// - On form submit: prevents default behavior, disables submit button, displays animated loading spinner
+// - Collects form data (name, email, phone) using FormData API
+// - Sends POST request to /api/funnels/submit endpoint with funnelId and form data as JSON
+// - On successful response: replaces entire form with animated success message featuring celebration emoji
+// - On error: displays error message below form, re-enables submit button, auto-removes error after 5 seconds
+// - Implements proper error handling with try-catch and user-friendly error messaging
 
 OUTPUT REQUIREMENTS:
 - Return ONLY the complete HTML code
@@ -233,121 +141,11 @@ OUTPUT REQUIREMENTS:
 
 Now generate the stunning, mobile-first landing page based on the strategy provided:
 `;
-- Submit button should disable during submission with loading state
-- Show animated success message after submission
-- Handle errors gracefully with inline error messages
-
-ANIMATION EXAMPLES:
-\`\`\`css
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes gradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
-}
-\`\`\`
-
-EXAMPLE BUTTON STYLES:
-\`\`\`html
-<button class="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
-  <span class="relative z-10">Get Started</span>
-  <div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-</button>
-\`\`\`
-
-EXAMPLE CARD STYLES:
-\`\`\`html
-<div class="group p-8 bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl hover:shadow-2xl border border-gray-200/50 transform hover:-translate-y-2 transition-all duration-300">
-  <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-2xl mb-4">
-    ✨
-  </div>
-  <h3 class="text-xl font-bold text-gray-900 mb-2">Feature Title</h3>
-  <p class="text-gray-600">Feature description with clear benefits.</p>
-</div>
-\`\`\`
-
-CRITICAL: Include this exact JavaScript for form submission (with enhanced UX):
-
-\`\`\`javascript
-const FUNNEL_ID = '__FUNNEL_ID__';
-const form = document.getElementById('optinForm');
-const submitBtn = form.querySelector('button[type="submit"]');
-const originalBtnText = submitBtn.innerHTML;
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-
-  const formData = new FormData(form);
-  const data = {
-    funnelId: FUNNEL_ID,
-    name: formData.get('name'),
-    email: formData.get('email'),
-    phone: formData.get('phone') || ''
-  };
-
-  try {
-    const response = await fetch(window.location.origin + '/api/funnels/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      form.innerHTML = '<div class="text-center p-12 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200 animate-fadeInUp"><div class="text-6xl mb-4">🎉</div><h3 class="text-3xl font-bold text-green-900 mb-3">Success!</h3><p class="text-lg text-green-700">Thank you for signing up. We\\'ll be in touch soon!</p></div>';
-    } else {
-      throw new Error(result.error || 'Submission failed');
-    }
-  } catch (error) {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm';
-    errorDiv.textContent = 'Something went wrong. Please try again.';
-    form.appendChild(errorDiv);
-
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
-
-    setTimeout(() => errorDiv.remove(), 5000);
-  }
-});
-\`\`\`
-
-OUTPUT REQUIREMENTS:
-- Return ONLY the complete HTML code
-- No markdown code blocks, no explanations
-- Production-ready, zero modifications needed
-- Must look premium and professional
-- Must be fully responsive
-- Must include smooth animations and transitions
-
-Now generate the stunning landing page based on the strategy provided:
-`;
 
 export async function POST(req: Request) {
   try {
-    const { strategyDoc, title }: GenerateCodeRequest = await req.json();
+    const body: GenerateCodeRequest = await req.json();
+    const { strategyDoc, title } = body;
 
     if (!strategyDoc || !title) {
       return NextResponse.json(

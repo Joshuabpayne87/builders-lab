@@ -149,18 +149,9 @@ You: "Perfect. I'll design a direct-signup funnel for freelancers. What type of 
 User: "Web developers, too much admin work"
 You: "Got it. Building your strategy now..."
 
-[Then output the FULL detailed strategy with actual copy, followed by [GENERATE_PAGE] tag]
+Then output the FULL detailed strategy with actual copy, followed by the [GENERATE_PAGE] tag.
 
 Remember: You're architecting a conversion machine. Be decisive. Provide real copy. Move fast. The [GENERATE_PAGE] tag will automatically turn your strategy into a live page.
-`;
-
-
-User: "Web developers, too much admin work"
-You: "Got it. Building your strategy now..."
-
-[Then output the FULL detailed strategy with actual copy]
-
-Remember: You're architecting a conversion machine. Be decisive. Provide real copy. Move fast. The "Generate Landing Page" button will turn your strategy into a live page.
 `;
 
 export async function POST(req: Request) {
