@@ -53,6 +53,7 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       submissionCount,
       setSubmissionCount,
     }),
+    // Setter functions from useState are stable and don't need to be in deps
     [
       stage,
       strategyDoc,
