@@ -1,8 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-type FunnelStage = 'IDEA' | 'STRATEGY' | 'BLUEPRINT' | 'CODE';
+import type { FunnelStage } from './types';
 
 interface FunnelContextType {
   stage: FunnelStage;
