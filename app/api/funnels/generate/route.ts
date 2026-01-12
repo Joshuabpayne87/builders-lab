@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    let htmlCode = result.response.text() || "";
+    let htmlCode = result.text || "";
 
     htmlCode = htmlCode.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
 
