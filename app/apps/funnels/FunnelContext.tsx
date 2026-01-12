@@ -34,6 +34,18 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
   const [deployedSlug, setDeployedSlug] = useState<string | null>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
 
+  // Wrapper to log deployed URL changes
+  const setDeployedUrlWithLog = (url: string | null) => {
+    console.log('[FUNNEL CONTEXT] Setting deployed URL:', url);
+    setDeployedUrl(url);
+  };
+
+  // Wrapper to log deployed slug changes
+  const setDeployedSlugWithLog = (slug: string | null) => {
+    console.log('[FUNNEL CONTEXT] Setting deployed slug:', slug);
+    setDeployedSlug(slug);
+  };
+
   const value = useMemo(
     () => ({
       stage,
@@ -47,9 +59,9 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
       funnelId,
       setFunnelId,
       deployedUrl,
-      setDeployedUrl,
+      setDeployedUrl: setDeployedUrlWithLog,
       deployedSlug,
-      setDeployedSlug,
+      setDeployedSlug: setDeployedSlugWithLog,
       submissionCount,
       setSubmissionCount,
     }),

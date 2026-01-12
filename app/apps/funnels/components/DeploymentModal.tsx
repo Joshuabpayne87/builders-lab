@@ -22,35 +22,48 @@ export default function DeploymentModal({ isOpen, onClose, htmlCode, funnelId }:
   const handleDeploy = async () => {
     if (!funnelId) {
       setError('No funnel ID found');
+      console.error('[DEPLOY MODAL] No funnel ID');
       return;
     }
+
+    console.log('[DEPLOY MODAL] Starting deployment:', { funnelId, slug: slug || 'auto-generate', htmlCodeLength: htmlCode?.length });
 
     setIsDeploying(true);
     setError('');
 
     try {
+      const payload = {
+        funnelId,
+        slug: slug || undefined,
+        htmlCode,
+      };
+
+      console.log('[DEPLOY MODAL] Sending request:', { funnelId, slug: payload.slug, htmlCodeLength: htmlCode.length });
+
       const response = await fetch('/api/funnels/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          funnelId,
-          slug: slug || undefined,
-          htmlCode,
-        }),
+        body: JSON.stringify(payload),
       });
 
+      console.log('[DEPLOY MODAL] Response status:', response.status);
+
       const data = await response.json();
+
+      console.log('[DEPLOY MODAL] Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Deployment failed');
       }
 
       if (data.success) {
+        console.log('[DEPLOY MODAL] Deployment successful:', { deployedUrl: data.deployedUrl, slug: data.slug });
         setDeployedUrl(data.deployedUrl);
         setDeployedSlug(data.slug);
         onClose();
       }
     } catch (err: any) {
+      console.error('[DEPLOY MODAL] Error:', err);
       setError(err.message || 'Failed to deploy');
     } finally {
       setIsDeploying(false);

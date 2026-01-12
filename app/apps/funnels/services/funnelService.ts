@@ -108,6 +108,8 @@ export async function updateFunnel(
 
   if (!user) throw new Error("Unauthorized");
 
+  console.log('[FUNNEL SERVICE] Updating funnel:', { funnelId, fields: Object.keys(formData) });
+
   const { data, error } = await supabase
     .from("bl_funnels_projects")
     .update({
@@ -119,7 +121,12 @@ export async function updateFunnel(
     .select()
     .single();
 
-  if (error) throw new Error(`Failed to update funnel: ${error.message}`);
+  if (error) {
+    console.error('[FUNNEL SERVICE] Update failed:', error);
+    throw new Error(`Failed to update funnel: ${error.message}`);
+  }
+
+  console.log('[FUNNEL SERVICE] Update successful:', { id: data.id, domain_slug: data.domain_slug });
   return data as Funnel;
 }
 
