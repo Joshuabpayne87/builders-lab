@@ -12,6 +12,14 @@ interface FunnelContextType {
   setGeneratedCode: (code: string) => void;
   isGenerating: boolean;
   setIsGenerating: (is: boolean) => void;
+  funnelId: string | null;
+  setFunnelId: (id: string | null) => void;
+  deployedUrl: string | null;
+  setDeployedUrl: (url: string | null) => void;
+  deployedSlug: string | null;
+  setDeployedSlug: (slug: string | null) => void;
+  submissionCount: number;
+  setSubmissionCount: (count: number) => void;
 }
 
 const FunnelContext = createContext<FunnelContextType | undefined>(undefined);
@@ -21,6 +29,10 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
   const [strategyDoc, setStrategyDoc] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [funnelId, setFunnelId] = useState<string | null>(null);
+  const [deployedUrl, setDeployedUrl] = useState<string | null>(null);
+  const [deployedSlug, setDeployedSlug] = useState<string | null>(null);
+  const [submissionCount, setSubmissionCount] = useState(0);
 
   return (
     <FunnelContext.Provider
@@ -32,7 +44,15 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
         generatedCode,
         setGeneratedCode,
         isGenerating,
-        setIsGenerating
+        setIsGenerating,
+        funnelId,
+        setFunnelId,
+        deployedUrl,
+        setDeployedUrl,
+        deployedSlug,
+        setDeployedSlug,
+        submissionCount,
+        setSubmissionCount
       }}
     >
       {children}
