@@ -1,6 +1,6 @@
 // Funnel Type Definitions
 
-export type FunnelStage = 'IDEA' | 'STRATEGY' | 'CONTENT' | 'BUILD' | 'QA' | 'PUBLISHED';
+export type FunnelStage = 'IDEA' | 'STRATEGY' | 'BLUEPRINT' | 'CODE';
 export type FunnelStatus = 'draft' | 'published' | 'archived';
 
 export interface Funnel {
@@ -41,17 +41,17 @@ export interface GenerateCodeRequest {
 
 export interface GenerateCodeResponse {
   htmlCode: string;
+  success: boolean;
 }
 
 export interface DeployFunnelRequest {
-  name: string;
+  funnelId: string;
   slug?: string;
   htmlCode: string;
-  strategyDoc: string;
 }
 
 export interface DeployFunnelResponse {
-  funnelId: string;
-  url: string;
+  success: boolean;
+  deployedUrl: string;
   slug: string;
 }
