@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 import type { FunnelStage } from './types';
 
 interface FunnelContextType {
@@ -34,27 +34,39 @@ export function FunnelProvider({ children }: { children: ReactNode }) {
   const [deployedSlug, setDeployedSlug] = useState<string | null>(null);
   const [submissionCount, setSubmissionCount] = useState(0);
 
+  const value = useMemo(
+    () => ({
+      stage,
+      setStage,
+      strategyDoc,
+      setStrategyDoc,
+      generatedCode,
+      setGeneratedCode,
+      isGenerating,
+      setIsGenerating,
+      funnelId,
+      setFunnelId,
+      deployedUrl,
+      setDeployedUrl,
+      deployedSlug,
+      setDeployedSlug,
+      submissionCount,
+      setSubmissionCount,
+    }),
+    [
+      stage,
+      strategyDoc,
+      generatedCode,
+      isGenerating,
+      funnelId,
+      deployedUrl,
+      deployedSlug,
+      submissionCount,
+    ]
+  );
+
   return (
-    <FunnelContext.Provider
-      value={{
-        stage,
-        setStage,
-        strategyDoc,
-        setStrategyDoc,
-        generatedCode,
-        setGeneratedCode,
-        isGenerating,
-        setIsGenerating,
-        funnelId,
-        setFunnelId,
-        deployedUrl,
-        setDeployedUrl,
-        deployedSlug,
-        setDeployedSlug,
-        submissionCount,
-        setSubmissionCount
-      }}
-    >
+    <FunnelContext.Provider value={value}>
       {children}
     </FunnelContext.Provider>
   );
