@@ -16,7 +16,7 @@ export default function FunnelChat() {
     {
       id: '1',
       role: 'assistant',
-      content: "Welcome to Funnels. I'm your Sales Architect. Let's build a high-converting funnel. To start, tell me: **What is the core offer you want to sell?**"
+      content: "👋 Welcome to The Builder's Lab Funnel Builder. I'm your Conversion Strategist.\n\nI'll help you architect a high-converting landing page that captures leads and drives sales. Let's start with the fundamentals:\n\n**What are you selling?** (Be specific - product, service, membership, course, etc.)"
     }
   ]);
   const [input, setInput] = useState('');
