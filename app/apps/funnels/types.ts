@@ -8,7 +8,7 @@ export interface Funnel {
   user_id: string;
   name: string;
   domain_slug: string | null;
-  current_stage: 'IDEA' | 'STRATEGY' | 'CONTENT' | 'BUILD' | 'QA' | 'PUBLISHED';
+  current_stage: FunnelStage;
   offer_details: Record<string, any> | null;
   html_code: string | null;
   strategy_doc: string | null;
