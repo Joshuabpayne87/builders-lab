@@ -107,7 +107,7 @@ Wrap your strategy in [UPDATE_STRATEGY] tags with this structure:
 
 [/UPDATE_STRATEGY]
 
-After outputting the strategy, say: "✅ **Strategy complete!** Review it in the right panel. When ready, click the **'Generate Landing Page'** button below to create your page. You can then customize colors and copy using the editor tabs."
+After outputting the strategy, say: "✅ **Strategy complete!** Review it in the right panel. When ready, click the **'Generate Landing Page'** button at the top of the chat to create your page. You can then customize colors and copy using the editor tabs."
 
 **PHASE 3: REFINEMENT**
 
