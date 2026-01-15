@@ -14,14 +14,16 @@ import {
   Shield,
   Briefcase,
   LayoutGrid,
-  Zap
+  Zap,
+  Video
 } from "lucide-react";
 import UsersList from "./components/UsersList";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import CRMManager from "./components/CRMManager";
 import DatabaseViewer from "./components/DatabaseViewer";
+import { WorkshopsManager } from "./components/WorkshopsManager";
 
-type AdminView = "analytics" | "users" | "crm" | "database";
+type AdminView = "analytics" | "users" | "crm" | "database" | "workshops";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -76,6 +78,7 @@ export default function AdminPage() {
     { id: "users", label: "Users", icon: Users },
     { id: "crm", label: "CRM Manager", icon: Briefcase },
     { id: "database", label: "Database", icon: Database },
+    { id: "workshops", label: "Workshops", icon: Video },
   ] as const;
 
   return (
@@ -157,6 +160,7 @@ export default function AdminPage() {
           {currentView === "users" && <UsersList />}
           {currentView === "crm" && <CRMManager />}
           {currentView === "database" && <DatabaseViewer />}
+          {currentView === "workshops" && <WorkshopsManager />}
         </div>
       </div>
     </div>

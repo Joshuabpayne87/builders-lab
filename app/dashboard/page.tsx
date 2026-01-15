@@ -30,6 +30,7 @@ import { ExitIntentModal } from "../components/ExitIntentModal";
 import { FunnelCard } from "./FunnelCard";
 import { BrainCard } from "./BrainCard";
 import { Scratchpad } from "./Scratchpad";
+import { WorkshopsWidget } from "./WorkshopsWidget";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -286,6 +287,14 @@ export default async function DashboardPage() {
 
           {/* Calendar Widget */}
           <CalendarWidget />
+        </div>
+
+        {/* Workshops Widget - Aligned under Calendar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+          <div className="hidden lg:block"></div>
+          <div className="lg:col-span-2">
+            <WorkshopsWidget />
+          </div>
         </div>
 
         {/* AI Assistant & Quick Stats */}
