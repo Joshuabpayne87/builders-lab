@@ -3,13 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle, AlertTriangle } from "lucide-react";
-
-const AUTHORIZED_REFERRERS = [
-  "https://topaitools.dev/#/portal/signup/6855cc19f0c9910008da8f33/monthly",
-  "https://topaitools.dev/#/portal/signup/6855cc19f0c9910008da8f33/yearly",
-  "topaitools.dev",
-];
+import { Sparkles, Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react";
 
 const ADMIN_EMAIL = "joshua@craftedmarketing.solutions";
 
@@ -25,36 +19,12 @@ function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
   useEffect(() => {
-    // Check if user came from authorized payment portal
-    const referrer = document.referrer;
-    const hasValidToken = searchParams.get("token") === process.env.NEXT_PUBLIC_SIGNUP_TOKEN;
-
-    // Check referrer or token
-    const authorized =
-      hasValidToken ||
-      AUTHORIZED_REFERRERS.some(auth => referrer.includes(auth)) ||
-      referrer === "" && process.env.NODE_ENV === "development"; // Allow in dev mode
-
-    setIsAuthorized(authorized);
-    setCheckingAuth(false);
-
-    // Pre-fill email if provided
     const emailParam = searchParams.get("email");
     if (emailParam) {
       setEmail(emailParam);
     }
   }, [searchParams]);
-
-  // Check if admin email is being used
-  useEffect(() => {
-    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-      setIsAuthorized(true);
-    }
-  }, [email]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +50,6 @@ function SignupForm() {
       return;
     }
 
-    if (!isAuthorized) {
-      setError("Unauthorized access. Please sign up through our payment portal.");
-      setLoading(false);
-      return;
-    }
-
     try {
       const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
@@ -93,7 +57,7 @@ function SignupForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/join`,
           data: {
             full_name: name,
             role: isAdmin ? "admin" : "user",
@@ -108,7 +72,7 @@ function SignupForm() {
         // If email confirmation is not required, redirect immediately
         if (data.session) {
           setTimeout(() => {
-            router.push(isAdmin ? "/admin" : "/dashboard");
+            router.push(isAdmin ? "/admin" : "/join");
           }, 2000);
         }
       }
@@ -118,20 +82,6 @@ function SignupForm() {
       setLoading(false);
     }
   };
-
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen bg-[#0A0A0A] text-white flex items-center justify-center p-6">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05),_transparent_55%)]"></div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0F0F10]"></div>
-        </div>
-        <div className="relative z-10">
-          <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -148,13 +98,13 @@ function SignupForm() {
             </div>
             <h1 className="text-2xl font-bold mb-3">Welcome, {name}!</h1>
             <p className="text-slate-400 mb-6">
-              Your account has been created. You're all set to start building.
+              Your account is ready. Finish checkout to unlock full access.
             </p>
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push(email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "/admin" : "/join")}
               className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
-              Go to Dashboard
+              Continue to Payment
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -184,24 +134,6 @@ function SignupForm() {
           </p>
         </div>
 
-        {!isAuthorized && (
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-semibold text-orange-400 mb-1">Unauthorized Access</h3>
-                <p className="text-xs text-orange-300/80">
-                  This page is only accessible after completing payment. Please{" "}
-                  <a href="/" className="underline hover:text-orange-200">
-                    return to the homepage
-                  </a>{" "}
-                  to sign up.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
           <form onSubmit={handleSignup} className="space-y-6">
             {/* Name Field */}
@@ -219,7 +151,6 @@ function SignupForm() {
                   placeholder="John Doe"
                   className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
                   required
-                  disabled={!isAuthorized}
                 />
               </div>
             </div>
@@ -239,7 +170,6 @@ function SignupForm() {
                   placeholder="you@example.com"
                   className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
                   required
-                  disabled={!isAuthorized}
                 />
               </div>
             </div>
@@ -259,7 +189,6 @@ function SignupForm() {
                   placeholder="Min. 6 characters"
                   className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
                   required
-                  disabled={!isAuthorized}
                 />
               </div>
             </div>
@@ -279,7 +208,6 @@ function SignupForm() {
                   placeholder="Confirm your password"
                   className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all"
                   required
-                  disabled={!isAuthorized}
                 />
               </div>
             </div>
@@ -294,7 +222,7 @@ function SignupForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !isAuthorized}
+              disabled={loading}
               className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
@@ -334,7 +262,7 @@ function SignupForm() {
         {/* Already have account */}
         <p className="text-center text-sm text-slate-500 mt-6">
           Already have an account?{" "}
-          <a href="/login" className="text-white hover:underline">
+          <a href="/auth/login" className="text-white hover:underline">
             Sign in
           </a>
         </p>

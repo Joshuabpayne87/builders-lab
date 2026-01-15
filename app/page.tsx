@@ -95,7 +95,7 @@ export default function HomePage() {
                 Join
               </Link>
               <Link
-                href="/login"
+                href="/auth/login"
                 className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg font-semibold transition-all hover:scale-105 flex items-center gap-2"
               >
                 Log In

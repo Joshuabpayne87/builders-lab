@@ -384,7 +384,7 @@ export default function LoginPage() {
               fontFamily: "'Ubuntu Mono', monospace"
             }}>
               Don't have an account?{' '}
-              <Link href="/auth/signup" style={{ color: '#4CAF50', textDecoration: 'none' }}>
+              <Link href="/signup" style={{ color: '#4CAF50', textDecoration: 'none' }}>
                 Sign up
               </Link>
             </p>

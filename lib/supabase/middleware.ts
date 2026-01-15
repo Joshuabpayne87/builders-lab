@@ -33,6 +33,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = request.nextUrl.pathname;
+
   // Public routes that don't require authentication
   const publicRoutes = [
     "/",
@@ -40,16 +42,17 @@ export async function updateSession(request: NextRequest) {
     "/api/resources",
     "/api/resources/page",
     "/api/test",
+    "/api/ghost/webhook",
+    "/api/membership/claim",
     "/signup",
-    "/login",
   ];
 
   const isPublicRoute = publicRoutes.some(route =>
-    request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(route + "/")
+    pathname === route || pathname.startsWith(route + "/")
   );
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith("/auth");
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isAuthRoute = pathname.startsWith("/auth");
+  const isAdminRoute = pathname.startsWith("/admin");
 
   // Check if user is admin
   const isAdmin = user?.user_metadata?.role === "admin";
@@ -62,7 +65,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect to dashboard if authenticated and trying to access auth routes
-  if (user && request.nextUrl.pathname.startsWith("/auth")) {
+  if (user && pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone();
     url.pathname = isAdmin ? "/admin" : "/dashboard";
     return NextResponse.redirect(url);
@@ -73,6 +76,33 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = user ? "/dashboard" : "/auth/login";
     return NextResponse.redirect(url);
+  }
+
+  const paidExemptRoutes = [
+    ...publicRoutes,
+    "/settings",
+  ];
+
+  const isPaidExemptRoute = paidExemptRoutes.some(route =>
+    pathname === route || pathname.startsWith(route + "/")
+  );
+
+  if (user && !isAdmin && !isPaidExemptRoute) {
+    const { data: membership } = await supabase
+      .from("bl_memberships")
+      .select("is_paid")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!membership?.is_paid) {
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json({ error: "Payment required." }, { status: 402 });
+      }
+
+      const url = request.nextUrl.clone();
+      url.pathname = "/join";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

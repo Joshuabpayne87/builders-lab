@@ -2,8 +2,28 @@
 
 import React, { useEffect } from 'react';
 import Script from 'next/script';
+import { useRouter } from "next/navigation";
 
 export default function JoinPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const claimMembership = async () => {
+      try {
+        const response = await fetch("/api/membership/claim", { method: "POST" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data?.isPaid) {
+          router.push("/dashboard");
+        }
+      } catch (error) {
+        console.error("Failed to claim membership:", error);
+      }
+    };
+
+    claimMembership();
+  }, [router]);
+
   useEffect(() => {
     // Attach success handler to window for MailerLite to find
     (window as any).ml_webform_success_35300521 = function() {
