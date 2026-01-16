@@ -64,13 +64,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect to dashboard if authenticated and trying to access auth routes
-  if (user && pathname.startsWith("/auth")) {
-    const url = request.nextUrl.clone();
-    url.pathname = isAdmin ? "/admin" : "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
   // Protect admin routes - only admins can access
   if (isAdminRoute && (!user || !isAdmin)) {
     const url = request.nextUrl.clone();
@@ -80,12 +73,27 @@ export async function updateSession(request: NextRequest) {
 
   const paidExemptRoutes = [
     ...publicRoutes,
+    "/auth",
     "/settings",
   ];
 
   const isPaidExemptRoute = paidExemptRoutes.some(route =>
     pathname === route || pathname.startsWith(route + "/")
   );
+
+  if (user && !isAdmin && isAuthRoute) {
+    const { data: membership } = await supabase
+      .from("bl_memberships")
+      .select("is_paid")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (membership?.is_paid) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
 
   if (user && !isAdmin && !isPaidExemptRoute) {
     const { data: membership } = await supabase

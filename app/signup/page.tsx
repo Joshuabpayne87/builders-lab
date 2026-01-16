@@ -21,28 +21,7 @@ function SignupForm() {
   const [success, setSuccess] = useState(false);
 
   const isAdminEmail = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-
-  const claimMembershipAndRedirect = async () => {
-    if (isAdminEmail) {
-      router.push("/admin");
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/membership/claim", { method: "POST" });
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.isPaid) {
-          router.push("/dashboard");
-          return;
-        }
-      }
-    } catch (error) {
-      console.error("Failed to claim membership:", error);
-    }
-
-    router.push("/dashboard");
-  };
+  const appBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, "");
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -82,7 +61,7 @@ function SignupForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${appBaseUrl}/`,
           data: {
             full_name: name,
             role: isAdmin ? "admin" : "user",
@@ -94,12 +73,6 @@ function SignupForm() {
 
       if (data.user) {
         setSuccess(true);
-        // If email confirmation is not required, redirect immediately
-        if (data.session) {
-          setTimeout(() => {
-            claimMembershipAndRedirect();
-          }, 2000);
-        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to create account");
@@ -123,10 +96,16 @@ function SignupForm() {
             </div>
             <h1 className="text-2xl font-bold mb-3">Welcome, {name}!</h1>
             <p className="text-slate-400 mb-6">
-              Your account is ready. We are checking your access now.
+              Your account is ready. You can return to the homepage to continue.
             </p>
             <button
-              onClick={claimMembershipAndRedirect}
+              onClick={() => {
+                if (isAdminEmail) {
+                  router.push("/admin");
+                  return;
+                }
+                window.location.href = appBaseUrl;
+              }}
               className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
               Go to Dashboard
