@@ -37,6 +37,33 @@ function getPriceId(payload: GhostWebhookPayload) {
   );
 }
 
+async function findUserByEmail(admin: ReturnType<typeof createAdminClient>, email: string) {
+  const normalizedEmail = email.toLowerCase();
+  let page = 1;
+  const perPage = 200;
+  const maxPages = 50;
+
+  while (page <= maxPages) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) {
+      throw error;
+    }
+
+    const match = data.users.find(user => user.email?.toLowerCase() === normalizedEmail);
+    if (match) {
+      return match;
+    }
+
+    if (!data.nextPage || page >= data.lastPage) {
+      break;
+    }
+
+    page = data.nextPage;
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
   const secret = process.env.GHOST_WEBHOOK_SECRET;
   if (!secret) {
@@ -63,7 +90,12 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
-  const { data: userData, error: userError } = await admin.auth.admin.getUserByEmail(email);
+  let user: { id: string; email?: string | null } | null = null;
+  try {
+    user = await findUserByEmail(admin, email);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to look up user." }, { status: 500 });
+  }
 
   const status = member?.status ?? "free";
   const priceId = getPriceId(payload);
@@ -75,12 +107,7 @@ export async function POST(request: Request) {
   const priceMatches = !allowedPriceIds.length || !priceId || allowedPriceIds.includes(priceId);
   const isPaid = (status === "paid" || status === "comped") && priceMatches;
 
-  const user = userData?.user ?? null;
   if (!user) {
-    if (userError && (userError as { status?: number })?.status && (userError as { status?: number }).status !== 404) {
-      return NextResponse.json({ error: "Failed to look up user." }, { status: 500 });
-    }
-
     const { error: claimError } = await admin
       .from("bl_membership_claims")
       .upsert(
