@@ -41,7 +41,7 @@ function SignupForm() {
       console.error("Failed to claim membership:", error);
     }
 
-    router.push("/join");
+    router.push("/dashboard");
   };
 
   useEffect(() => {
@@ -82,7 +82,7 @@ function SignupForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/join`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: name,
             role: isAdmin ? "admin" : "user",
