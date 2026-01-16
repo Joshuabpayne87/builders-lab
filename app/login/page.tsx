@@ -29,6 +29,12 @@ export default function LoginPage() {
       if (loginError) throw loginError;
 
       if (data.session) {
+        try {
+          await fetch("/api/membership/claim", { method: "POST" });
+        } catch (claimError) {
+          console.error("Membership claim failed:", claimError);
+        }
+
         router.push("/dashboard");
         router.refresh();
       }
