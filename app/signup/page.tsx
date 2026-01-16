@@ -109,7 +109,7 @@ function SignupForm() {
                   router.push("/admin");
                   return;
                 }
-                window.location.href = appBaseUrl;
+                window.location.href = `${appBaseUrl}/dashboard`;
               }}
               className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center gap-2"
             >

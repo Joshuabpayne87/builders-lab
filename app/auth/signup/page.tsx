@@ -124,6 +124,12 @@ function SignupForm() {
 
       if (signupError) throw signupError;
 
+      try {
+        await fetch("/api/membership/claim", { method: "POST" });
+      } catch (claimError) {
+        console.error("Membership claim failed:", claimError);
+      }
+
       // Update the invite with the user ID
       if (data.user) {
         await supabase
