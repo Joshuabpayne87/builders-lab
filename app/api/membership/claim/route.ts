@@ -106,7 +106,19 @@ async function fetchGhostMemberByEmail(email: string) {
   return member || null;
 }
 
-export async function POST(_req: NextRequest) {
+type ClaimResult = {
+  status: number;
+  body: { [key: string]: unknown };
+};
+
+function jsonNoStore(body: ClaimResult["body"], status: number) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
+async function handleMembershipClaim(): Promise<ClaimResult> {
   try {
     const supabase = await createClient();
     const {
@@ -114,12 +126,12 @@ export async function POST(_req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return { status: 401, body: { error: "Unauthorized" } };
     }
 
     const email = user.email?.toLowerCase();
     if (!email) {
-      return NextResponse.json({ error: "Missing email." }, { status: 400 });
+      return { status: 400, body: { error: "Missing email." } };
     }
 
     const admin = createAdminClient();
@@ -131,11 +143,11 @@ export async function POST(_req: NextRequest) {
 
     if (existingError) {
       console.error("Membership lookup failed:", existingError);
-      return NextResponse.json({ error: "Membership lookup failed." }, { status: 500 });
+      return { status: 500, body: { error: "Membership lookup failed." } };
     }
 
     if (existing?.is_paid) {
-      return NextResponse.json({ claimed: false, isPaid: true });
+      return { status: 200, body: { claimed: false, isPaid: true } };
     }
 
     const { data: claim, error: claimError } = await admin
@@ -146,7 +158,7 @@ export async function POST(_req: NextRequest) {
 
     if (claimError) {
       console.error("Membership claim lookup failed:", claimError);
-      return NextResponse.json({ error: "Membership claim lookup failed." }, { status: 500 });
+      return { status: 500, body: { error: "Membership claim lookup failed." } };
     }
 
     const allowedPriceIds = getAllowedPriceIds();
@@ -182,7 +194,7 @@ export async function POST(_req: NextRequest) {
         : null;
 
     if (!membershipPayload) {
-      return NextResponse.json({ claimed: false, isPaid: false });
+      return { status: 200, body: { claimed: false, isPaid: false } };
     }
 
     const { error: upsertError } = await admin
@@ -191,16 +203,26 @@ export async function POST(_req: NextRequest) {
 
     if (upsertError) {
       console.error("Membership claim upsert failed:", upsertError);
-      return NextResponse.json({ error: "Failed to claim membership." }, { status: 500 });
+      return { status: 500, body: { error: "Failed to claim membership." } };
     }
 
     if (claim) {
       await admin.from("bl_membership_claims").delete().eq("email", email);
     }
 
-    return NextResponse.json({ claimed: true, isPaid: membershipPayload.is_paid });
+    return { status: 200, body: { claimed: true, isPaid: membershipPayload.is_paid } };
   } catch (error) {
     console.error("Membership claim error:", error);
-    return NextResponse.json({ error: "Membership claim error." }, { status: 500 });
+    return { status: 500, body: { error: "Membership claim error." } };
   }
+}
+
+export async function GET(_req: NextRequest) {
+  const result = await handleMembershipClaim();
+  return jsonNoStore(result.body, result.status);
+}
+
+export async function POST(_req: NextRequest) {
+  const result = await handleMembershipClaim();
+  return jsonNoStore(result.body, result.status);
 }
