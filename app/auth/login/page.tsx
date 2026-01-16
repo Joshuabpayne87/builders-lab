@@ -97,6 +97,11 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      try {
+        await fetch("/api/membership/claim", { method: "POST" });
+      } catch (claimError) {
+        console.error("Membership claim failed:", claimError);
+      }
       router.push("/dashboard");
     }
   };

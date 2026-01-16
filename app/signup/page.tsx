@@ -72,6 +72,11 @@ function SignupForm() {
       if (signupError) throw signupError;
 
       if (data.user) {
+        try {
+          await fetch("/api/membership/claim", { method: "POST" });
+        } catch (claimError) {
+          console.error("Membership claim failed:", claimError);
+        }
         setSuccess(true);
       }
     } catch (err: any) {
