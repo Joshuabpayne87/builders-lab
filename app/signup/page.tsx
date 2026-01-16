@@ -19,6 +19,31 @@ function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const isAdminEmail = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+  const claimMembershipAndRedirect = async () => {
+    if (isAdminEmail) {
+      router.push("/admin");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/membership/claim", { method: "POST" });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.isPaid) {
+          router.push("/dashboard");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to claim membership:", error);
+    }
+
+    router.push("/join");
+  };
+
   useEffect(() => {
     const emailParam = searchParams.get("email");
     if (emailParam) {
@@ -51,7 +76,7 @@ function SignupForm() {
     }
 
     try {
-      const isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      const isAdmin = isAdminEmail;
 
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
@@ -72,7 +97,7 @@ function SignupForm() {
         // If email confirmation is not required, redirect immediately
         if (data.session) {
           setTimeout(() => {
-            router.push(isAdmin ? "/admin" : "/join");
+            claimMembershipAndRedirect();
           }, 2000);
         }
       }
@@ -98,13 +123,13 @@ function SignupForm() {
             </div>
             <h1 className="text-2xl font-bold mb-3">Welcome, {name}!</h1>
             <p className="text-slate-400 mb-6">
-              Your account is ready. Finish checkout to unlock full access.
+              Your account is ready. We are checking your access now.
             </p>
             <button
-              onClick={() => router.push(email.toLowerCase() === ADMIN_EMAIL.toLowerCase() ? "/admin" : "/join")}
+              onClick={claimMembershipAndRedirect}
               className="w-full px-6 py-3 bg-white text-black hover:bg-white/90 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center gap-2"
             >
-              Continue to Payment
+              Go to Dashboard
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
