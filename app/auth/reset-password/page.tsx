@@ -25,27 +25,54 @@ export default function ResetPasswordPage() {
           return;
         }
 
-        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-        const accessToken = hashParams.get("access_token");
-        const refreshToken = hashParams.get("refresh_token");
-        const type = hashParams.get("type");
+        let sessionEstablished = false;
+        let errorMessage = "";
 
-        if (type === "recovery" && accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
+        const authAny = supabase.auth as unknown as {
+          getSessionFromUrl?: (options?: { storeSession?: boolean }) => Promise<{
+            data?: { session?: unknown };
+            error?: { message?: string };
+          }>;
+        };
+
+        if (typeof authAny.getSessionFromUrl === "function") {
+          const { data: urlData, error: urlError } = await authAny.getSessionFromUrl({
+            storeSession: true,
           });
 
-          if (error) {
-            setError(error.message || "Invalid recovery session.");
-          } else {
-            window.history.replaceState(null, "", window.location.pathname);
-            setReady(true);
+          if (urlError?.message) {
+            errorMessage = urlError.message;
+          } else if (urlData?.session) {
+            sessionEstablished = true;
           }
+        }
+
+        if (!sessionEstablished) {
+          const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+
+          if (accessToken && refreshToken) {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (error) {
+              errorMessage = error.message || "Invalid recovery session.";
+            } else {
+              sessionEstablished = true;
+            }
+          }
+        }
+
+        if (sessionEstablished) {
+          window.history.replaceState(null, "", window.location.pathname);
+          setReady(true);
           return;
         }
 
-        setError("Invalid or expired recovery link.");
+        setError(errorMessage || "Invalid or expired recovery link.");
       } catch (err: any) {
         setError(err.message || "Failed to initialize recovery.");
       }

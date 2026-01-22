@@ -14,6 +14,18 @@ export default function HomePage() {
   const [loadingBlocks, setLoadingBlocks] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!window.location.hash) return;
+
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const accessToken = hashParams.get("access_token");
+
+    if (accessToken) {
+      window.location.replace(`/auth/reset-password${window.location.hash}`);
+    }
+  }, []);
+
+  useEffect(() => {
     async function fetchResources() {
       try {
         const res = await fetch("/api/resources");
