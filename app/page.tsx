@@ -167,7 +167,7 @@ export default function HomePage() {
                 </div>
                 <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
                   <p className="text-sm font-semibold text-yellow-400 mb-1">
-                    🎁 Limited Offer: First 10 Sign-ups Only!
+                    🎁 Limited Offer: First <span className="line-through">10</span> sign-ups only — 6 spots left!
                   </p>
                   <p className="text-xs text-slate-300">
                     Get a FREE 1-hour 1-on-1 session to help debug, build, or overcome any roadblock — marketing, social media, or technical. <span className="font-semibold text-white">$175 value!</span>
@@ -273,7 +273,7 @@ export default function HomePage() {
               </p>
               <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3 mb-6">
                 <p className="text-sm font-semibold text-yellow-400 mb-1">
-                  🎁 First 10 Sign-ups Get FREE 1-on-1 Session
+                  🎁 First <span className="line-through">10</span> sign-ups get FREE 1-on-1 session — 6 spots left
                 </p>
                 <p className="text-xs text-slate-300">
                   $175 value — help with debugging, building, marketing, social media, or any roadblock!

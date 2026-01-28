@@ -438,7 +438,9 @@ export default function JoinPage() {
 
               <div className="cta-container">
                   <a href="https://topaitools.dev/#/portal/signup/6855cc19f0c9910008da8f33/monthly" className="btn btn-primary" style={{ marginBottom: '24px' }}>Join The Builders Lab - $49.99/month</a>
-                  <span className="bonus-badge" style={{ display: 'block', marginBottom: '32px' }}>First 10 members get a free 1-hour 1-on-1 session ($175 value)</span>
+                  <span className="bonus-badge" style={{ display: 'block', marginBottom: '32px' }}>
+                    First <span style={{ textDecoration: 'line-through' }}>10</span> members get a free 1-hour 1-on-1 session ($175 value) — 6 spots left
+                  </span>
 
                   <p style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#2d2d2d', textAlign: 'center' }}><strong>Or get The Builders Playbook first:</strong></p>
 
@@ -675,10 +677,16 @@ export default function JoinPage() {
               </div>
 
               <div className="bonus-highlight">
-                  <h3>First 10 Members: Free 1-Hour 1-on-1 Session</h3>
+                  <h3>
+                    First <span style={{ textDecoration: 'line-through' }}>10</span> Members: Free 1-Hour 1-on-1 Session — 6 spots left
+                  </h3>
                   <p>Worth $175. We'll spend an hour solving your current biggest problem together.</p>
                   <p>One-on-one. Screen sharing if needed. Whatever you're stuck on right now - we fix it.</p>
-                  <p><strong>This is only for the first 10 people who join. After that, the bonus is gone.</strong></p>
+                  <p>
+                    <strong>
+                      This is only for the first <span style={{ textDecoration: 'line-through' }}>10</span> people who join — 6 spots left. After that, the bonus is gone.
+                    </strong>
+                  </p>
               </div>
           </div>
       </section>
@@ -765,7 +773,9 @@ export default function JoinPage() {
 
               <div className="cta-container">
                   <a href="https://topaitools.dev/#/portal/signup/6855cc19f0c9910008da8f33/monthly" className="btn btn-primary" style={{ marginBottom: '16px' }}>Join The Builders Lab - $49.99/month</a>
-                  <span className="bonus-badge">First 10 members get a free 1-hour 1-on-1 session ($175 value)</span>
+                  <span className="bonus-badge">
+                    First <span style={{ textDecoration: 'line-through' }}>10</span> members get a free 1-hour 1-on-1 session ($175 value) — 6 spots left
+                  </span>
               </div>
 
               <div style={{ maxWidth: '800px', margin: '3rem auto', textAlign: 'center' }}>

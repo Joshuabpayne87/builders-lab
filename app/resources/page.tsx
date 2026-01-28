@@ -120,7 +120,7 @@ export default function ResourcesPage() {
                 </div>
                 <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3">
                   <p className="text-sm font-semibold text-yellow-400 mb-1">
-                    🎁 Limited Offer: First 10 Sign-ups Only!
+                    🎁 Limited Offer: First <span className="line-through">10</span> sign-ups only — 6 spots left!
                   </p>
                   <p className="text-xs text-slate-300">
                     Get a FREE 1-hour 1-on-1 session to help debug, build, or overcome any roadblock — marketing, social media, or technical. <span className="font-semibold text-white">$175 value!</span>
@@ -240,7 +240,7 @@ export default function ResourcesPage() {
               </p>
               <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-3 mb-6">
                 <p className="text-sm font-semibold text-yellow-400 mb-1">
-                  🎁 First 10 Sign-ups Get FREE 1-on-1 Session
+                  🎁 First <span className="line-through">10</span> sign-ups get FREE 1-on-1 session — 6 spots left
                 </p>
                 <p className="text-xs text-slate-300">
                   $175 value — help with debugging, building, marketing, social media, or any roadblock!
@@ -427,6 +427,24 @@ export default function ResourcesPage() {
                                 />
                               </div>
                             )}
+                            {block.type === "bookmark" && (
+                              <div className="w-full bg-white/5 border border-white/10 rounded-lg p-4 flex flex-col gap-2">
+                                <a
+                                  href={block.bookmark?.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-white hover:text-slate-200 flex items-center gap-2"
+                                >
+                                  <ExternalLink className="w-4 h-4 text-slate-400" />
+                                  <span className="break-all">{block.bookmark?.url}</span>
+                                </a>
+                                {block.bookmark?.caption?.length > 0 && (
+                                  <p className="text-xs text-slate-400">
+                                    {block.bookmark.caption.map((t: any) => t.plain_text).join("")}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                             {block.type === "paragraph" && block.paragraph?.rich_text?.length > 0 && (
                               <p className="text-slate-300 text-base leading-relaxed">
                                 {getText(block.paragraph.rich_text)}
@@ -501,6 +519,7 @@ export default function ResourcesPage() {
                               "toggle",
                               "embed",
                               "video",
+                              "bookmark",
                             ].includes(block.type) && (
                               <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
                                 <p className="text-xs text-yellow-400 font-mono mb-2">
