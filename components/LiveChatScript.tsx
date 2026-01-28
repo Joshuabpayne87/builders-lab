@@ -11,7 +11,9 @@ export default function LiveChatScript() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setEnabled(LIVE_CHAT_HOSTNAMES.has(window.location.hostname));
+    const isAllowedHost = LIVE_CHAT_HOSTNAMES.has(window.location.hostname);
+    const isHomePage = window.location.pathname === "/" || window.location.pathname === "";
+    setEnabled(isAllowedHost && isHomePage);
   }, []);
 
   if (!enabled) return null;
