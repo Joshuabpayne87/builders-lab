@@ -459,7 +459,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-100px)] flex animate-fadeIn pb-4 relative">
+    <div className="w-full min-h-[calc(100dvh-100px)] md:h-[calc(100vh-100px)] flex animate-fadeIn pb-4 relative">
       
       {/* LEFT PANEL: CARD DECKS */}
       <div className="w-80 p-4 shrink-0 transition-all absolute md:relative z-30 h-full -left-0 md:left-0 flex flex-col gap-4">

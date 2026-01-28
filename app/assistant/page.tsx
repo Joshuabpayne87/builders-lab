@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, Bot, User, Loader2, Sparkles, Palette } from "lucide-react";
-import { chatWithAgent } from "./actions";
+import { chatWithAgent, getFlowranceGreeting } from "./actions";
 import { toast } from "sonner";
 import { getUpcomingTasks, getIncompleteTasks } from "@/lib/calendar-client";
 import { useRouter } from "next/navigation";
@@ -18,18 +18,20 @@ interface Message {
 export default function AssistantPage() {
   const router = useRouter();
   const { theme, loading: themeLoading } = useAgentTheme();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        "Hello! I'm your connected AI Agent. I have access to your data across all Builder's Lab apps. Ask me about your articles, images, or workflows!",
-    },
-  ]);
+  const assistantName = "Flowrance";
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [incomplete, setIncomplete] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const quickPrompts = [
+    "Summarize my last session and next step.",
+    "What are my top priorities today?",
+    "Draft a 3-day content plan from my calendar.",
+    "Turn my latest notes into a short post.",
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,37 +42,68 @@ export default function AssistantPage() {
   }, [messages]);
 
   useEffect(() => {
-    async function checkTasks() {
+    let isMounted = true;
+
+    async function bootstrapAssistant() {
       try {
-        const up = await getUpcomingTasks(24 * 3); // Next 3 days
-        const inc = await getIncompleteTasks();
-        
+        const [greetingResult, up, inc] = await Promise.all([
+          getFlowranceGreeting(),
+          getUpcomingTasks(24 * 3),
+          getIncompleteTasks(),
+        ]);
+
+        if (!isMounted) return;
+
         setUpcoming(up);
         setIncomplete(inc);
 
+        const nextMessages: Message[] = [];
+        if (greetingResult?.success && greetingResult.greeting) {
+          nextMessages.push({ role: "assistant", content: greetingResult.greeting });
+        }
+
         if (up.length > 0 || inc.length > 0) {
-          let summary = "📅 **Calendar Update:**\n\n";
-          
+          let summary = "Calendar update:\n\n";
+
           if (inc.length > 0) {
-            summary += `⚠️ You have ${inc.length} overdue task(s) needing content.\n`;
+            summary += `You have ${inc.length} overdue task(s) needing content.\n`;
           }
-          
+
           if (up.length > 0) {
-            summary += `📌 You have ${up.length} task(s) coming up in the next 3 days.\n`;
+            summary += `You have ${up.length} task(s) coming up in the next 3 days.\n`;
           }
-          
+
           summary += "\nHow can I help you get ahead today?";
-          
-          setMessages(prev => [...prev, {
-            role: "assistant",
-            content: summary
-          }]);
+
+          nextMessages.push({ role: "assistant", content: summary });
+        }
+
+        if (nextMessages.length > 0) {
+          setMessages(nextMessages);
+        } else {
+          setMessages([
+            {
+              role: "assistant",
+              content: "Good to see you. What do you want to focus on today?",
+            },
+          ]);
         }
       } catch (err) {
-        console.error("Failed to fetch tasks for assistant:", err);
+        if (!isMounted) return;
+        console.error("Failed to bootstrap assistant:", err);
+        setMessages([
+          {
+            role: "assistant",
+            content: "Good to see you. What do you want to focus on today?",
+          },
+        ]);
       }
     }
-    checkTasks();
+
+    bootstrapAssistant();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleCreateContent = (task: any) => {
@@ -86,6 +119,47 @@ export default function AssistantPage() {
     const appUrl = appMap[task.content_type] || '/apps';
     router.push(`${appUrl}?taskId=${task.id}&title=${encodeURIComponent(task.title)}`);
   };
+
+  const handleQuickPrompt = (prompt: string) => {
+    setInput(prompt);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const calendarValue =
+    incomplete.length > 0
+      ? `${incomplete.length} overdue`
+      : `${upcoming.length} upcoming`;
+  const calendarHint =
+    incomplete.length > 0 ? "Resolve overdue items" : "No overdue tasks";
+  const calendarTone =
+    incomplete.length > 0 ? theme.colors.accent : theme.colors.secondary;
+
+  const statusItems = [
+    {
+      label: "Knowledge Base",
+      value: "Connected",
+      hint: "Search ready",
+      tone: theme.colors.accent,
+    },
+    {
+      label: "Calendar",
+      value: calendarValue,
+      hint: calendarHint,
+      tone: calendarTone,
+    },
+    {
+      label: "Skills",
+      value: "Available",
+      hint: "Tooling ready",
+      tone: theme.colors.secondary,
+    },
+    {
+      label: "Focus",
+      value: "Ask for a plan",
+      hint: "Set priorities",
+      tone: theme.colors.primary,
+    },
+  ];
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -147,12 +221,18 @@ export default function AssistantPage() {
   };
 
   const getBubbleStyle = (isUser: boolean) => {
+    const borderTone = isUser ? theme.colors.userMessage : theme.colors.aiMessage;
+    const accentTone = isUser ? theme.colors.secondary : theme.colors.accent;
     const baseStyle: React.CSSProperties = {
       backgroundColor: isUser ? theme.colors.userMessage : theme.colors.aiMessage,
       color: theme.colors.text,
       boxShadow: theme.effects.shadows ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
       backdropFilter: theme.effects.glassEffect ? 'blur(10px)' : 'none',
-      transition: theme.effects.animations ? 'all 0.2s ease' : 'none'
+      transition: theme.effects.animations ? 'all 0.2s ease' : 'none',
+      border: `1px solid ${borderTone}2a`,
+      backgroundImage: theme.effects.gradients
+        ? `linear-gradient(135deg, ${accentTone}22, transparent 65%)`
+        : undefined
     };
 
     switch (theme.layout.messageStyle) {
@@ -167,7 +247,7 @@ export default function AssistantPage() {
           ...baseStyle,
           borderRadius: '0.75rem',
           padding: '1rem',
-          border: `1px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}40`
+          border: `1px solid ${borderTone}40`
         };
       case 'minimal':
         return {
@@ -175,7 +255,7 @@ export default function AssistantPage() {
           borderRadius: '0.5rem',
           padding: '0.5rem 0.75rem',
           backgroundColor: 'transparent',
-          border: `1px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}60`
+          border: `1px solid ${borderTone}60`
         };
       case 'notion-style':
         return {
@@ -183,7 +263,8 @@ export default function AssistantPage() {
           borderRadius: '0.375rem',
           padding: '0.75rem',
           backgroundColor: isUser ? theme.colors.userMessage + '10' : 'transparent',
-          borderLeft: `3px solid ${isUser ? theme.colors.userMessage : theme.colors.aiMessage}`
+          border: 'none',
+          borderLeft: `3px solid ${borderTone}`
         };
       default:
         return baseStyle;
@@ -239,7 +320,9 @@ export default function AssistantPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" style={{ color: theme.colors.secondary }} />
-            <h1 className="text-lg font-semibold tracking-tight" style={{ color: theme.colors.text }}>AI Agent</h1>
+            <h1 className="text-lg font-semibold tracking-tight" style={{ color: theme.colors.text }}>
+              {assistantName}
+            </h1>
           </div>
           <Link
             href="/customize-agent"
@@ -256,7 +339,125 @@ export default function AssistantPage() {
       </nav>
 
       {/* Chat Container */}
-      <div className="relative z-10 container mx-auto px-6 py-6 max-w-4xl h-[calc(100vh-120px)] flex flex-col">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 py-6 max-w-5xl min-h-[calc(100dvh-120px)] md:h-[calc(100vh-120px)] flex flex-col">
+        <div className="grid gap-4 md:grid-cols-[1.4fr_1fr] mb-6">
+          <div
+            className="relative overflow-hidden rounded-2xl border p-5"
+            style={{
+              backgroundColor: theme.colors.background + "40",
+              borderColor: theme.colors.primary + "30",
+              backdropFilter: theme.effects.glassEffect ? "blur(12px)" : "none",
+            }}
+          >
+            {theme.effects.gradients && (
+              <div
+                className="absolute inset-0 opacity-70"
+                style={{
+                  background: `radial-gradient(circle at top left, ${theme.colors.accent}45, transparent 65%)`,
+                }}
+              />
+            )}
+            <div className="relative flex items-center gap-4">
+              <div
+                className={`w-12 h-12 flex items-center justify-center ${getAvatarClassName()}`}
+                style={{
+                  background: theme.effects.gradients
+                    ? `linear-gradient(135deg, ${theme.colors.accent}, ${theme.colors.secondary})`
+                    : theme.colors.accent,
+                }}
+              >
+                {theme.layout.avatarStyle !== "none" && (
+                  theme.layout.avatarStyle === "hexagon" ? (
+                    <div className="-rotate-45">
+                      <Bot className="w-6 h-6" style={{ color: theme.colors.text }} />
+                    </div>
+                  ) : (
+                    <Bot className="w-6 h-6" style={{ color: theme.colors.text }} />
+                  )
+                )}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] opacity-70">
+                  {assistantName}
+                </p>
+                <h2 className="text-lg font-semibold">
+                  Your Builder's Lab strategist
+                </h2>
+                <p className="text-xs opacity-70">
+                  Connected to your knowledge base, calendar, and skills.
+                </p>
+              </div>
+            </div>
+            <div className="relative mt-4 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+              {["Knowledge Base", "Calendar", "Skills", "Content Drafting"].map((item) => (
+                <span
+                  key={item}
+                  className="px-2.5 py-1 rounded-full border"
+                  style={{
+                    borderColor: theme.colors.primary + "30",
+                    backgroundColor: theme.colors.background + "60",
+                    color: theme.colors.text,
+                  }}
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div
+            className="rounded-2xl border p-5"
+            style={{
+              backgroundColor: theme.colors.aiMessage,
+              borderColor: theme.colors.primary + "30",
+              backdropFilter: theme.effects.glassEffect ? "blur(12px)" : "none",
+            }}
+          >
+            <p className="text-xs uppercase tracking-[0.2em] opacity-70 mb-3">
+              Quick prompts
+            </p>
+            <div className="flex flex-col gap-2">
+              {quickPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => handleQuickPrompt(prompt)}
+                  className="group flex items-center justify-between gap-3 px-3 py-2 rounded-lg border text-left text-xs font-semibold transition-all hover:opacity-90"
+                  style={{
+                    borderColor: theme.colors.primary + "20",
+                    backgroundColor: theme.colors.background + "60",
+                    color: theme.colors.text,
+                  }}
+                >
+                  <span>{prompt}</span>
+                  <ArrowRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-90" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-3 md:grid-cols-4 mb-6">
+          {statusItems.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-xl border p-4"
+              style={{
+                backgroundColor: theme.colors.background + "50",
+                borderColor: theme.colors.primary + "20",
+                backdropFilter: theme.effects.glassEffect ? "blur(10px)" : "none",
+              }}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] opacity-70">
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: item.tone }}
+                />
+                <span>{item.label}</span>
+              </div>
+              <p className="mt-3 text-sm font-semibold">{item.value}</p>
+              <p className="text-[11px] opacity-60">{item.hint}</p>
+            </div>
+          ))}
+        </div>
         {/* Quick Actions for Overdue Tasks */}
         {incomplete.length > 0 && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-in slide-in-from-top-4 duration-500">
@@ -388,7 +589,7 @@ export default function AssistantPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Ask me about anything you've built..."
+              placeholder={`Ask ${assistantName} about anything you've built...`}
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none focus:ring-2 transition-all"
               style={{
                 backgroundColor: theme.colors.background,
@@ -396,6 +597,7 @@ export default function AssistantPage() {
                 border: `1px solid ${theme.colors.primary}40`,
               }}
               disabled={loading}
+              ref={inputRef}
             />
             <button
               onClick={handleSend}

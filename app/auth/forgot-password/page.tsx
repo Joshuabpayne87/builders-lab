@@ -47,6 +47,7 @@ export default function ForgotPasswordPage() {
 
       <div style={{
         minHeight: "100vh",
+        height: "100dvh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

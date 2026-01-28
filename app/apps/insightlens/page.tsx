@@ -68,6 +68,7 @@ function InsightLensContent() {
       background-color: var(--neural-bg);
       color: #e2e8f0;
       min-height: 100vh;
+      min-height: 100dvh;
       position: relative;
       overflow-x: hidden;
     }
@@ -79,6 +80,7 @@ function InsightLensContent() {
       left: 0;
       width: 100vw;
       height: 100vh;
+      height: 100dvh;
       z-index: 0;
       background: radial-gradient(circle at 50% 50%, #1a103c 0%, #030014 100%);
       overflow: hidden;

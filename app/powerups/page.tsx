@@ -194,7 +194,7 @@ export default function PowerupsPage() {
                   className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  <span className="text-sm">Back to Assistant</span>
+                  <span className="text-sm">Back to Flowrance</span>
                 </Link>
                 <div className="h-6 w-px bg-white/10"></div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -214,7 +214,7 @@ export default function PowerupsPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex h-[calc(100vh-73px)]">
+        <div className="flex flex-col lg:flex-row min-h-[calc(100dvh-73px)] lg:h-[calc(100vh-73px)]">
           {/* Sidebar */}
           <PowerupSidebar
             powerups={powerups}
@@ -226,7 +226,7 @@ export default function PowerupsPage() {
           />
 
           {/* Brain Canvas */}
-          <div className="flex-1 flex items-center justify-center p-8">
+          <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
             {loading ? (
               <div className="flex flex-col items-center gap-4">
                 <div className="animate-spin h-12 w-12 border-4 border-purple-500 border-t-transparent rounded-full"></div>

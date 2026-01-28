@@ -91,7 +91,8 @@ export default function LoginPage() {
         margin: 0,
         overflow: 'hidden',
         background: 'radial-gradient(circle, #080a0c, #020304)',
-        height: '100vh',
+        minHeight: '100vh',
+        height: '100dvh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -111,8 +112,10 @@ export default function LoginPage() {
           position: 'relative',
           width: '400px',
           maxWidth: '90vw',
-          height: '600px',
-          overflow: 'hidden',
+          minHeight: '520px',
+          maxHeight: '85dvh',
+          height: 'auto',
+          overflowY: 'auto',
           borderRadius: '20px',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
         }}>

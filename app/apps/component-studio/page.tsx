@@ -620,7 +620,8 @@ function ComponentStudioContent() {
 
   return (
     <div style={{
-      height: '100vh',
+      minHeight: '100vh',
+      height: '100dvh',
       width: '100vw',
       display: 'flex',
       flexDirection: 'column',

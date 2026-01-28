@@ -59,7 +59,7 @@ export default function PowerupSidebar({
       <div
         className={`
           bg-black/40 backdrop-blur-xl border-r border-white/10 transition-all duration-300
-          ${isOpen ? 'w-80' : 'w-0'}
+          ${isOpen ? 'w-full sm:w-80' : 'w-0'}
           overflow-hidden
         `}
       >

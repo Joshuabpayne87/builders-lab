@@ -101,7 +101,7 @@ export default function CustomizeAgentPage() {
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-purple-400" />
-                Customize Your AI Agent
+                Customize Flowrance
               </h1>
               <p className="text-sm text-slate-400 mt-1">
                 Design your perfect interface with live preview
@@ -144,7 +144,7 @@ export default function CustomizeAgentPage() {
         <div className="grid grid-cols-12 gap-6 p-6">
           {/* Left Panel - Controls */}
           <div className="col-span-12 lg:col-span-3">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sticky top-24 max-h-[calc(100dvh-120px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
               <ThemeControls theme={theme} onChange={setTheme} />
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function CustomizeAgentPage() {
 
           {/* Right Panel - Presets */}
           <div className="col-span-12 lg:col-span-3">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-2xl p-6 sticky top-24 max-h-[calc(100dvh-120px)] md:max-h-[calc(100vh-120px)] overflow-y-auto">
               <PresetThemes
                 presets={PRESET_THEMES}
                 currentTheme={theme}
