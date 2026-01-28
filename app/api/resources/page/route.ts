@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
 
     const pageId = rawPageId.trim();
 
-    // Ensure environment variables are available for the client
-    if (!process.env.NOTION_API_KEY && process.env.PUBLIC_NOTION_API_KEY) {
+    // Prefer public Notion key for public resources (avoids mismatch with private key).
+    if (process.env.PUBLIC_NOTION_API_KEY) {
       process.env.NOTION_API_KEY = process.env.PUBLIC_NOTION_API_KEY;
     }
 
