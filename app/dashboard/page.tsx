@@ -136,6 +136,13 @@ export default async function DashboardPage() {
                 Powerups
               </Link>
               <Link
+                href="/the-workshop"
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Users className="w-3.5 h-3.5" />
+                Workshop
+              </Link>
+              <Link
                 href="/calendar"
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
               >
@@ -157,7 +164,7 @@ export default async function DashboardPage() {
                 href="/assistant"
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
               >
-                Assistant
+                Flowrance
               </Link>
             </div>
 
@@ -297,25 +304,25 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* AI Assistant & Quick Stats */}
+        {/* Flowrance & Quick Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-          {/* AI Assistant Quick Access */}
+          {/* Flowrance Quick Access */}
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all">
             <div className="flex flex-col h-full">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white/80" strokeWidth={1.5} />
                 </div>
-                <h2 className="text-sm font-semibold text-white">AI Assistant</h2>
+                <h2 className="text-sm font-semibold text-white">Flowrance</h2>
               </div>
               <p className="text-xs text-slate-500 mb-6 flex-1 leading-relaxed">
-                Your intelligent companion for instant answers, content generation, and workflow automation.
+                Your connected strategist for instant answers, content generation, and workflow automation.
               </p>
               <Link
                 href="/assistant"
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-black hover:bg-white/90 rounded-lg font-medium transition-all text-sm"
               >
-                <span>Open Assistant</span>
+                <span>Open Flowrance</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
