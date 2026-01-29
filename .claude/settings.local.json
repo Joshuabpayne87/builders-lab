@@ -37,7 +37,8 @@
       "Bash(git -C \"D:\\\\Projects\\\\the_builders_lab_app\" log --all --oneline --grep=\"funnel\" -i)",
       "Bash(git -C \"D:\\\\Projects\\\\the_builders_lab_app\" show 222b1bb:supabase/migrations/20241228_create_funnels_schema.sql)",
       "Bash(git -C \"D:\\\\Projects\\\\the_builders_lab_app\" diff-tree --no-commit-id --name-only -r 222b1bb)",
-      "Bash(git -C \"D:\\\\Projects\\\\the_builders_lab_app\" log --all --oneline --grep=\"RLS\\\\|policy\\\\|published\" -i -- \"supabase/migrations/*funnel*\")"
+      "Bash(git -C \"D:\\\\Projects\\\\the_builders_lab_app\" log --all --oneline --grep=\"RLS\\\\|policy\\\\|published\" -i -- \"supabase/migrations/*funnel*\")",
+      "Skill(brainstorming)"
     ]
   },
   "enableAllProjectMcpServers": true,

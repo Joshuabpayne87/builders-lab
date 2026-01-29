@@ -182,7 +182,7 @@ export default async function AppsPage() {
                 href="/assistant"
                 className="px-4 py-2 text-sm text-slate-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-colors"
               >
-                Assistant
+                Flowrance
               </Link>
             </div>
 

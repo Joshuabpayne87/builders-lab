@@ -85,9 +85,8 @@ export async function POST(request: Request) {
 
   const member = payload.member;
   const email = member?.email?.toLowerCase();
-  if (!email) {
-    return NextResponse.json({ ok: true, skipped: "missing-member-email" });
-  }
+  const memberId = member?.id ?? null;
+  const event = payload.meta?.event ?? "";
 
   const admin = createAdminClient();
   let user: { id: string; email?: string | null } | null = null;
@@ -105,7 +104,45 @@ export async function POST(request: Request) {
     .filter(Boolean);
 
   const priceMatches = !allowedPriceIds.length || !priceId || allowedPriceIds.includes(priceId);
-  const isPaid = (status === "paid" || status === "comped") && priceMatches;
+  const isDeletedEvent = event === "member.deleted" || status === "deleted";
+  const isPaid = !isDeletedEvent && (status === "paid" || status === "comped") && priceMatches;
+  const now = new Date().toISOString();
+
+  if (!email) {
+    if (memberId) {
+      const { error: membershipUpdateError } = await admin
+        .from("bl_memberships")
+        .update({
+          is_paid: isPaid,
+          status,
+          ghost_member_id: memberId,
+          ghost_price_id: priceId,
+          ghost_last_event: event || null,
+          ghost_last_event_at: now,
+          updated_at: now,
+        })
+        .eq("ghost_member_id", memberId);
+
+      if (membershipUpdateError) {
+        return NextResponse.json({ error: "Failed to update membership." }, { status: 500 });
+      }
+
+      await admin
+        .from("bl_membership_claims")
+        .update({
+          is_paid: isPaid,
+          status,
+          ghost_member_id: memberId,
+          ghost_price_id: priceId,
+          ghost_last_event: event || null,
+          ghost_last_event_at: now,
+          updated_at: now,
+        })
+        .eq("ghost_member_id", memberId);
+    }
+
+    return NextResponse.json({ ok: true, skipped: "missing-member-email" });
+  }
 
   if (!user) {
     const { error: claimError } = await admin
@@ -117,9 +154,9 @@ export async function POST(request: Request) {
           status,
           ghost_member_id: member?.id ?? null,
           ghost_price_id: priceId,
-          ghost_last_event: payload.meta?.event ?? null,
-          ghost_last_event_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          ghost_last_event: event || null,
+          ghost_last_event_at: now,
+          updated_at: now,
         },
         { onConflict: "email" }
       );
@@ -141,9 +178,9 @@ export async function POST(request: Request) {
         ghost_member_id: member?.id ?? null,
         ghost_member_email: email,
         ghost_price_id: priceId,
-        ghost_last_event: payload.meta?.event ?? null,
-        ghost_last_event_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        ghost_last_event: event || null,
+        ghost_last_event_at: now,
+        updated_at: now,
       },
       { onConflict: "user_id" }
     );

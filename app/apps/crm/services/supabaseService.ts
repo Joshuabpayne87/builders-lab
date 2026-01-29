@@ -1,5 +1,6 @@
 // CRM Supabase Service - Database Operations
 import { createClient } from "@/lib/supabase/server";
+import { MemoryEventService } from "@/lib/memory-event-service";
 import type {
   Contact,
   Activity,
@@ -136,6 +137,21 @@ export async function createContact(formData: ContactFormData): Promise<Contact>
     .single();
 
   if (error) throw new Error(`Failed to create contact: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "contact",
+    eventType: "created",
+    sourceId: data.id,
+    summary: `Created contact: ${data.name || data.email || data.company || data.id}`,
+    metadata: {
+      status: data.status,
+      contact_type: data.contact_type,
+      company: data.company,
+    },
+    importance: 4,
+  });
+
   return data as Contact;
 }
 
@@ -165,6 +181,21 @@ export async function updateContact(
     .single();
 
   if (error) throw new Error(`Failed to update contact: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "contact",
+    eventType: "updated",
+    sourceId: data.id,
+    summary: `Updated contact: ${data.name || data.email || data.company || data.id}`,
+    metadata: {
+      status: data.status,
+      contact_type: data.contact_type,
+      company: data.company,
+    },
+    importance: 3,
+  });
+
   return data as Contact;
 }
 
@@ -186,6 +217,15 @@ export async function deleteContact(contactId: string): Promise<void> {
     .eq("user_id", user.id);
 
   if (error) throw new Error(`Failed to delete contact: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "contact",
+    eventType: "deleted",
+    sourceId: contactId,
+    summary: `Deleted contact ${contactId}`,
+    importance: 2,
+  });
 }
 
 /**
@@ -284,6 +324,20 @@ export async function createActivity(formData: ActivityFormData): Promise<Activi
 
   if (error) throw new Error(`Failed to create activity: ${error.message}`);
 
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "activity",
+    eventType: "created",
+    sourceId: data.id,
+    summary: `Logged activity: ${data.activity_type} for contact ${data.contact_id}`,
+    metadata: {
+      activity_type: data.activity_type,
+      contact_id: data.contact_id,
+      completed: data.completed,
+    },
+    importance: 3,
+  });
+
   // Update last contacted timestamp for the contact
   if (formData.activity_type === "EMAIL" || formData.activity_type === "CALL") {
     await updateLastContacted(formData.contact_id);
@@ -321,6 +375,21 @@ export async function updateActivity(
     .single();
 
   if (error) throw new Error(`Failed to update activity: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "activity",
+    eventType: "updated",
+    sourceId: data.id,
+    summary: `Updated activity ${data.id} for contact ${data.contact_id}`,
+    metadata: {
+      activity_type: data.activity_type,
+      contact_id: data.contact_id,
+      completed: data.completed,
+    },
+    importance: 2,
+  });
+
   return data as Activity;
 }
 
@@ -342,6 +411,15 @@ export async function deleteActivity(activityId: string): Promise<void> {
     .eq("user_id", user.id);
 
   if (error) throw new Error(`Failed to delete activity: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "activity",
+    eventType: "deleted",
+    sourceId: activityId,
+    summary: `Deleted activity ${activityId}`,
+    importance: 2,
+  });
 }
 
 // ============================================================================
@@ -415,6 +493,21 @@ export async function createDeal(formData: DealFormData): Promise<Deal> {
     .single();
 
   if (error) throw new Error(`Failed to create deal: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "deal",
+    eventType: "created",
+    sourceId: data.id,
+    summary: `Created deal: ${data.title || data.id}`,
+    metadata: {
+      stage: data.stage,
+      status: data.status,
+      value: data.value,
+    },
+    importance: 4,
+  });
+
   return data as Deal;
 }
 
@@ -451,6 +544,21 @@ export async function updateDeal(
     .single();
 
   if (error) throw new Error(`Failed to update deal: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "deal",
+    eventType: "updated",
+    sourceId: data.id,
+    summary: `Updated deal: ${data.title || data.id}`,
+    metadata: {
+      stage: data.stage,
+      status: data.status,
+      value: data.value,
+    },
+    importance: 3,
+  });
+
   return data as Deal;
 }
 
@@ -472,6 +580,15 @@ export async function deleteDeal(dealId: string): Promise<void> {
     .eq("user_id", user.id);
 
   if (error) throw new Error(`Failed to delete deal: ${error.message}`);
+
+  await MemoryEventService.record({
+    sourceApp: "crm",
+    sourceType: "deal",
+    eventType: "deleted",
+    sourceId: dealId,
+    summary: `Deleted deal ${dealId}`,
+    importance: 2,
+  });
 }
 
 // ============================================================================

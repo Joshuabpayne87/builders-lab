@@ -9,11 +9,11 @@ interface ChatPreviewProps {
 
 export function ChatPreview({ theme }: ChatPreviewProps) {
   const sampleMessages = [
-    { role: 'assistant', content: 'Hello! I\'m your AI assistant. How can I help you today?' },
+    { role: 'assistant', content: 'Hello! I\'m Flowrance. How can I help you today?' },
     { role: 'user', content: 'I need help planning my project timeline' },
     { role: 'assistant', content: 'I\'d be happy to help you plan your project timeline! Let\'s break this down:\n\n1. **Define milestones**: What are your key deliverables?\n2. **Estimate durations**: How long will each phase take?\n3. **Identify dependencies**: What needs to happen before what?\n4. **Buffer time**: Add 20% for unexpected delays\n\nWhat type of project are you working on?' },
     { role: 'user', content: 'It\'s a mobile app launch' },
-    { role: 'assistant', content: 'Perfect! Here\'s a typical mobile app launch timeline:\n\n**Phase 1: Development** (8-12 weeks)\n• Core features\n• UI/UX polish\n• Testing\n\n**Phase 2: Pre-Launch** (2-3 weeks)\n• App store setup\n• Marketing materials\n• Beta testing\n\n**Phase 3: Launch** (1 week)\n• Submit to stores\n• PR push\n• Monitor feedback\n\nDoes this match your needs?' }
+    { role: 'assistant', content: 'Perfect! Here\'s a typical mobile app launch timeline:\n\n**Phase 1: Development** (8-12 weeks)\n- Core features\n- UI/UX polish\n- Testing\n\n**Phase 2: Pre-Launch** (2-3 weeks)\n- App store setup\n- Marketing materials\n- Beta testing\n\n**Phase 3: Launch** (1 week)\n- Submit to stores\n- PR push\n- Monitor feedback\n\nDoes this match your needs?' }
   ];
 
   const getAvatarClassName = () => {
@@ -87,8 +87,8 @@ export function ChatPreview({ theme }: ChatPreviewProps) {
             )}
           </div>
           <div>
-            <h3 className="font-semibold">AI Assistant</h3>
-            <p className="text-xs opacity-80">Online • Ready to help</p>
+            <h3 className="font-semibold">Flowrance</h3>
+            <p className="text-xs opacity-80">Online - Ready to help</p>
           </div>
         </div>
       </div>

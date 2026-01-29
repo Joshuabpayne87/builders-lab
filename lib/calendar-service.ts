@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { MemoryEventService } from "@/lib/memory-event-service";
 
 export type TaskStatus = "draft" | "in_progress" | "scheduled" | "completed" | "cancelled";
 export type ContentPlatform = "linkedin" | "instagram" | "twitter" | "facebook" | "youtube" | "tiktok" | "blog" | "email" | "other";
@@ -103,6 +104,19 @@ export class CalendarService {
       throw error;
     }
 
+    await MemoryEventService.record({
+      sourceApp: "calendar",
+      sourceType: "task",
+      eventType: "created",
+      sourceId: data.id,
+      summary: `Created task: ${data.title} due ${data.due_date}`,
+      metadata: {
+        status: data.status,
+        platform: data.platform,
+        content_type: data.content_type,
+      },
+    });
+
     return data;
   }
 
@@ -203,6 +217,19 @@ export class CalendarService {
       throw error;
     }
 
+    await MemoryEventService.record({
+      sourceApp: "calendar",
+      sourceType: "task",
+      eventType: "updated",
+      sourceId: data.id,
+      summary: `Updated task: ${data.title}`,
+      metadata: {
+        status: data.status,
+        platform: data.platform,
+        content_type: data.content_type,
+      },
+    });
+
     return data;
   }
 
@@ -226,6 +253,14 @@ export class CalendarService {
     if (error) {
       throw error;
     }
+
+    await MemoryEventService.record({
+      sourceApp: "calendar",
+      sourceType: "task",
+      eventType: "deleted",
+      sourceId: id,
+      summary: `Deleted task: ${id}`,
+    });
   }
 
   /**

@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function ThemedChatPage() {
   const { theme, loading } = useAgentTheme();
   const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
-    { role: 'assistant', content: 'Hello! This is your themed AI assistant. Try customizing my appearance in the Customize Agent page!' },
+    { role: 'assistant', content: 'Hello! This is Flowrance in themed mode. Try customizing the appearance in the Customize Agent page.' },
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -122,8 +122,8 @@ export default function ThemedChatPage() {
               )}
             </div>
             <div>
-              <h1 className="font-bold text-lg">Your AI Assistant</h1>
-              <p className="text-sm opacity-80">Online • Themed Interface</p>
+              <h1 className="font-bold text-lg">Flowrance</h1>
+              <p className="text-sm opacity-80">Online - Themed Interface</p>
             </div>
           </div>
 
@@ -208,7 +208,7 @@ export default function ThemedChatPage() {
         }}
       >
         <p className="opacity-70">
-          Current Theme: <span className="font-semibold">{theme.theme_name}</span> •
+          Current Theme: <span className="font-semibold">{theme.theme_name}</span> -
           <Link href="/customize-agent" className="underline ml-1 hover:opacity-80">
             Edit Theme
           </Link>

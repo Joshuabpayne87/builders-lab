@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { KnowledgeService } from "@/lib/knowledge-service";
+import { MemoryEventService } from "@/lib/memory-event-service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,16 @@ export async function POST(req: NextRequest) {
         sourceType: params.sourceType,
         sourceId: params.sourceId,
         metadata: params.metadata,
+      });
+
+      await MemoryEventService.record({
+        sourceApp: "apps",
+        sourceType: params.sourceApp || "knowledge",
+        eventType: "knowledge_saved",
+        sourceId: params.sourceId,
+        summary: params.content,
+        metadata: params.metadata,
+        importance: 3,
       });
       return NextResponse.json({ success: true });
     } 
