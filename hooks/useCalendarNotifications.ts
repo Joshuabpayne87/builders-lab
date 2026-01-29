@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { getUpcomingTasks, getIncompleteTasks } from '@/lib/calendar-client';
+import { useEffect, useRef } from "react";
+import { getUpcomingTasks, getIncompleteTasks } from "@/lib/calendar-client";
+import { createClient } from "@/lib/supabase/client";
 
 export function useCalendarNotifications() {
   const lastCheckedRef = useRef<number>(0);
@@ -21,6 +22,10 @@ export function useCalendarNotifications() {
         const now = Date.now();
         if (now - lastCheckedRef.current < 5 * 60 * 1000) return;
         lastCheckedRef.current = now;
+
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
 
         const upcoming = await getUpcomingTasks(1); // 1 hour ahead
         const incomplete = await getIncompleteTasks();
@@ -63,7 +68,10 @@ export function useCalendarNotifications() {
           });
         }
       } catch (error) {
-        console.error('Failed to check calendar notifications:', error);
+        if (error instanceof Error && /(401|403|405)/.test(error.message)) {
+          return;
+        }
+        console.error("Failed to check calendar notifications:", error);
       }
     };
 
