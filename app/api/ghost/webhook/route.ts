@@ -84,16 +84,18 @@ export async function POST(request: Request) {
   }
 
   const member = payload.member;
-  const email = member?.email?.toLowerCase();
+  const email = member?.email ? member.email.toLowerCase() : null;
   const memberId = member?.id ?? null;
   const event = payload.meta?.event ?? "";
 
   const admin = createAdminClient();
   let user: { id: string; email?: string | null } | null = null;
-  try {
-    user = await findUserByEmail(admin, email);
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to look up user." }, { status: 500 });
+  if (email) {
+    try {
+      user = await findUserByEmail(admin, email);
+    } catch (error) {
+      return NextResponse.json({ error: "Failed to look up user." }, { status: 500 });
+    }
   }
 
   const status = member?.status ?? "free";
