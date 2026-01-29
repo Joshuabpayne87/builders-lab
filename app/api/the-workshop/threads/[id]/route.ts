@@ -19,8 +19,9 @@ function formatSupabaseError(error: unknown) {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   if (!params?.id || params.id === "undefined") {
     return NextResponse.json({ error: "Missing thread id." }, { status: 400 });
   }
@@ -76,8 +77,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -127,8 +129,9 @@ export async function POST(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   if (!params?.id || params.id === "undefined") {
     return NextResponse.json({ error: "Missing thread id." }, { status: 400 });
   }
