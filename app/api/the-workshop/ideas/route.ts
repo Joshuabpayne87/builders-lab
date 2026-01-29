@@ -277,12 +277,14 @@ export async function DELETE(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  let ideaId = searchParams.get("id");
+  let ideaId = searchParams.get("id") || null;
 
   if (!ideaId) {
     try {
       const body = await request.json();
-      ideaId = body?.id as string | undefined;
+      if (typeof body?.id === "string") {
+        ideaId = body.id;
+      }
     } catch {}
   }
 
