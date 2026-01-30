@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -220,7 +220,7 @@ function normalizeTags(input?: string[] | string | null) {
     .filter(Boolean);
 }
 
-export default function TheWorkshopPage() {
+function TheWorkshopClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
@@ -2098,5 +2098,13 @@ export default function TheWorkshopPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TheWorkshopPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0A0A0A]" />}>
+      <TheWorkshopClient />
+    </Suspense>
   );
 }
