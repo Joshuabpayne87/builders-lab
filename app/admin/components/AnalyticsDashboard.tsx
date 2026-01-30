@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import {
   Users,
   TrendingUp,
@@ -25,7 +24,6 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsDashboard() {
-  const supabase = createClient();
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalUsers: 0,
     activeUsers: 0,
@@ -45,51 +43,22 @@ export default function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
+      const response = await fetch("/api/admin/analytics");
+      const data = await response.json();
 
-      // Get all users count
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const totalUsers = usersData?.users.length || 0;
-
-      // Get users who signed in this month
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
-      const monthlySignups = usersData?.users.filter(
-        (user) => new Date(user.created_at) >= startOfMonth
-      ).length || 0;
-
-      const activeUsers = usersData?.users.filter(
-        (user) => user.last_sign_in_at && new Date(user.last_sign_in_at) >= startOfMonth
-      ).length || 0;
-
-      // Get CRM stats
-      const { data: contactsData } = await supabase
-        .from("bl_crm_contacts")
-        .select("id", { count: "exact" });
-
-      const { data: dealsData } = await supabase
-        .from("bl_crm_deals")
-        .select("id, status, value", { count: "exact" });
-
-      const { data: activitiesData } = await supabase
-        .from("bl_crm_activities")
-        .select("id", { count: "exact" });
-
-      const wonDeals = dealsData?.filter((deal) => deal.status === "WON").length || 0;
-      const totalRevenue = dealsData
-        ?.filter((deal) => deal.status === "WON")
-        .reduce((sum, deal) => sum + (Number(deal.value) || 0), 0) || 0;
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load analytics");
+      }
 
       setAnalytics({
-        totalUsers,
-        activeUsers,
-        totalRevenue,
-        monthlySignups,
-        totalContacts: contactsData?.length || 0,
-        totalDeals: dealsData?.length || 0,
-        totalActivities: activitiesData?.length || 0,
-        wonDeals,
+        totalUsers: data.totalUsers || 0,
+        activeUsers: data.activeUsers || 0,
+        totalRevenue: data.totalRevenue || 0,
+        monthlySignups: data.monthlySignups || 0,
+        totalContacts: data.totalContacts || 0,
+        totalDeals: data.totalDeals || 0,
+        totalActivities: data.totalActivities || 0,
+        wonDeals: data.wonDeals || 0,
       });
     } catch (error) {
       console.error("Error fetching analytics:", error);

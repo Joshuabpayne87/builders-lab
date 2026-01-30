@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { User, Mail, Calendar, Shield, Search, Filter } from "lucide-react";
 
 interface UserData {
@@ -16,7 +15,6 @@ interface UserData {
 }
 
 export default function UsersList() {
-  const supabase = createClient();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,24 +27,15 @@ export default function UsersList() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      const response = await fetch("/api/admin/users");
+      const data = await response.json();
 
-      // Get current admin user
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-
-      if (!currentUser || currentUser.user_metadata?.role !== "admin") {
+      if (!response.ok) {
+        console.error("Error fetching users:", data.error);
         return;
       }
 
-      // Fetch all users from auth.users via admin API
-      // Note: This requires admin privileges
-      const { data, error } = await supabase.auth.admin.listUsers();
-
-      if (error) {
-        console.error("Error fetching users:", error);
-        return;
-      }
-
-      setUsers(data.users as UserData[]);
+      setUsers((data.users || []) as UserData[]);
     } catch (error) {
       console.error("Error:", error);
     } finally {

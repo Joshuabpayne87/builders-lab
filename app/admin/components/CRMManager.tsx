@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import {
   Briefcase,
   Users,
@@ -41,7 +40,6 @@ interface Deal {
 type CRMView = "contacts" | "deals" | "activities";
 
 export default function CRMManager() {
-  const supabase = createClient();
   const [currentView, setCurrentView] = useState<CRMView>("contacts");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -59,14 +57,12 @@ export default function CRMManager() {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("bl_crm_contacts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setContacts(data || []);
+      const response = await fetch("/api/admin/crm/contacts?limit=200");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load contacts");
+      }
+      setContacts(data.contacts || []);
     } catch (error) {
       console.error("Error fetching contacts:", error);
     } finally {
@@ -77,17 +73,12 @@ export default function CRMManager() {
   const fetchDeals = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("bl_crm_deals")
-        .select(`
-          *,
-          contact:bl_crm_contacts(name, email, company)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      setDeals(data || []);
+      const response = await fetch("/api/admin/crm/deals?limit=200");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load deals");
+      }
+      setDeals(data.deals || []);
     } catch (error) {
       console.error("Error fetching deals:", error);
     } finally {

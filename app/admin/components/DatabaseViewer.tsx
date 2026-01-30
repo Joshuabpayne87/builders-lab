@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Database, Table, Search, RefreshCw } from "lucide-react";
 
 interface TableInfo {
@@ -10,7 +9,6 @@ interface TableInfo {
 }
 
 export default function DatabaseViewer() {
-  const supabase = createClient();
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [tableData, setTableData] = useState<any[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
@@ -36,16 +34,17 @@ export default function DatabaseViewer() {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from(selectedTable)
-        .select("*")
-        .limit(100);
+      const response = await fetch(`/api/admin/database?table=${encodeURIComponent(selectedTable)}&limit=200`);
+      const result = await response.json();
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to load table data");
+      }
 
-      if (data && data.length > 0) {
-        setColumns(Object.keys(data[0]));
-        setTableData(data);
+      const rows = result.rows || [];
+      if (rows.length > 0) {
+        setColumns(Object.keys(rows[0]));
+        setTableData(rows);
       } else {
         setColumns([]);
         setTableData([]);
