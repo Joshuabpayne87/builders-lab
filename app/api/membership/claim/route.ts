@@ -126,7 +126,7 @@ async function handleMembershipClaim(): Promise<ClaimResult> {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return { status: 401, body: { error: "Unauthorized" } };
+      return { status: 200, body: { claimed: false, isPaid: false } };
     }
 
     const email = user.email?.toLowerCase();

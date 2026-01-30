@@ -7,18 +7,24 @@ import Script from "next/script";
 const LIVE_CHAT_HOSTNAMES = new Set(["thebuilderslab.pro", "www.thebuilderslab.pro"]);
 const LIVE_CHAT_ID = "697998d7ef829849f40574a1";
 const LIVE_CHAT_SCRIPT_URL = "https://cdn.pulse.is/livechat/loader.js";
+const LIVE_CHAT_SELECTORS = [
+  `script[src*="pulse.is/livechat/loader.js"]`,
+  `iframe[src*="pulse.is"]`,
+  `iframe[src*="sendpulse"]`,
+  `[data-live-chat-id="${LIVE_CHAT_ID}"]`,
+  "#sp-live-chat",
+  "#sp-chat-widget",
+  ".sp-live-chat",
+  ".sp-live-chat-widget",
+  "[class*=\"sendpulse\"]",
+  "[id*=\"sendpulse\"]",
+];
 
 function removeLiveChatWidget() {
   if (typeof document === "undefined") return;
-  document
-    .querySelectorAll(`script[src*="pulse.is/livechat/loader.js"]`)
-    .forEach((node) => node.remove());
-  document
-    .querySelectorAll(`iframe[src*="pulse.is"]`)
-    .forEach((node) => node.remove());
-  document
-    .querySelectorAll(`[data-live-chat-id="${LIVE_CHAT_ID}"]`)
-    .forEach((node) => node.remove());
+  LIVE_CHAT_SELECTORS.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((node) => node.remove());
+  });
 }
 
 export default function LiveChatScript() {
@@ -34,6 +40,9 @@ export default function LiveChatScript() {
 
     if (!shouldEnable) {
       removeLiveChatWidget();
+      const observer = new MutationObserver(() => removeLiveChatWidget());
+      observer.observe(document.body, { childList: true, subtree: true });
+      return () => observer.disconnect();
     }
   }, [pathname]);
 
