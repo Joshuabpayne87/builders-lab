@@ -5,10 +5,22 @@
     border-color: hsl(var(--border));
   }
 
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+body.chat-disabled #sp-live-chat,
+body.chat-disabled #sp-chat-widget,
+body.chat-disabled .sp-live-chat,
+body.chat-disabled .sp-live-chat-widget,
+body.chat-disabled [data-live-chat-id="697998d7ef829849f40574a1"],
+body.chat-disabled iframe[src*="pulse.is"],
+body.chat-disabled iframe[src*="sendpulse"],
+body.chat-disabled [id*="sendpulse"],
+body.chat-disabled [class*="sendpulse"] {
+  display: none !important;
+}
 }
 
 @layer base {

@@ -37,6 +37,7 @@ export default function LiveChatScript() {
     const isAllowedRoute = pathname === "/" || pathname === "/join" || pathname === "";
     const shouldEnable = isAllowedHost && isAllowedRoute;
     setEnabled(shouldEnable);
+    document.body.classList.toggle("chat-disabled", !shouldEnable);
 
     if (!shouldEnable) {
       removeLiveChatWidget();

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import GlobalNotifications from "@/components/GlobalNotifications";
 import LiveChatScript from "@/components/LiveChatScript";
+import HomeButton from "@/components/HomeButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {children}
         <LiveChatScript />
+        <HomeButton />
         <GlobalNotifications />
         <Toaster position="bottom-right" richColors theme="dark" />
       </body>
