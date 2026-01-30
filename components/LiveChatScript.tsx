@@ -11,6 +11,14 @@ const LIVE_CHAT_SELECTORS = [
   `script[src*="pulse.is/livechat/loader.js"]`,
   `iframe[src*="pulse.is"]`,
   `iframe[src*="sendpulse"]`,
+  "[id*=\"sp-chat\"]",
+  "[class*=\"sp-chat\"]",
+  "[id*=\"sp-live\"]",
+  "[class*=\"sp-live\"]",
+  "[id*=\"pulse\"]",
+  "[class*=\"pulse\"]",
+  "[id*=\"chat-widget\"]",
+  "[class*=\"chat-widget\"]",
   `[data-live-chat-id="${LIVE_CHAT_ID}"]`,
   "#sp-live-chat",
   "#sp-chat-widget",
@@ -43,7 +51,13 @@ export default function LiveChatScript() {
       removeLiveChatWidget();
       const observer = new MutationObserver(() => removeLiveChatWidget());
       observer.observe(document.body, { childList: true, subtree: true });
-      return () => observer.disconnect();
+      const interval = window.setInterval(() => removeLiveChatWidget(), 1000);
+      const timeout = window.setTimeout(() => window.clearInterval(interval), 10000);
+      return () => {
+        observer.disconnect();
+        window.clearInterval(interval);
+        window.clearTimeout(timeout);
+      };
     }
   }, [pathname]);
 
