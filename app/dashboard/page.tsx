@@ -28,8 +28,8 @@ import { Suspense } from "react";
 import { ExitIntentModal } from "../components/ExitIntentModal";
 
 import { FunnelCard } from "./FunnelCard";
-import { BrainCard } from "./BrainCard";
 import { Scratchpad } from "./Scratchpad";
+import { KnowledgeUpdater } from "./KnowledgeUpdater";
 import { WorkshopsWidget } from "./WorkshopsWidget";
 
 export default async function DashboardPage() {
@@ -334,7 +334,7 @@ export default async function DashboardPage() {
               <FunnelCard />
             </div>
             <div className="h-40">
-              <BrainCard />
+              <KnowledgeUpdater />
             </div>
             <div className="h-40">
               <Scratchpad />
