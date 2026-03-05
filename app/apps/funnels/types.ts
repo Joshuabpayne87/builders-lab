@@ -42,6 +42,7 @@ export interface GenerateCodeRequest {
 export interface GenerateCodeResponse {
   htmlCode: string;
   success: boolean;
+  funnelId?: string;
 }
 
 export interface DeployFunnelRequest {

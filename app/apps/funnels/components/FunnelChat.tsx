@@ -11,7 +11,7 @@ interface Message {
 }
 
 export default function FunnelChat() {
-  const { strategyDoc, setStrategyDoc, setStage, setGeneratedCode, setIsGenerating, isGenerating } = useFunnel();
+  const { strategyDoc, setStrategyDoc, setStage, setGeneratedCode, setIsGenerating, isGenerating, setFunnelId } = useFunnel();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -115,6 +115,12 @@ export default function FunnelChat() {
       if (data.success && data.htmlCode) {
         setGeneratedCode(data.htmlCode);
         setStage('CODE');
+
+        // Set the funnel ID if returned from the API
+        if (data.funnelId) {
+          setFunnelId(data.funnelId);
+          console.log('[FUNNEL CHAT] Funnel created with ID:', data.funnelId);
+        }
 
         setMessages(prev => [...prev, {
           id: Date.now().toString(),

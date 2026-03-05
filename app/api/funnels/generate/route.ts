@@ -1,5 +1,7 @@
 import { createGeminiClient } from "@/lib/gemini";
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createFunnel } from "@/app/apps/funnels/services/funnelService";
 import type { GenerateCodeRequest, GenerateCodeResponse } from "@/app/apps/funnels/types";
 
 const CODE_GENERATION_PROMPT = `
@@ -177,9 +179,53 @@ export async function POST(req: Request) {
 
     htmlCode = htmlCode.replace(/```html\n?/g, "").replace(/```\n?/g, "").trim();
 
+    // Create or update funnel in database
+    let funnelId: string | null = null;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // Try to get existing draft funnel for this user
+        const { data: existingFunnels } = await supabase
+          .from("bl_funnels_projects")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "draft")
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (existingFunnels && existingFunnels.length > 0) {
+          // Update existing draft
+          funnelId = existingFunnels[0].id;
+          await supabase
+            .from("bl_funnels_projects")
+            .update({
+              strategy_doc: strategyDoc,
+              html_code: htmlCode,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", funnelId);
+        } else {
+          // Create new funnel
+          const newFunnel = await createFunnel({
+            name: title || "Untitled Funnel",
+            strategy_doc: strategyDoc,
+            html_code: htmlCode,
+            status: "draft",
+          });
+          funnelId = newFunnel.id;
+        }
+      }
+    } catch (dbError) {
+      console.error("Error creating/updating funnel:", dbError);
+      // Don't fail the generation, just log the error
+    }
+
     const response: GenerateCodeResponse = {
       htmlCode,
       success: true,
+      funnelId: funnelId || undefined,
     };
 
     return NextResponse.json(response);
