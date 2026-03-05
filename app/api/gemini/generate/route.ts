@@ -20,7 +20,7 @@ export async function POST(req: Request) {
           if (p.inlineData) part.inlineData = p.inlineData;
           if (p.fileData) part.fileData = p.fileData;
           if (p.functionCall) part.functionCall = p.functionCall;
-          if (p.functionResponse) part.functionCall = p.functionResponse;
+          if (p.functionResponse) part.functionResponse = p.functionResponse;
           return part;
         }),
         role: c.content?.role
