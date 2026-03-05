@@ -166,7 +166,7 @@ export async function POST(req: Request) {
     }));
 
     const result = await client.models.generateContent({
-      model: "gemini-2.0-flash-exp", // Using the fast model for chat
+      model: "gemini-2.5-flash", // Using the fast model for chat
       config: {
         systemInstruction: SYSTEM_PROMPT,
       },

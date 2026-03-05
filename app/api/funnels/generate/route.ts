@@ -157,7 +157,7 @@ export async function POST(req: Request) {
     const client = createGeminiClient();
 
     const result = await client.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: CODE_GENERATION_PROMPT,
       },
