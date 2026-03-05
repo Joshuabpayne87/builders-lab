@@ -176,7 +176,7 @@ function ComponentStudioContent() {
       const fetchDynamicPlaceholders = async () => {
           try {
               const response = await geminiGenerateContent({
-                  model: 'gemini-2.0-flash-exp',
+                  model: 'gemini-2.5-flash',
                   contents: {
                       role: 'user',
                       parts: [{
@@ -287,7 +287,7 @@ function ComponentStudioContent() {
         `.trim();
 
         const responseStream = await geminiGenerateContentStream({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash',
              contents: [{ parts: [{ text: prompt }], role: 'user' }],
              config: { temperature: 1.2 }
         });
@@ -388,7 +388,7 @@ function ComponentStudioContent() {
         `.trim();
 
         const styleResponse = await geminiGenerateContent({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash',
             contents: { role: 'user', parts: [{ text: stylePrompt }] }
         });
 
@@ -445,7 +445,7 @@ function ComponentStudioContent() {
                   `.trim();
 
                 const responseStream = await geminiGenerateContentStream({
-                    model: 'gemini-2.0-flash-exp',
+                    model: 'gemini-2.5-flash',
                     contents: [{ parts: [{ text: prompt }], role: "user" }],
                 });
 

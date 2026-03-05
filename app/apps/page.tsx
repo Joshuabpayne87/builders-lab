@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Users,
   Code,
+  Video,
 } from "lucide-react";
 
 export default async function AppsPage() {
@@ -119,6 +120,36 @@ export default async function AppsPage() {
         "Podcast script generation",
         "Bullet-point extraction",
         "Multi-format export",
+      ],
+    },
+    {
+      name: "Visions",
+      tagline: "Pro AI Image Studio",
+      description: "A high-fidelity creative studio for generating professional images. Featuring Flux Pro for unparalleled detail, with advanced control over aspect ratios and curated visual vibes.",
+      icon: Sparkles,
+      href: "/apps/visions",
+      image: "/app-cards/visions.png",
+      features: [
+        "Flux Pro image generation",
+        "Imagen 3 integration",
+        "Pro aspect ratio controls",
+        "Curated visual vibes",
+        "Freepik-style asset library",
+      ],
+    },
+    {
+      name: "TypeMotion",
+      tagline: "Cinematic Motion Typography",
+      description: "Create dramatic 3D text animations with Gemini image and video models. Design custom typography, animate it, and export MP4 or GIF.",
+      icon: Video,
+      href: "/apps/type-motion",
+      image: "/app-cards/visions.png",
+      features: [
+        "Text-to-image typography",
+        "Cinematic video generation",
+        "Reference image guidance",
+        "Style suggestions",
+        "MP4 and GIF export",
       ],
     },
     {

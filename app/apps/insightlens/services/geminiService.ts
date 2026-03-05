@@ -3,9 +3,9 @@ import { geminiGenerateContent } from "@/lib/gemini-http";
 import { LensType, TransformationResult, MindMapNode } from '../types';
 
 const MODELS = {
-  TEXT: 'gemini-2.0-flash-exp',
-  COMPLEX: 'gemini-2.0-flash-exp',
-  IMAGE: 'gemini-2.0-flash-exp'
+  TEXT: 'gemini-2.5-flash',
+  COMPLEX: 'gemini-2.5-flash',
+  IMAGE: 'gemini-2.5-flash'
 };
 
 /**

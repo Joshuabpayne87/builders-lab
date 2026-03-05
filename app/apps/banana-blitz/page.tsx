@@ -4,10 +4,11 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Trash2, Calendar, Database, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Calendar, Database, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
 import { Category, VisualVibe, AspectRatio, VoiceTone, AppState, GeneratedImage, Campaign } from './types';
 import { bananaBlitzService } from './services/geminiService';
 import { saveSession, listSessions, deleteSession } from '@/lib/session-client';
+import { getRecommendedVibe, getPreferences } from '@/lib/preference-client';
 import type { Session as SupabaseSession } from '@/lib/session-service';
 import ScheduleContentModal from '@/components/ScheduleContentModal';
 import { toast } from 'sonner';
@@ -52,7 +53,8 @@ function BananaBlitzContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [sessionIdMap, setSessionIdMap] = useState<Map<string, string>>(new Map());
-  
+  const [recommendedVibe, setRecommendedVibe] = useState<string | null>(null);
+
   // Scheduling Modal State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -98,6 +100,19 @@ function BananaBlitzContent() {
       }
     }
     loadCampaigns();
+  }, []);
+
+  // Load recommended vibe based on user preferences
+  useEffect(() => {
+    async function loadPreferences() {
+      const vibe = await getRecommendedVibe('banana-blitz');
+      if (vibe) {
+        setRecommendedVibe(vibe);
+        // Auto-select the recommended vibe
+        setState(prev => ({ ...prev, selectedVibe: vibe as VisualVibe }));
+      }
+    }
+    loadPreferences();
   }, []);
 
   // DEPRECATED: Old localStorage code - replaced by Supabase sessions
@@ -407,9 +422,12 @@ function BananaBlitzContent() {
                 <button
                   key={v}
                   onClick={() => setState(p => ({ ...p, selectedVibe: v }))}
-                  className={`px-4 py-2 rounded-full text-[10px] font-black whitespace-nowrap border transition-all ${state.selectedVibe === v ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-600'}`}
+                  className={`px-4 py-2 rounded-full text-[10px] font-black whitespace-nowrap border transition-all flex items-center gap-1.5 ${state.selectedVibe === v ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-600'}`}
                 >
                   {v.toUpperCase()}
+                  {recommendedVibe === v && (
+                    <Sparkles className="w-3 h-3" />
+                  )}
                 </button>
               ))}
             </div>

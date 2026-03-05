@@ -1,5 +1,6 @@
 import { Type } from "@google/genai";
 import { geminiGenerateContent } from "@/lib/gemini-http";
+import { recordPreference, getPreferenceContext } from "@/lib/preference-client";
 import { Category, PromptSet, VisualVibe, AspectRatio, VoiceTone, GroundingSource } from "../types";
 
 class BananaBlitzService {
@@ -41,6 +42,17 @@ class BananaBlitzService {
     }
   }
 
+  private async recordUserPreferences(vibe: VisualVibe, tone: VoiceTone) {
+    try {
+      await Promise.all([
+        recordPreference('banana-blitz', 'vibe', vibe),
+        recordPreference('banana-blitz', 'tone', tone)
+      ]);
+    } catch (e) {
+      console.warn("Failed to record preferences", e);
+    }
+  }
+
   private async retryOperation<T>(operation: () => Promise<T>, maxRetries = 7, initialDelay = 1000): Promise<T> {
     let lastError: any;
     
@@ -76,6 +88,12 @@ class BananaBlitzService {
   ): Promise<{ promptSets: PromptSet[], captions: { platform: string; text: string }[], sources: GroundingSource[] }> {
     const vibeDesc = this.getVibeDescription(vibe);
 
+    // Record user preferences for learning
+    this.recordUserPreferences(vibe, tone);
+
+    // Get user's preference context for smarter generation
+    const preferenceContext = await getPreferenceContext('banana-blitz');
+
     const systemInstruction = `You are a world-class social media strategist and visual designer.
     TASK: Turn the provided text into a high-impact social media campaign.
     1. Generate visual prompts for these categories:
@@ -88,6 +106,8 @@ class BananaBlitzService {
 
     VISUAL STYLE: "${vibe}" (${vibeDesc}).
     ${refImage ? "INCORPORATE STYLE: Strictly follow the characters and style of the attached reference image." : ""}
+
+    ${preferenceContext ? `\nCONTEXT: ${preferenceContext}` : ""}
 
     CRITICAL: Output valid JSON matching the provided schema.`;
 
@@ -102,7 +122,7 @@ class BananaBlitzService {
     }
 
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: [{ parts }], // Wrap parts in content object
       config: {
         systemInstruction,
@@ -208,7 +228,7 @@ class BananaBlitzService {
     const vibeDesc = this.getVibeDescription(vibe);
 
     const response = await this.retryOperation(() => geminiGenerateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: [{
         parts: [
           { inlineData: { data: base64, mimeType } },
