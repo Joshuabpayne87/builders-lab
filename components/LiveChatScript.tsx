@@ -42,9 +42,8 @@ export default function LiveChatScript() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const isAllowedHost = LIVE_CHAT_HOSTNAMES.has(window.location.hostname);
-    const isDashboard = pathname.startsWith("/dashboard");
-    const isAllowedRoute = (pathname === "/" || pathname === "/join" || pathname === "") && !isDashboard;
-    const shouldEnable = isAllowedHost && isAllowedRoute;
+    const isHomePage = pathname === "/" || pathname === "";
+    const shouldEnable = isAllowedHost && isHomePage;
     setEnabled(shouldEnable);
     document.body.classList.toggle("chat-disabled", !shouldEnable);
 
