@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Loader } from 'lucide-react';
+import { ArrowLeft, Loader, Check } from 'lucide-react';
 import type { FunnelTemplate } from '../types';
+import { FORM_PRESETS } from '../templates/formPresets';
 
 interface TemplateConfiguratorProps {
   template: FunnelTemplate;
@@ -18,6 +19,7 @@ export default function TemplateConfigurator({
   const [variables, setVariables] = useState<Record<string, string>>(
     Object.fromEntries(template.quickStartQuestions.map(q => [q.variable, '']))
   );
+  const [selectedFormPreset, setSelectedFormPreset] = useState('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (variable: string, value: string) => {
@@ -38,6 +40,16 @@ export default function TemplateConfigurator({
     Object.entries(variables).forEach(([key, value]) => {
       strategyDoc = strategyDoc.replace(new RegExp(`{{${key}}}`, 'g'), value);
     });
+
+    // Add form preset info to the strategy
+    const formPreset = FORM_PRESETS.find(p => p.id === selectedFormPreset);
+    if (formPreset) {
+      const fieldNames = formPreset.fields.map(f => f.label).join(', ');
+      strategyDoc = strategyDoc.replace(
+        /## Form Fields\n-[^#]*/,
+        `## Form Fields\nForm Preset: ${formPreset.name}\n- ${fieldNames}`
+      );
+    }
 
     // Small delay for UX feedback
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -82,6 +94,43 @@ export default function TemplateConfigurator({
             />
           </div>
         ))}
+
+        {/* Form Preset Selection */}
+        <div className="mt-8 pt-6 border-t border-slate-800">
+          <label className="block text-sm font-medium text-slate-300 mb-3">
+            Form Fields Preset
+          </label>
+          <p className="text-xs text-slate-500 mb-4">
+            Choose which fields your form will collect from leads
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {FORM_PRESETS.filter(p => p.id !== 'custom').map(preset => (
+              <button
+                key={preset.id}
+                onClick={() => setSelectedFormPreset(preset.id)}
+                className={`p-3 rounded-lg border-2 transition-all text-left ${
+                  selectedFormPreset === preset.id
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-slate-700 bg-slate-900/50 hover:border-slate-600'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-sm text-slate-200">
+                      {preset.name}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {preset.description}
+                    </p>
+                  </div>
+                  {selectedFormPreset === preset.id && (
+                    <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Action Buttons */}
