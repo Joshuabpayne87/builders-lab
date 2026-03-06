@@ -5,6 +5,7 @@ import { Send, Sparkles, Paperclip, Code } from 'lucide-react';
 import { useFunnel } from '../FunnelContext';
 import TemplateQuickStart from './TemplateQuickStart';
 import NotificationsPanel from './NotificationsPanel';
+import ProgressIndicator from './ProgressIndicator';
 
 interface Message {
   id: string;
@@ -249,6 +250,7 @@ export default function FunnelChat() {
       </div>
   
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+          <ProgressIndicator isVisible={isGenerating} />
           {messages.map((msg) => {
             // Parse suggested answers from assistant messages
             const suggestedAnswersMatch = msg.role === 'assistant'
