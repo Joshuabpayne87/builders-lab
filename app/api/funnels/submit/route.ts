@@ -46,20 +46,37 @@ export async function POST(req: Request) {
       .select()
       .single();
 
+    // Handle contact errors
+    let contactId: string | null = null;
+
     if (contactError) {
       if (contactError.code === "23505") {
-        const { error: updateError } = await supabase
+        // Duplicate email - fetch existing contact
+        const { data: existingContact, error: fetchError } = await supabase
+          .from("bl_crm_contacts")
+          .select("id")
+          .eq("user_id", funnel.user_id)
+          .eq("email", email)
+          .single();
+
+        if (fetchError) {
+          console.error("Failed to fetch existing contact:", fetchError);
+          return NextResponse.json(
+            { error: "Failed to save submission" },
+            { status: 500 }
+          );
+        }
+
+        contactId = existingContact?.id || null;
+
+        // Update last_contacted_at
+        await supabase
           .from("bl_crm_contacts")
           .update({
             last_contacted_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
-          .eq("user_id", funnel.user_id)
-          .eq("email", email);
-
-        if (updateError) {
-          console.error("Failed to update existing contact:", updateError);
-        }
+          .eq("id", contactId);
       } else {
         console.error("Failed to create contact:", contactError);
         return NextResponse.json(
@@ -67,49 +84,65 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
+    } else {
+      contactId = contact?.id || null;
     }
 
-    await incrementSubmissionCount(funnelId);
-
-    if (contact) {
-      await supabase.from("bl_funnels_leads").insert({
-        funnel_id: funnelId,
-        contact_id: contact.id,
-        step_id: null,
-      });
-
-      // Send email notification to funnel owner
+    // Increment submission count
+    if (funnelId) {
       try {
-        const { data: userData } = await supabase
-          .from("bl_users")
-          .select("email")
-          .eq("id", funnel.user_id)
+        await incrementSubmissionCount(funnelId);
+      } catch (err) {
+        console.error("Failed to increment submission count:", err);
+        // Don't fail the form submission if this fails
+      }
+    }
+
+    // Add to funnel leads if we have a contact ID
+    if (contactId) {
+      try {
+        await supabase.from("bl_funnels_leads").insert({
+          funnel_id: funnelId,
+          contact_id: contactId,
+          step_id: null,
+        });
+      } catch (err) {
+        console.error("Failed to create funnel lead link:", err);
+        // Don't fail the form submission if this fails
+      }
+    }
+
+    // Send email notification to funnel owner
+    try {
+      const { data: userData } = await supabase
+        .from("bl_users")
+        .select("email")
+        .eq("id", funnel.user_id)
+        .single();
+
+      if (userData?.email) {
+        const { data: userSettings } = await supabase
+          .from("bl_users_settings")
+          .select("funnel_lead_email_notifications")
+          .eq("user_id", funnel.user_id)
           .single();
 
-        if (userData?.email) {
-          const { data: userSettings } = await supabase
-            .from("bl_users_settings")
-            .select("funnel_lead_email_notifications")
-            .eq("user_id", funnel.user_id)
-            .single();
+        const shouldSendEmail = userSettings?.funnel_lead_email_notifications !== false;
 
-          const shouldSendEmail = userSettings?.funnel_lead_email_notifications !== false;
-
-          if (shouldSendEmail) {
-            // Send email asynchronously (don't block the response)
-            sendLeadNotificationEmail(
-              userData.email,
-              funnel.domain_slug || "Funnel",
-              contact.name,
-              contact.email,
-              funnelId
-            ).catch(err => console.error("Failed to send lead email:", err));
-          }
+        if (shouldSendEmail) {
+          // Send email asynchronously (don't block the response)
+          sendLeadNotificationEmail(
+            userData.email,
+            funnel.domain_slug || "Funnel",
+            name,
+            email,
+            funnelId
+          ).catch(err => console.error("Failed to send lead email:", err));
         }
-      } catch (emailError) {
-        console.error("Error processing email notification:", emailError);
-        // Don't fail the form submission if email fails
       }
+    } catch (emailError) {
+      console.error("Error processing email notification:", emailError);
+      // Don't fail the form submission if email fails
     }
 
     return NextResponse.json({
