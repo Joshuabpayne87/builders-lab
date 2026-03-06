@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Paperclip, Code } from 'lucide-react';
 import { useFunnel } from '../FunnelContext';
 import TemplateQuickStart from './TemplateQuickStart';
+import NotificationsPanel from './NotificationsPanel';
 
 interface Message {
   id: string;
@@ -170,14 +171,17 @@ export default function FunnelChat() {
   return (
     <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800">
       <div className="p-4 border-b border-slate-800 bg-slate-950/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-indigo-600/20 rounded-lg">
-            <Sparkles className="w-5 h-5 text-indigo-400" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-indigo-600/20 rounded-lg">
+              <Sparkles className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-white">Sales Architect</h2>
+              <p className="text-xs text-slate-400">Conversion Strategist</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-white">Sales Architect</h2>
-            <p className="text-xs text-slate-400">Conversion Strategist</p>
-          </div>
+          <NotificationsPanel />
         </div>
       </div>
   
