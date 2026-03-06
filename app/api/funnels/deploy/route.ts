@@ -70,14 +70,30 @@ export async function POST(req: Request) {
 
     console.log('[DEPLOY] Updating funnel with slug and HTML...');
 
-    const updatedFunnel = await updateFunnel(funnelId, {
+    let updatedFunnel;
+    const baseUpdateData = {
       domain_slug: finalSlug,
       html_code: deployedHtml,
       status: "published",
-      deployed_url: deployedUrl,
-    });
+    };
 
-    console.log('[DEPLOY] Funnel updated successfully:', { id: updatedFunnel.id, slug: updatedFunnel.domain_slug });
+    // Try to update with deployed_url, but fall back to without it if the column doesn't exist yet
+    try {
+      updatedFunnel = await updateFunnel(funnelId, {
+        ...baseUpdateData,
+        deployed_url: deployedUrl,
+      } as any);
+      console.log('[DEPLOY] Funnel updated successfully with deployed_url:', { id: updatedFunnel.id, slug: updatedFunnel.domain_slug });
+    } catch (urlError: any) {
+      // If deployed_url column doesn't exist yet, update without it
+      if (urlError.message?.includes("column") || urlError.message?.includes("deployed_url")) {
+        console.warn('[DEPLOY] deployed_url column may not exist, updating without it:', urlError.message);
+        updatedFunnel = await updateFunnel(funnelId, baseUpdateData as any);
+        console.log('[DEPLOY] Funnel updated successfully:', { id: updatedFunnel.id, slug: updatedFunnel.domain_slug });
+      } else {
+        throw urlError;
+      }
+    }
 
     console.log('[DEPLOY] Deployment complete:', { deployedUrl, slug: finalSlug });
 
