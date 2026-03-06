@@ -20,7 +20,7 @@ export default function FunnelChat() {
     {
       id: '1',
       role: 'assistant',
-      content: "👋 Welcome to The Builder's Lab Funnel Builder. I'm your Conversion Strategist.\n\nI'll help you architect a high-converting landing page that captures leads and drives sales. Let's start with the fundamentals:\n\n**What are you selling?** (Be specific - product, service, membership, course, etc.)"
+      content: "👋 Welcome to The Builder's Lab Funnel Builder. I'm your Conversion Strategist.\n\nI'll help you architect a high-converting landing page that captures leads and drives sales. To build the perfect funnel, I need to understand your business. **Answer these 5 questions and I'll create your complete strategy:**\n\n1. **What are you selling?** (product, service, membership, course, etc.)\n2. **Who's your ideal customer?** (e.g., freelance developers, e-commerce store owners, coaches)\n3. **What's the main benefit or transformation?** (e.g., Save 10 hours/week, Generate $50K/month, Land dream job)\n4. **What's the price/investment?** (e.g., $49/month, one-time $997, free trial then $99/month)\n5. **Do you have existing content?** (testimonials, case studies, product screenshots, or starting from scratch?)\n\nYou can answer all 5 at once, or I can help you work through them. Ready to build? 🚀"
     }
   ]);
   const [input, setInput] = useState('');
