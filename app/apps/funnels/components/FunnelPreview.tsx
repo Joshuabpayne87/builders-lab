@@ -1,15 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, Code2, FileText, Smartphone, Monitor, Rocket, Download, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Eye, Code2, FileText, Smartphone, Monitor, Rocket, Download, ExternalLink, CheckCircle2, BarChart3 } from 'lucide-react';
 import { useFunnel } from '../FunnelContext';
 import ReactMarkdown from 'react-markdown';
 import DeploymentModal from './DeploymentModal';
 import CodeEditor from './CodeEditor';
+import FunnelAnalytics from './FunnelAnalytics';
 
 export default function FunnelPreview() {
   const { strategyDoc, generatedCode, isGenerating, funnelId, deployedUrl, deployedSlug, setGeneratedCode } = useFunnel();
-  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'outline'>('outline');
+  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'outline' | 'analytics'>('outline');
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [editedCode, setEditedCode] = useState('');
@@ -86,6 +87,18 @@ export default function FunnelPreview() {
             >
               <Code2 className="w-3.5 h-3.5" />
               Code
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              disabled={!deployedUrl}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-2 transition-all whitespace-nowrap ${
+                activeTab === 'analytics'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              Analytics
             </button>
           </div>
 
@@ -198,6 +211,12 @@ export default function FunnelPreview() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="h-full overflow-hidden">
+              <FunnelAnalytics />
             </div>
           )}
         </div>

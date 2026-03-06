@@ -1,5 +1,6 @@
 import { getFunnelBySlug } from "@/app/apps/funnels/services/funnelService";
 import { notFound } from "next/navigation";
+import ViewTracker from "./ViewTracker";
 
 export default async function PublicFunnelPage({
   params,
@@ -14,9 +15,12 @@ export default async function PublicFunnelPage({
   }
 
   return (
-    <div
-      dangerouslySetInnerHTML={{ __html: funnel.html_code }}
-      suppressHydrationWarning
-    />
+    <>
+      <ViewTracker slug={slug} />
+      <div
+        dangerouslySetInnerHTML={{ __html: funnel.html_code }}
+        suppressHydrationWarning
+      />
+    </>
   );
 }
