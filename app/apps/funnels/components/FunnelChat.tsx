@@ -33,9 +33,11 @@ export default function FunnelChat() {
     setStage('STRATEGY');
     setShowTemplates(false);
 
-    // Trigger code generation automatically
+    // Trigger code generation automatically with the template strategy
     setTimeout(() => {
-      handleGenerateCode();
+      handleGenerateCode(strategyDocFromTemplate).catch(error => {
+        console.error('Template code generation failed:', error);
+      });
     }, 500);
   };
 
@@ -178,8 +180,9 @@ export default function FunnelChat() {
     }
   };
 
-  const handleGenerateCode = async () => {
-    if (!strategyDoc || isGenerating) return;
+  const handleGenerateCode = async (overrideStrategyDoc?: string) => {
+    const docToUse = overrideStrategyDoc || strategyDoc;
+    if (!docToUse || isGenerating) return;
 
     setIsGenerating(true);
     try {
@@ -187,7 +190,7 @@ export default function FunnelChat() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          strategyDoc,
+          strategyDoc: docToUse,
           title: 'Landing Page'
         }),
       });
