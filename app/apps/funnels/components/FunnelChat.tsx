@@ -42,6 +42,69 @@ export default function FunnelChat() {
     setShowTemplates(false);
   };
 
+  const handleSuggestedAnswer = async (answer: string) => {
+    if (isLoading) return;
+
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: answer };
+    setMessages(prev => [...prev, userMsg]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/funnels/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMsg] }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch response');
+
+      const data = await response.json();
+      let aiContent = data.content;
+
+      // Check for strategy update
+      const strategyMatch = aiContent.match(/\[UPDATE_STRATEGY\]([\s\S]*?)\[\/UPDATE_STRATEGY\]/);
+      if (strategyMatch) {
+        const strategyText = strategyMatch[1].trim();
+        setStrategyDoc(strategyText);
+        setStage('STRATEGY');
+
+        aiContent = aiContent.replace(/\[UPDATE_STRATEGY\][\s\S]*?\[\/UPDATE_STRATEGY\]/, '').trim();
+      }
+
+      // Check for auto-generate trigger
+      const shouldGenerate = aiContent.includes('[GENERATE_PAGE]');
+      if (shouldGenerate) {
+        aiContent = aiContent.replace(/\[GENERATE_PAGE\]/g, '').trim();
+
+        // Auto-trigger code generation
+        if (strategyDoc || strategyMatch) {
+          setTimeout(() => {
+            handleGenerateCode();
+          }, 500);
+        }
+      }
+
+      if (!aiContent) aiContent = "I've drafted the strategy document for you. Check the panel to the right.";
+
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiContent
+      };
+
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm having trouble connecting to the server. Please try again."
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -186,22 +249,53 @@ export default function FunnelChat() {
       </div>
   
       <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-none'
-                    : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none shadow-sm'
-                }`}
-              >
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+          {messages.map((msg) => {
+            // Parse suggested answers from assistant messages
+            const suggestedAnswersMatch = msg.role === 'assistant'
+              ? msg.content.match(/\[SUGGEST_ANSWERS:([^\]]+)\]/)
+              : null;
+
+            const suggestedAnswers = suggestedAnswersMatch
+              ? suggestedAnswersMatch[1].split('|').map(a => a.trim())
+              : [];
+
+            // Remove the [SUGGEST_ANSWERS:...] tag from display
+            const displayContent = msg.content.replace(/\[SUGGEST_ANSWERS:[^\]]+\]/g, '').trim();
+
+            return (
+              <div key={msg.id}>
+                <div
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'bg-indigo-600 text-white rounded-br-none'
+                        : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-bl-none shadow-sm'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap">{displayContent}</div>
+                  </div>
+                </div>
+
+                {/* Suggested answers buttons */}
+                {suggestedAnswers.length > 0 && (
+                  <div className="flex gap-2 mt-3 justify-start flex-wrap">
+                    {suggestedAnswers.map((answer, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSuggestedAnswer(answer)}
+                        disabled={isLoading}
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-300 hover:text-slate-100 disabled:text-slate-500 text-xs rounded-full border border-slate-700 transition-all"
+                      >
+                        {answer}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           
         {isLoading && (
           <div className="flex justify-start">
