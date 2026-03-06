@@ -132,6 +132,28 @@ Headline: text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold
 Subheadline: text-lg sm:text-xl md:text-2xl text-gray-600
 Layout: flex-col lg:flex-row for stacking on mobile, side-by-side on desktop
 
+CRITICAL: STRATEGY DOCUMENT USAGE
+You MUST extract and use the following from the Strategy Document:
+1. **Headlines & Subheadlines** - Use EXACT text from the strategy for main heading and subheading
+2. **Problem Section** - Extract and display the specific pain points mentioned
+3. **Solution Section** - Use the solution description from the strategy
+4. **Benefits/Features** - Create cards/sections for EACH benefit listed in the strategy (not generic features)
+5. **CTAs** - Use the exact CTA button text from the strategy
+6. **Social Proof** - If testimonials or stats are provided, include them prominently
+7. **Target Avatar** - Design messaging and copy that speaks directly to the avatar described
+
+MAPPING STRATEGY TO HTML:
+- Strategy headline → <h1> in hero
+- Strategy subheadline → <p class="text-xl ..."> below headline
+- Strategy problems → Problem section with each pain point as separate bullet or card
+- Strategy solution → Solution/how-it-works section with detailed description
+- Strategy benefits → Feature cards (one per benefit) with titles and descriptions
+- Strategy CTAs → Use exact button text and placement described
+- Strategy social proof → Testimonial section or stats section
+- Strategy company/avatar details → Use in headline/subheadline to personalize
+
+**DO NOT IGNORE THE STRATEGY** - Every section of the page must reflect the actual strategy provided, not generic placeholder content.
+
 // Form submission handler with enhanced UX:
 // - Retrieves FUNNEL_ID from __FUNNEL_ID__ placeholder
 // - Targets form element with ID 'optinForm'
