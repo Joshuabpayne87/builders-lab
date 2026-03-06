@@ -14,6 +14,7 @@ export interface Funnel {
   strategy_doc: string | null;
   submission_count: number;
   status: FunnelStatus;
+  deployed_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +25,7 @@ export interface FunnelFormData {
   html_code?: string;
   strategy_doc?: string;
   status?: FunnelStatus;
+  deployed_url?: string;
 }
 
 export interface FunnelSubmission {

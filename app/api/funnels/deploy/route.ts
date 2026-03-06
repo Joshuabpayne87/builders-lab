@@ -65,18 +65,19 @@ export async function POST(req: Request) {
 
     const deployedHtml = htmlCode.replace(/__FUNNEL_ID__/g, funnelId);
 
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const deployedUrl = `${appUrl}/f/${finalSlug}`;
+
     console.log('[DEPLOY] Updating funnel with slug and HTML...');
 
     const updatedFunnel = await updateFunnel(funnelId, {
       domain_slug: finalSlug,
       html_code: deployedHtml,
       status: "published",
+      deployed_url: deployedUrl,
     });
 
     console.log('[DEPLOY] Funnel updated successfully:', { id: updatedFunnel.id, slug: updatedFunnel.domain_slug });
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const deployedUrl = `${appUrl}/f/${finalSlug}`;
 
     console.log('[DEPLOY] Deployment complete:', { deployedUrl, slug: finalSlug });
 
