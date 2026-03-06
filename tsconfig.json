@@ -39,6 +39,9 @@
     "node_modules",
     "temp_repos",
     "plandex",
-    "scripts"
+    "scripts",
+    "Type-Motion",
+    "app/apps/type-motion",
+    "app/apps/visions"
   ]
 }
