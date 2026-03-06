@@ -56,3 +56,16 @@ export interface DeployFunnelResponse {
   deployedUrl: string;
   slug: string;
 }
+
+export interface FunnelTemplate {
+  id: string;
+  name: string;
+  category: 'saas' | 'course' | 'service' | 'agency' | 'ecommerce';
+  description: string;
+  strategyDoc: string;
+  quickStartQuestions: Array<{
+    variable: string;
+    question: string;
+    placeholder: string;
+  }>;
+}

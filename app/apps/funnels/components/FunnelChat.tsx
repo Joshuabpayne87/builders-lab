@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Paperclip, Code } from 'lucide-react';
 import { useFunnel } from '../FunnelContext';
+import TemplateQuickStart from './TemplateQuickStart';
 
 interface Message {
   id: string;
@@ -12,6 +13,7 @@ interface Message {
 
 export default function FunnelChat() {
   const { strategyDoc, setStrategyDoc, setStage, setGeneratedCode, setIsGenerating, isGenerating, setFunnelId } = useFunnel();
+  const [showTemplates, setShowTemplates] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -22,6 +24,22 @@ export default function FunnelChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleTemplateSelected = (strategyDocFromTemplate: string) => {
+    // User selected a template and filled in the details
+    setStrategyDoc(strategyDocFromTemplate);
+    setStage('STRATEGY');
+    setShowTemplates(false);
+
+    // Trigger code generation automatically
+    setTimeout(() => {
+      handleGenerateCode();
+    }, 500);
+  };
+
+  const handleSkipTemplates = () => {
+    setShowTemplates(false);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -139,6 +157,15 @@ export default function FunnelChat() {
       setIsGenerating(false);
     }
   };
+
+  if (showTemplates) {
+    return (
+      <TemplateQuickStart
+        onTemplateSelected={handleTemplateSelected}
+        onSkip={handleSkipTemplates}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800">
