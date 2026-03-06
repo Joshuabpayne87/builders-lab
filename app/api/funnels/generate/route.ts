@@ -132,6 +132,22 @@ Headline: text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold
 Subheadline: text-lg sm:text-xl md:text-2xl text-gray-600
 Layout: flex-col lg:flex-row for stacking on mobile, side-by-side on desktop
 
+FORM SUBMISSION JAVASCRIPT EXAMPLE:
+// Correct way to submit form with absolute URL:
+const funnelId = '__FUNNEL_ID__';
+const submitUrl = window.location.origin + '/api/funnels/submit';
+
+fetch(submitUrl, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ funnelId, name, email, phone })
+})
+
+// NEVER use:
+// - fetch('/api/funnels/submit', ...) ❌ May fail on subdomains
+// - fetch('api/funnels/submit', ...) ❌ Relative path won't resolve correctly
+// - fetch('./api/funnels/submit', ...) ❌ Wrong relative path
+
 CRITICAL: STRATEGY DOCUMENT USAGE
 You MUST extract and use the following from the Strategy Document:
 1. **Headlines & Subheadlines** - Use EXACT text from the strategy for main heading and subheading
@@ -159,10 +175,12 @@ MAPPING STRATEGY TO HTML:
 // - Targets form element with ID 'optinForm'
 // - On form submit: prevents default behavior, disables submit button, displays animated loading spinner
 // - Collects form data (name, email, phone) using FormData API
-// - Sends POST request to /api/funnels/submit endpoint with funnelId and form data as JSON
+// - Sends POST request to /api/funnels/submit endpoint with absolute URL path
+// - Form submission URL must be: window.location.origin + '/api/funnels/submit' to ensure correct path resolution
 // - On successful response: replaces entire form with animated success message featuring celebration emoji
 // - On error: displays error message below form, re-enables submit button, auto-removes error after 5 seconds
 // - Implements proper error handling with try-catch and user-friendly error messaging
+// - CRITICAL: Always use window.location.origin + '/api/funnels/submit' NOT just '/api/funnels/submit' or 'api/funnels/submit'
 
 OUTPUT REQUIREMENTS:
 - Return ONLY the complete HTML code
