@@ -13,6 +13,7 @@ DESIGN PHILOSOPHY:
 - **Conversion-optimized** - Clear hierarchy, compelling CTAs, trust signals
 - **Delightful interactions** - Smooth hover effects, micro-animations, transitions
 - **MOBILE-FIRST & FULLY RESPONSIVE** - Must look perfect on phones, tablets, and desktops
+- **READABLE & ACCESSIBLE** - High contrast, readable fonts, WCAG AA compliant (min 4.5:1 contrast)
 
 TECHNICAL REQUIREMENTS:
 1. Single HTML file with embedded CSS and JavaScript
@@ -40,16 +41,25 @@ MOBILE-FIRST RESPONSIVE DESIGN RULES:
 VISUAL DESIGN GUIDELINES:
 
 **Color & Gradients:**
-- Use sophisticated color palettes (not basic primary colors)
-- Implement gradient backgrounds (linear, radial, mesh)
-- Example: bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50
-- Dark mode friendly contrast ratios
+- Use light, bright backgrounds (white, off-white, light gradients)
+- CRITICAL: Ensure WCAG AA contrast ratio (4.5:1 for text)
+- For dark text: use on white/light backgrounds ONLY
+- For light text: use on dark backgrounds (dark blue, navy, charcoal)
+- Example light: bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50
+- Example dark: bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 with text-white
+- NEVER use dark backgrounds with dark text or light backgrounds with light text
+- Test contrast: black text on white, white text on dark blue
 
 **Typography:**
 - Large, bold headlines (text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl)
 - Proper font weights (font-semibold, font-bold, font-extrabold)
-- Line height and letter spacing for readability
-- Gradient text effects where appropriate
+- Line height and letter spacing for readability (line-height 1.3-1.6)
+- CRITICAL TEXT COLORS:
+  * On light backgrounds: use text-gray-900, text-black, or dark colors
+  * On dark backgrounds: use text-white, text-gray-100, or light colors
+  * Body text: text-gray-700 on light, text-gray-300 on dark
+  * AVOID: dark gray text on dark backgrounds, light text on light backgrounds
+- Gradient text effects only with sufficient contrast
 - Mobile: text-3xl, Desktop: text-6xl or larger
 
 **Spacing & Layout:**
