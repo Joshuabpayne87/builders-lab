@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { incrementSubmissionCount } from "@/app/apps/funnels/services/funnelService";
+import { sendLeadNotificationEmail } from "@/lib/email-service";
 import type { FunnelSubmission } from "@/app/apps/funnels/types";
 
 export async function POST(req: Request) {
@@ -76,6 +77,39 @@ export async function POST(req: Request) {
         contact_id: contact.id,
         step_id: null,
       });
+
+      // Send email notification to funnel owner
+      try {
+        const { data: userData } = await supabase
+          .from("bl_users")
+          .select("email")
+          .eq("id", funnel.user_id)
+          .single();
+
+        if (userData?.email) {
+          const { data: userSettings } = await supabase
+            .from("bl_users_settings")
+            .select("funnel_lead_email_notifications")
+            .eq("user_id", funnel.user_id)
+            .single();
+
+          const shouldSendEmail = userSettings?.funnel_lead_email_notifications !== false;
+
+          if (shouldSendEmail) {
+            // Send email asynchronously (don't block the response)
+            sendLeadNotificationEmail(
+              userData.email,
+              funnel.domain_slug || "Funnel",
+              contact.name,
+              contact.email,
+              funnelId
+            ).catch(err => console.error("Failed to send lead email:", err));
+          }
+        }
+      } catch (emailError) {
+        console.error("Error processing email notification:", emailError);
+        // Don't fail the form submission if email fails
+      }
     }
 
     return NextResponse.json({
