@@ -18,13 +18,15 @@ import {
   Trash2,
   Database,
   Users,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import StorageManager from "./components/StorageManager";
 import UserLibrary from "./components/UserLibrary";
 import WorkshopMatches from "./components/WorkshopMatches";
+import FunnelManager from "./components/FunnelManager";
 
-type SettingsTab = "profile" | "library" | "workshop";
+type SettingsTab = "profile" | "library" | "workshop" | "funnels";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -202,12 +204,12 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 mb-8">
+        <div className="flex flex-wrap gap-2 bg-white/5 p-1 rounded-xl border border-white/10 mb-8">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === "profile" 
-                ? "bg-white text-black shadow-lg" 
+            className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "profile"
+                ? "bg-white text-black shadow-lg"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -216,9 +218,9 @@ export default function SettingsPage() {
           </button>
           <button
             onClick={() => setActiveTab("library")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === "library" 
-                ? "bg-white text-black shadow-lg" 
+            className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "library"
+                ? "bg-white text-black shadow-lg"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -226,8 +228,19 @@ export default function SettingsPage() {
             User Library
           </button>
           <button
+            onClick={() => setActiveTab("funnels")}
+            className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === "funnels"
+                ? "bg-white text-black shadow-lg"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Zap className="w-4 h-4" />
+            Funnels
+          </button>
+          <button
             onClick={() => setActiveTab("workshop")}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${
               activeTab === "workshop"
                 ? "bg-white text-black shadow-lg"
                 : "text-slate-400 hover:text-white"
@@ -253,7 +266,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {activeTab === "profile" ? (
+        {activeTab === "profile" && (
           <>
             {/* Profile Picture */}
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-6">
@@ -401,9 +414,26 @@ export default function SettingsPage() {
               )}
             </button>
           </>
-        ) : activeTab === "library" ? (
+        )}
+
+        {activeTab === "library" && (
           <UserLibrary />
-        ) : (
+        )}
+
+        {activeTab === "funnels" && (
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                <Zap className="w-5 h-5" />
+                My Funnels
+              </h2>
+              <p className="text-sm text-slate-400">Manage and monitor your landing page funnels</p>
+            </div>
+            <FunnelManager />
+          </div>
+        )}
+
+        {activeTab === "workshop" && (
           <WorkshopMatches />
         )}
       </div>
