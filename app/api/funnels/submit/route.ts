@@ -8,7 +8,10 @@ export async function POST(req: Request) {
   try {
     const { funnelId, name, email, phone }: FunnelSubmission = await req.json();
 
+    console.log('[SUBMIT] Form submission received:', { funnelId, name, email, phone });
+
     if (!funnelId || !name || !email) {
+      console.error('[SUBMIT] Missing required fields:', { funnelId: !!funnelId, name: !!name, email: !!email });
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -17,12 +20,19 @@ export async function POST(req: Request) {
 
     const supabase = await createClient();
 
+    console.log('[SUBMIT] Fetching funnel:', funnelId);
     const { data: funnel, error: funnelError } = await supabase
       .from("bl_funnels_projects")
       .select("id, user_id, domain_slug")
       .eq("id", funnelId)
       .eq("status", "published")
       .single();
+
+    if (funnelError) {
+      console.error('[SUBMIT] Funnel fetch error:', funnelError);
+    } else {
+      console.log('[SUBMIT] Funnel found:', { id: funnel?.id, user_id: funnel?.user_id });
+    }
 
     if (funnelError || !funnel) {
       return NextResponse.json(
@@ -31,6 +41,7 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log('[SUBMIT] Creating contact:', { name, email });
     const { data: contact, error: contactError } = await supabase
       .from("bl_crm_contacts")
       .insert({
@@ -45,6 +56,8 @@ export async function POST(req: Request) {
       })
       .select()
       .single();
+
+    console.log('[SUBMIT] Contact creation result:', { contactError: contactError?.message, contactId: contact?.id });
 
     // Handle contact errors
     let contactId: string | null = null;
@@ -100,16 +113,24 @@ export async function POST(req: Request) {
 
     // Add to funnel leads if we have a contact ID
     if (contactId) {
+      console.log('[SUBMIT] Adding to funnel leads:', { funnelId, contactId });
       try {
-        await supabase.from("bl_funnels_leads").insert({
+        const { error: leadError } = await supabase.from("bl_funnels_leads").insert({
           funnel_id: funnelId,
           contact_id: contactId,
           step_id: null,
         });
+        if (leadError) {
+          console.error("[SUBMIT] Failed to create funnel lead link:", leadError);
+        } else {
+          console.log("[SUBMIT] Funnel lead created successfully");
+        }
       } catch (err) {
-        console.error("Failed to create funnel lead link:", err);
+        console.error("[SUBMIT] Failed to create funnel lead link (exception):", err);
         // Don't fail the form submission if this fails
       }
+    } else {
+      console.warn('[SUBMIT] No contactId, skipping funnel lead creation');
     }
 
     // Send email notification to funnel owner
