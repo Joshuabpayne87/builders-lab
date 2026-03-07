@@ -6,7 +6,10 @@ export async function GET(req: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    console.log('[LIST] Fetching funnels for user:', user?.id);
+
     if (!user) {
+      console.error('[LIST] Unauthorized - no user');
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -14,6 +17,7 @@ export async function GET(req: Request) {
     }
 
     // Get all funnels for this user
+    console.log('[LIST] Querying bl_funnels_projects for user:', user.id);
     const { data: funnels, error } = await supabase
       .from("bl_funnels_projects")
       .select(`
@@ -31,12 +35,14 @@ export async function GET(req: Request) {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Failed to fetch funnels:", error);
+      console.error('[LIST] Failed to fetch funnels:', error);
       return NextResponse.json(
-        { error: "Failed to fetch funnels" },
+        { error: "Failed to fetch funnels", details: error },
         { status: 500 }
       );
     }
+
+    console.log('[LIST] Found funnels:', funnels?.length || 0);
 
     // Get submission counts for each funnel
     const funnelsWithStats = await Promise.all(
@@ -53,14 +59,15 @@ export async function GET(req: Request) {
       })
     );
 
+    console.log('[LIST] Returning funnels:', funnelsWithStats.length);
     return NextResponse.json({
       success: true,
       funnels: funnelsWithStats,
     });
   } catch (error) {
-    console.error("List funnels error:", error);
+    console.error("[LIST] List funnels error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Internal server error", details: String(error) },
       { status: 500 }
     );
   }
